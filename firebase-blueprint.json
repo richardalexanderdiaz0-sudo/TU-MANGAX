@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "User profile containing basic info and roles.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "role", "createdAt"]
+    },
+    "story": {
+      "title": "Story (Comic/Manga/Manhwa)",
+      "description": "A comic, manga, or manhwa published by the admin.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "synopsis": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "type": { "type": "string", "enum": ["COMIC", "MANGA", "MANHWA"] },
+        "status": { "type": "string", "enum": ["ONGOING", "COMPLETED"] },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "chapterCount": { "type": "number" },
+        "isComingSoon": { "type": "boolean" },
+        "publishDate": { "type": "number" },
+        "viewsCount": { "type": "number" },
+        "likesCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "synopsis", "authorId", "type", "status", "chapterCount", "isComingSoon", "createdAt"]
+    },
+    "chapter": {
+      "title": "Chapter",
+      "description": "A chapter within a story.",
+      "type": "object",
+      "properties": {
+        "storyId": { "type": "string" },
+        "chapterNum": { "type": "number" },
+        "title": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "contentUrls": { "type": "array", "items": { "type": "string" } },
+        "pdfUrl": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["storyId", "chapterNum", "title", "createdAt"]
+    },
+    "libraryEntry": {
+      "title": "Library Entry",
+      "description": "A user's saved story reference.",
+      "type": "object",
+      "properties": {
+        "storyId": { "type": "string" },
+        "addedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["storyId", "addedAt"]
+    },
+    "comment": {
+      "title": "Comment",
+      "description": "A comment on a story.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "displayName": { "type": "string" },
+        "storyId": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "storyId", "content", "createdAt"]
+    },
+    "like": {
+      "title": "Like",
+      "description": "A user's like on a story.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "storyId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "storyId", "createdAt"]
+    },
+    "report": {
+      "title": "Report",
+      "description": "A report against a story or comment.",
+      "type": "object",
+      "properties": {
+        "reporterId": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["STORY", "COMMENT"] },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["reporterId", "targetId", "targetType", "reason", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": { "$ref": "#/entities/userProfile" },
+      "description": "User profiles. Includes roles like admin."
+    },
+    "users/{userId}/library/{libraryId}": {
+      "schema": { "$ref": "#/entities/libraryEntry" },
+      "description": "User's personal library of saved stories."
+    },
+    "stories/{storyId}": {
+      "schema": { "$ref": "#/entities/story" },
+      "description": "Published comics, mangas, and manhwas."
+    },
+    "stories/{storyId}/chapters/{chapterId}": {
+      "schema": { "$ref": "#/entities/chapter" },
+      "description": "Chapters belonging to a specific story."
+    },
+    "stories/{storyId}/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/comment" },
+      "description": "Comments left on a story."
+    },
+    "stories/{storyId}/likes/{likeId}": {
+      "schema": { "$ref": "#/entities/like" },
+      "description": "Likes left on a story."
+    },
+    "reports/{reportId}": {
+      "schema": { "$ref": "#/entities/report" },
+      "description": "User reports for moderation."
+    }
+  }
+}

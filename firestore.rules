@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    // Primitive Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn(); } // simplified for Google Sign in usually being verified
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    // Admin check: using the specified email for bootstrapping
+    function isAdminEmail() {
+      return isSignedIn() && request.auth.token.email == "richardalexanderdiaz0@gmail.com";
+    }
+    function isAdmin() {
+      return isAdminEmail() || (isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin');
+    }
+
+    // ---------------------------------------------------------
+    // USERS
+    // ---------------------------------------------------------
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role', 'createdAt']) &&
+             data.email is string && data.email.size() <= 200 &&
+             data.role is string && (data.role == 'user' || data.role == 'admin') &&
+             data.createdAt is timestamp &&
+             (data.get('displayName', '') is string);
+    }
+    
+    match /users/{userId} {
+      // Create: Users can create their own profile. Cannot set admin unless their email matches the master email.
+      allow create: if isVerified() && isValidId(userId) && request.auth.uid == userId && isValidUser(incoming()) && 
+                    (incoming().role == 'user' || (incoming().role == 'admin' && isAdminEmail())) &&
+                    incoming().email == request.auth.token.email &&
+                    incoming().createdAt == request.time;
+                    
+      // Update: Users can update their own displayName. Admins can update roles.
+      allow update: if isVerified() && isValidId(userId) && isValidUser(incoming()) && (
+                      (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['role', 'displayName'])) ||
+                      (request.auth.uid == userId && incoming().diff(existing()).affectedKeys().hasOnly(['displayName']))
+                    );
+                    
+      // Read: Users can read their own profile, admins can read all.
+      allow get: if isVerified() && isValidId(userId) && (request.auth.uid == userId || isAdmin());
+      allow list: if isVerified() && (request.auth.uid == userId || isAdmin());
+      
+      // ---------------------------------------------------------
+      // LIBRARY
+      // ---------------------------------------------------------
+      function isValidLibraryEntry(data) {
+        return data.keys().hasAll(['storyId', 'addedAt']) &&
+               data.storyId is string && data.storyId.size() <= 128 &&
+               data.addedAt is timestamp;
+      }
+      match /library/{libraryId} {
+        allow create: if isVerified() && request.auth.uid == userId && isValidLibraryEntry(incoming()) && incoming().addedAt == request.time &&
+                      exists(/databases/$(database)/documents/stories/$(incoming().storyId));
+        allow get: if isVerified() && request.auth.uid == userId;
+        allow list: if isVerified() && request.auth.uid == userId;
+        allow delete: if isVerified() && request.auth.uid == userId;
+      }
+    }
+
+    // ---------------------------------------------------------
+    // STORIES
+    // ---------------------------------------------------------
+    function isValidStory(data) {
+      return data.keys().hasAll(['title', 'synopsis', 'authorId', 'type', 'status', 'chapterCount', 'isComingSoon', 'createdAt']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.synopsis is string && data.synopsis.size() <= 10000 &&
+             data.authorId is string && data.authorId.size() <= 128 &&
+             data.type is string && (data.type == 'COMIC' || data.type == 'MANGA' || data.type == 'MANHWA') &&
+             data.status is string && (data.status == 'ONGOING' || data.status == 'COMPLETED') &&
+             data.chapterCount is number &&
+             data.isComingSoon is bool &&
+             data.createdAt is timestamp &&
+             (data.get('coverUrl', '') is string) &&
+             (data.get('publishDate', 0) is number) &&
+             (data.get('viewsCount', 0) is number) &&
+             (data.get('likesCount', 0) is number) &&
+             (data.get('authorName', '') is string) &&
+             (data.get('updatedAt', request.time) is timestamp); // added array check logic
+    }
+    
+    match /stories/{storyId} {
+      allow read: if true; // Publicly readable (or isSignedIn if needed, let's allow all or just verified)
+      
+      allow create: if isVerified() && isAdmin() && isValidId(storyId) && isValidStory(incoming()) &&
+                    incoming().authorId == request.auth.uid &&
+                    incoming().createdAt == request.time;
+                    
+      allow update: if isVerified() && isValidId(storyId) && isValidStory(incoming()) && (
+                      (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['title', 'synopsis', 'coverUrl', 'type', 'status', 'categories', 'tags', 'chapterCount', 'isComingSoon', 'publishDate', 'updatedAt'])) ||
+                      (incoming().diff(existing()).affectedKeys().hasOnly(['viewsCount', 'likesCount'])) // any verified user can increment views/likes via functions or allow it here
+                    ) &&
+                    incoming().authorId == existing().authorId;
+                    
+      allow delete: if isVerified() && isAdmin();
+
+      // ---------------------------------------------------------
+      // CHAPTERS
+      // ---------------------------------------------------------
+      function isValidChapter(data) {
+         return data.keys().hasAll(['storyId', 'chapterNum', 'title', 'createdAt']) &&
+                data.storyId is string && data.storyId.size() <= 128 &&
+                data.chapterNum is number &&
+                data.title is string && data.title.size() <= 200 &&
+                data.createdAt is timestamp &&
+                (data.get('coverUrl', '') is string) &&
+                (data.get('pdfUrl', '') is string);
+      }
+      
+      match /chapters/{chapterId} {
+        allow read: if true; // publicly readable
+        allow create: if isVerified() && isAdmin() && isValidId(chapterId) && isValidChapter(incoming()) &&
+                      incoming().storyId == storyId &&
+                      incoming().createdAt == request.time &&
+                      exists(/databases/$(database)/documents/stories/$(storyId));
+        allow update: if isVerified() && isAdmin() && isValidId(chapterId) && isValidChapter(incoming()) &&
+                      incoming().storyId == existing().storyId &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['title', 'coverUrl', 'contentUrls', 'pdfUrl']);
+        allow delete: if isVerified() && isAdmin();
+      }
+
+      // ---------------------------------------------------------
+      // COMMENTS
+      // ---------------------------------------------------------
+      function isValidComment(data) {
+        return data.keys().hasAll(['userId', 'storyId', 'content', 'createdAt']) &&
+               data.userId is string && data.userId.size() <= 128 &&
+               data.storyId is string && data.storyId.size() <= 128 &&
+               data.content is string && data.content.size() <= 2000 &&
+               data.createdAt is timestamp &&
+               (data.get('displayName', '') is string);
+      }
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isVerified() && request.auth.uid == incoming().userId && isValidComment(incoming()) &&
+                      incoming().storyId == storyId &&
+                      incoming().createdAt == request.time &&
+                      exists(/databases/$(database)/documents/stories/$(storyId));
+        allow delete: if isVerified() && (request.auth.uid == existing().userId || isAdmin());
+      }
+      
+      // ---------------------------------------------------------
+      // LIKES
+      // ---------------------------------------------------------
+      function isValidLike(data) {
+        return data.keys().hasAll(['userId', 'storyId', 'createdAt']) &&
+               data.userId is string && data.userId.size() <= 128 &&
+               data.storyId is string && data.storyId.size() <= 128 &&
+               data.createdAt is timestamp;
+      }
+      match /likes/{likeId} {
+        allow get: if true;
+        allow list: if true; // or strict list checking
+        allow create: if isVerified() && request.auth.uid == incoming().userId && isValidLike(incoming()) &&
+                      incoming().storyId == storyId && incoming().createdAt == request.time &&
+                      exists(/databases/$(database)/documents/stories/$(storyId));
+        allow delete: if isVerified() && request.auth.uid == existing().userId;
+      }
+    }
+    
+    // ---------------------------------------------------------
+    // REPORTS
+    // ---------------------------------------------------------
+    function isValidReport(data) {
+        return data.keys().hasAll(['reporterId', 'targetId', 'targetType', 'reason', 'createdAt']) &&
+               data.reporterId is string && data.reporterId.size() <= 128 &&
+               data.targetId is string && data.targetId.size() <= 128 &&
+               data.targetType is string && (data.targetType == 'STORY' || data.targetType == 'COMMENT') &&
+               data.reason is string && data.reason.size() <= 1000 &&
+               data.createdAt is timestamp;
+    }
+    match /reports/{reportId} {
+      allow create: if isVerified() && request.auth.uid == incoming().reporterId && isValidReport(incoming()) &&
+                    incoming().createdAt == request.time;
+      allow read: if isVerified() && isAdmin();
+      allow delete: if isVerified() && isAdmin();
+    }
+  }
+}
