@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
-import { Home, Compass, Library, User, PlusSquare } from 'lucide-react';
+import { Home, Compass, Library, User, PlusSquare, Heart } from 'lucide-react';
 
 export default function BottomNav() {
     const { userProfile } = useStore();
@@ -12,6 +12,7 @@ export default function BottomNav() {
     const navItems = [
         { path: '/', label: 'Inicio', icon: Home },
         { path: '/directory', label: 'Descubre', icon: Compass },
+        { path: '/donate', label: 'Donar', icon: Heart },
         { path: '/library', label: 'Biblioteca', icon: Library },
         { path: '/profile', label: 'Perfil', icon: User },
     ];

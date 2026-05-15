@@ -18,6 +18,11 @@ import ReadingView from './pages/ReadingView';
 import AdminStudio from './pages/AdminStudio';
 import Library from './pages/Library';
 import Profile from './pages/Profile';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import FAQ from './pages/FAQ';
+import Donate from './pages/Donate';
+import Footer from './components/Footer';
 
 function Layout() {
   const location = useLocation();
@@ -35,8 +40,13 @@ function Layout() {
           <Route path="/admin/*" element={<AdminStudio />} />
           <Route path="/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/donate" element={<Donate />} />
         </Routes>
       </main>
+      {!isReadingView && <Footer />}
       {!isReadingView && <BottomNav />}
     </div>
   );
