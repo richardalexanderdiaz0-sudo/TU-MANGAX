@@ -214,7 +214,8 @@ function CreationWizard() {
                 } else {
                     for (let j = 0; j < c.pages.length; j++) {
                         const p = c.pages[j];
-                        const url = await uploadFile(p, `pages/${storyId}_ch${i+1}_p${j}_${Date.now()}`);
+                        const ext = p.name.split('.').pop();
+                        const url = await uploadFile(p, `pages/${storyId}_ch${i+1}_p${j}_${Date.now()}.${ext}`);
                         pageUrls.push(url);
                     }
                 }
@@ -321,7 +322,7 @@ function CreationWizard() {
                             <div key={i} className="bg-slate-50 p-6 rounded-[2rem] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                                 <h3 className="font-black text-lg mb-4 text-primary uppercase">Capítulo {i+1}</h3>
                                 <div>
-                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes locales) O Link a PDF/Google Drive</label>
+                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes o PDF) O Link a Google Drive</label>
                                     <input 
                                         type="url"
                                         placeholder="Ej: https://drive.google.com/file/d/... o enlace PDF"
@@ -340,7 +341,7 @@ function CreationWizard() {
                                         <input 
                                             type="file" 
                                             multiple 
-                                            accept="image/jpeg,image/png,image/webp" 
+                                            accept="image/jpeg,image/png,image/webp,application/pdf" 
                                             onChange={e => {
                                                 const newCh = [...chapters];
                                                 newCh[i].pages = Array.from(e.target.files || []);
@@ -349,7 +350,7 @@ function CreationWizard() {
                                             className="hidden" 
                                         />
                                         <Upload className="h-8 w-8 text-slate-300 group-hover:text-primary mb-2 transition-colors" />
-                                        <span className="font-black text-slate-400 group-hover:text-primary-dark transition-colors uppercase text-sm">Cargar Imágenes</span>
+                                        <span className="font-black text-slate-400 group-hover:text-primary-dark transition-colors uppercase text-sm">Cargar Imágenes o PDF</span>
                                     </label>
                                     {ch.pages.length > 0 && <p className="text-xs text-primary mt-3 font-black underline decoration-wavy tracking-tight">{ch.pages.length} ARCHIVOS LISTOS</p>}
                                 </div>
@@ -533,7 +534,8 @@ function EditStory() {
             const pageUrls = [];
             for (let i = 0; i < pages.length; i++) {
                 const p = pages[i];
-                const url = await uploadFile(p, `pages/${storyId}_ch${nextChapNum}_p${i}_${Date.now()}`);
+                const ext = p.name.split('.').pop();
+                const url = await uploadFile(p, `pages/${storyId}_ch${nextChapNum}_p${i}_${Date.now()}.${ext}`);
                 pageUrls.push(url);
             }
 
@@ -638,12 +640,12 @@ function EditStory() {
                                 <input 
                                     type="file" 
                                     multiple 
-                                    accept="image/jpeg,image/png,image/webp" 
+                                    accept="image/jpeg,image/png,image/webp,application/pdf" 
                                     onChange={e => setPages(Array.from(e.target.files || []))} 
                                     className="hidden" 
                                 />
                                 <Upload className="h-10 w-10 text-slate-200 group-hover:text-primary mb-3 transition-colors" />
-                                <span className="font-black text-slate-300 group-hover:text-primary-dark transition-all text-sm uppercase">Cargar Imágenes</span>
+                                <span className="font-black text-slate-300 group-hover:text-primary-dark transition-all text-sm uppercase">Cargar Imágenes o PDF</span>
                             </label>
                             
                             {pages.length > 0 && (
