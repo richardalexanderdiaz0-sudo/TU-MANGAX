@@ -162,6 +162,63 @@ function CreationWizard() {
     const [publishMode, setPublishMode] = useState('NOW'); // NOW or SOON
     const [publishDate, setPublishDate] = useState('');
 
+    const [draftFound, setDraftFound] = useState<{ date: string, type: string, action: string, data: any } | null>(null);
+
+    // Draft system
+    useEffect(() => {
+        const savedDraft = localStorage.getItem('story_draft');
+        if (savedDraft) {
+            try {
+                const parsed = JSON.parse(savedDraft);
+                setDraftFound({
+                    date: parsed.updatedAt,
+                    type: parsed.type,
+                    action: "creando una nueva obra",
+                    data: parsed
+                });
+            } catch (e) {
+                localStorage.removeItem('story_draft');
+            }
+        }
+    }, []);
+
+    // Auto-save draft
+    useEffect(() => {
+        if (!title && !synopsis && chapterCount === 1 && selectedCats.length === 0) return;
+        
+        const timeout = setTimeout(() => {
+            const draftData = {
+                type, title, authorNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate,
+                updatedAt: new Date().toLocaleString()
+            };
+            localStorage.setItem('story_draft', JSON.stringify(draftData));
+        }, 1000);
+        
+        return () => clearTimeout(timeout);
+    }, [type, title, authorNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate]);
+
+    const restoreDraft = () => {
+        if (draftFound) {
+            const d = draftFound.data;
+            setType(d.type || 'MANHWA');
+            setTitle(d.title || '');
+            setAuthorNameInput(d.authorNameInput || '');
+            setSynopsis(d.synopsis || '');
+            setStatus(d.status || 'COMPLETED');
+            setChapterCount(d.chapterCount || 1);
+            setSelectedCats(d.selectedCats || []);
+            setSelectedTags(d.selectedTags || []);
+            setPublishMode(d.publishMode || 'NOW');
+            setPublishDate(d.publishDate || '');
+            setDraftFound(null);
+        }
+    };
+
+    const discardDraft = () => {
+        localStorage.removeItem('story_draft');
+        setDraftFound(null);
+    };
+
     useEffect(() => {
         if(chapterCount > chapters.length) {
             const extra = Array.from({length: chapterCount - chapters.length}, () => ({cover: null, pages: []}));
@@ -244,6 +301,21 @@ function CreationWizard() {
 
     return (
         <div className="max-w-3xl mx-auto bg-white p-8 rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black">
+            {draftFound && (
+                <div className="mb-8 p-6 bg-amber-50 border-4 border-amber-400 rounded-3xl shadow-[4px_4px_0px_0px_rgba(251,191,36,1)]">
+                    <h3 className="font-black text-amber-600 uppercase italic mb-2 tracking-tighter text-xl">PROCESO GUARDADO ENCONTRADO</h3>
+                    <p className="text-slate-700 font-bold mb-6">
+                        Estabas en el sistema a las <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">{draftFound.date}</span> haciendo <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded-md">{draftFound.action}</span>. ¿Quieres restaurarlo?
+                        <br/>
+                        <span className="text-xs text-slate-500 font-normal mt-2 block">(Nota: Tendrás que volver a seleccionar tus imágenes/PDF)</span>
+                    </p>
+                    <div className="flex gap-4">
+                        <button onClick={discardDraft} className="px-6 py-2 bg-white text-slate-500 border-2 border-slate-300 rounded-xl font-black uppercase hover:bg-slate-100 transition-colors">Descartar</button>
+                        <button onClick={restoreDraft} className="px-6 py-2 bg-amber-400 text-white border-2 border-black rounded-xl font-black uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-500 transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">Restaurar</button>
+                    </div>
+                </div>
+            )}
+
             {step === 1 && (
                 <div className="flex flex-col gap-6 text-slate-800">
                     <h2 className="text-2xl font-black text-primary-dark border-b-4 border-black/10 pb-4 uppercase italic">Paso 1: Detalles</h2>
@@ -259,8 +331,9 @@ function CreationWizard() {
 
                     <div>
                         <label className="block text-sm font-black mb-2 uppercase text-slate-500">Portada</label>
-                        <label className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                        <label htmlFor="coverFile" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
                             <input 
+                                id="coverFile"
                                 type="file" 
                                 accept="image/jpeg,image/png,image/webp" 
                                 onChange={e => setCoverFile(e.target.files?.[0] || null)} 
@@ -319,8 +392,9 @@ function CreationWizard() {
                                 <h3 className="font-black text-lg mb-4 text-primary uppercase">Capítulo {i+1}</h3>
                                 <div>
                                     <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes o PDF local)</label>
-                                    <label className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                                    <label htmlFor={`chapterFile-${i}`} className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
                                         <input 
+                                            id={`chapterFile-${i}`}
                                             type="file" 
                                             multiple 
                                             accept="image/jpeg,image/png,image/webp,application/pdf" 
@@ -618,8 +692,9 @@ function EditStory() {
                     <div className="space-y-6">
                         <div>
                             <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest text-center">Toca para cargar archivos</label>
-                            <label className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                            <label htmlFor="newChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
                                 <input 
+                                    id="newChapterFiles"
                                     type="file" 
                                     multiple 
                                     accept="image/jpeg,image/png,image/webp,application/pdf" 
