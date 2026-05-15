@@ -17,6 +17,8 @@ export default function Home() {
     const [trending, setTrending] = useState<StoryInfo[]>([]);
     const [allComics, setAllComics] = useState<StoryInfo[]>([]);
     const [completed, setCompleted] = useState<StoryInfo[]>([]);
+    const [comingSoon, setComingSoon] = useState<StoryInfo[]>([]);
+    const [dailyUpdates, setDailyUpdates] = useState<StoryInfo[]>([]);
 
     const navigate = useNavigate();
 
@@ -48,11 +50,20 @@ export default function Home() {
                     .select('*')
                     .eq('status', 'COMPLETED')
                     .limit(15);
+
+                const { data: soonSnap } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .eq('status', 'SOON')
+                    .limit(15);
                 
                 if (recentSnap) setRecentlyAdded(recentSnap as StoryInfo[]);
                 if (trendSnap) setTrending(trendSnap as StoryInfo[]);
                 if (allSnap) setAllComics(allSnap as StoryInfo[]);
                 if (compSnap) setCompleted(compSnap as StoryInfo[]);
+                if (soonSnap) setComingSoon(soonSnap as StoryInfo[]);
+                // For daily updates, let's just use recently added for now or random
+                if (recentSnap) setDailyUpdates(recentSnap.slice(0, 8) as StoryInfo[]);
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }
@@ -62,25 +73,34 @@ export default function Home() {
     }, []);
 
     const renderSection = (title: string, stories: StoryInfo[], link?: string) => {
-        if (!stories || stories.length === 0) return null;
-        
         return (
             <section className="mb-12">
                 <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8">
                     {link ? (
-                        <button onClick={() => navigate(link)} className="flex items-center gap-1 text-xl font-black text-primary-dark hover:text-primary transition-colors group">
+                        <button onClick={() => navigate(link)} className="flex items-center gap-1 text-xl font-black text-primary-dark hover:text-primary transition-colors group uppercase italic tracking-tighter">
                             {title}
                             <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ) : (
-                        <h2 className="text-xl font-black text-primary-dark">{title}</h2>
+                        <h2 className="text-xl font-black text-primary-dark uppercase italic tracking-tighter">{title}</h2>
                     )}
                 </div>
-                <div className="flex gap-4 overflow-x-auto pb-4 px-4 sm:px-6 lg:px-8 snap-x hide-scrollbar">
-                    {stories.map(story => (
-                        <StoryCard key={story.id} story={story} />
-                    ))}
-                </div>
+                
+                {stories && stories.length > 0 ? (
+                    <div className="flex gap-4 overflow-x-auto pb-4 px-4 sm:px-6 lg:px-8 snap-x hide-scrollbar">
+                        {stories.map(story => (
+                            <StoryCard key={story.id} story={story} />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="px-4 sm:px-6 lg:px-8">
+                        <div className="bg-white/50 border-4 border-dashed border-black/10 rounded-[2.5rem] py-16 flex flex-col items-center justify-center text-center">
+                            <p className="font-black text-slate-300 uppercase italic text-sm tracking-widest px-4">
+                                Aun no hay nada por aquí... por ahora
+                            </p>
+                        </div>
+                    </div>
+                )}
             </section>
         );
     };
@@ -88,10 +108,11 @@ export default function Home() {
     return (
         <div className="py-8">
             {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
+            {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
+            {renderSection("PRÓXIMAMENTE", comingSoon)}
             {renderSection("TÍTULOS EN TENDENCIA", trending)}
-            {renderSection("CÓMICS Y MANHWAS", allComics, "/directory")}
+            {renderSection("TODAS LAS OBRAS", allComics, "/directory")}
             {renderSection("TERMINADOS", completed)}
-            {renderSection("CÓMICS/MANHWAS/MANGAS TERMINADOS", completed, "/directory?status=COMPLETED")}
         </div>
     );
 }

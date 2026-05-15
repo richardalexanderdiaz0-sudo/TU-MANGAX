@@ -41,8 +41,8 @@ export default function Library() {
             {loading ? (
                 <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
             ) : savedStories.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-3xl border-4 border-black border-dashed">
-                    <p className="text-xl mb-6 font-bold text-slate-400 uppercase">Aún no tienes historias guardadas.</p>
+                <div className="text-center py-24 bg-white/50 rounded-[3rem] border-4 border-black/10 border-dashed">
+                    <p className="text-sm font-black text-slate-300 uppercase italic tracking-widest px-4 mb-6">Aun no hay nada por aquí... por ahora</p>
                     <Link to="/directory" className="toon-button bg-primary inline-block">¡Explorar Historias!</Link>
                 </div>
             ) : (

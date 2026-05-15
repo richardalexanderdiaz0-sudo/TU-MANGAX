@@ -67,6 +67,7 @@ export default function Directory() {
                         <option value="">Cualquier Estado</option>
                         <option value="ONGOING">En Emisión</option>
                         <option value="COMPLETED">Finalizado</option>
+                        <option value="SOON">Próximamente</option>
                     </select>
                 </div>
             </div>
@@ -90,11 +91,17 @@ export default function Directory() {
                                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                                     {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
                                     {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
+                                    {story.status === 'SOON' && <span className="bg-primary text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
                                 </div>
                             </div>
                             <h3 className="font-bold text-sm text-slate-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors px-1">{story.title}</h3>
                         </Link>
                     ))}
+                    {filteredStories.length === 0 && (
+                        <div className="col-span-full py-24 bg-white/50 border-4 border-dashed border-black/10 rounded-[3rem] flex flex-col items-center justify-center text-center">
+                            <p className="font-black text-slate-300 uppercase italic tracking-widest text-sm">Aun no hay nada por aquí... por ahora</p>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
