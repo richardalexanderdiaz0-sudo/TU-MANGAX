@@ -1,6 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, query, collection, where, getDocs, updateDoc, increment, addDoc, orderBy, onSnapshot } from 'firebase/firestore';
+import { getAuth, signOut } from 'firebase/auth';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD4t6Tq1bAell9u6V8UcErv1Ee4gFo78y0",
@@ -13,28 +12,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
 export const auth = getAuth(app);
-
-export const googleProvider = new GoogleAuthProvider();
-
-export const loginWithGoogle = async () => {
-    try {
-        const result = await signInWithPopup(auth, googleProvider);
-        // Ensure user profile exists
-        const userDocRef = doc(db, 'users', result.user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (!userDoc.exists()) {
-            await setDoc(userDocRef, {
-                email: result.user.email,
-                role: result.user.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
-                displayName: result.user.displayName || 'Usuario',
-                createdAt: new Date(),
-            });
-        }
-    } catch (error) {
-        console.error("Login failed:", error);
-    }
-}
 
 export const logout = () => signOut(auth);

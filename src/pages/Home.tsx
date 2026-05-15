@@ -1,24 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, orderBy, getDocs, limit } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { supabase } from '../services/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 
 interface StoryInfo {
     id: string;
     title: string;
-    coverUrl: string;
-    type: string;
+    cover_url: string;
     status: string;
-    isComingSoon: boolean;
-    publishDate?: number;
-    viewsCount: number;
-    chapterCount: number;
+    likes_count: number;
+    created_at: string;
 }
 
 export default function Home() {
     const [recentlyAdded, setRecentlyAdded] = useState<StoryInfo[]>([]);
-    const [comingSoon, setComingSoon] = useState<StoryInfo[]>([]);
     const [trending, setTrending] = useState<StoryInfo[]>([]);
     const [allComics, setAllComics] = useState<StoryInfo[]>([]);
     const [completed, setCompleted] = useState<StoryInfo[]>([]);
@@ -27,25 +22,37 @@ export default function Home() {
 
     useEffect(() => {
         const fetchStories = async () => {
-            const storiesRef = collection(db, 'stories');
-            
-            // Due to Firestore indexing rules, we'll fetch recently published (active)
-            const recentQ = query(storiesRef, where('isComingSoon', '==', false), orderBy('createdAt', 'desc'), limit(15));
-            const soonQ = query(storiesRef, where('isComingSoon', '==', true), orderBy('publishDate', 'asc'), limit(15));
-            const trendQ = query(storiesRef, where('isComingSoon', '==', false), orderBy('viewsCount', 'desc'), limit(15));
-            const allQ = query(storiesRef, where('isComingSoon', '==', false), orderBy('createdAt', 'desc'), limit(30));
-            const completedQ = query(storiesRef, where('status', '==', 'COMPLETED'), limit(15));
-
             try {
-                const [recentSnap, soonSnap, trendSnap, allSnap, compSnap] = await Promise.all([
-                    getDocs(recentQ),getDocs(soonQ),getDocs(trendQ),getDocs(allQ),getDocs(completedQ)
-                ]);
+                // Recently added
+                const { data: recentSnap } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(15);
+                    
+                // Trending (by likes)
+                const { data: trendSnap } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .order('likes_count', { ascending: false })
+                    .limit(15);
+
+                const { data: allSnap } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(30);
+                    
+                const { data: compSnap } = await supabase
+                    .from('stories')
+                    .select('*')
+                    .eq('status', 'COMPLETED')
+                    .limit(15);
                 
-                setRecentlyAdded(recentSnap.docs.map(d => ({ id: d.id, ...d.data() } as StoryInfo)));
-                setComingSoon(soonSnap.docs.map(d => ({ id: d.id, ...d.data() } as StoryInfo)));
-                setTrending(trendSnap.docs.map(d => ({ id: d.id, ...d.data() } as StoryInfo)));
-                setAllComics(allSnap.docs.map(d => ({ id: d.id, ...d.data() } as StoryInfo)));
-                setCompleted(compSnap.docs.map(d => ({ id: d.id, ...d.data() } as StoryInfo)));
+                if (recentSnap) setRecentlyAdded(recentSnap as StoryInfo[]);
+                if (trendSnap) setTrending(trendSnap as StoryInfo[]);
+                if (allSnap) setAllComics(allSnap as StoryInfo[]);
+                if (compSnap) setCompleted(compSnap as StoryInfo[]);
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }
@@ -55,18 +62,18 @@ export default function Home() {
     }, []);
 
     const renderSection = (title: string, stories: StoryInfo[], link?: string) => {
-        if (stories.length === 0) return null;
+        if (!stories || stories.length === 0) return null;
         
         return (
             <section className="mb-12">
                 <div className="flex items-center justify-between mb-4 px-4 sm:px-6 lg:px-8">
                     {link ? (
-                        <button onClick={() => navigate(link)} className="flex items-center gap-1 text-xl font-bold hover:text-primary transition-colors group">
+                        <button onClick={() => navigate(link)} className="flex items-center gap-1 text-xl font-black text-primary-dark hover:text-primary transition-colors group">
                             {title}
                             <ChevronRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ) : (
-                        <h2 className="text-xl font-bold">{title}</h2>
+                        <h2 className="text-xl font-black text-primary-dark">{title}</h2>
                     )}
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-4 px-4 sm:px-6 lg:px-8 snap-x hide-scrollbar">
@@ -81,12 +88,8 @@ export default function Home() {
     return (
         <div className="py-8">
             {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
-            {renderSection("PRÓXIMAMENTE", comingSoon)}
             {renderSection("TÍTULOS EN TENDENCIA", trending)}
-            
-            {/* The user requested CÓMICS Y MANHWAS which redirects to directory on click */}
             {renderSection("CÓMICS Y MANHWAS", allComics, "/directory")}
-            
             {renderSection("TERMINADOS", completed)}
             {renderSection("CÓMICS/MANHWAS/MANGAS TERMINADOS", completed, "/directory?status=COMPLETED")}
         </div>
@@ -97,22 +100,21 @@ function StoryCard({ story }: { story: StoryInfo, key?: React.Key }) {
     return (
         <Link 
             to={`/comic/${story.id}`} 
-            className="flex flex-col gap-2 min-w-[140px] max-w-[140px] sm:min-w-[160px] sm:max-w-[160px] snap-start group"
+            className="flex flex-col gap-3 min-w-[150px] max-w-[150px] sm:min-w-[180px] sm:max-w-[180px] snap-start group"
         >
-            <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-slate-800">
+            <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <img 
-                    src={story.coverUrl || 'https://via.placeholder.com/300x450?text=No+Cover'} 
+                    src={story.cover_url || 'https://via.placeholder.com/300x450?text=No+Cover'} 
                     alt={story.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-300"
                 />
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
-                    {story.isComingSoon && <span className="bg-indigo-600 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded shadow">Próximamente</span>}
-                    {story.status === 'COMPLETED' && <span className="bg-emerald-600 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded shadow">Finalizado</span>}
-                    {story.status === 'ONGOING' && !story.isComingSoon && <span className="bg-blue-600 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded shadow">Actualizado</span>}
+                    {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
+                    {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
+                    {story.status === 'SOON' && <span className="bg-primary text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
                 </div>
             </div>
-            <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">{story.title}</h3>
-            <p className="text-xs text-slate-400 capitalize">{story.type.toLowerCase()}</p>
+            <h3 className="font-bold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors px-1">{story.title}</h3>
         </Link>
     );
 }

@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, query, orderBy, getDocs, setDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { supabase } from '../services/supabase';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
 
@@ -21,20 +20,21 @@ export default function ReadingView() {
         if (!storyId || !chapterId) return;
 
         const fetchData = async () => {
-            const sDoc = await getDoc(doc(db, 'stories', storyId));
-            if (sDoc.exists()) setStory({ id: sDoc.id, ...sDoc.data() });
+            const { data: sDoc } = await supabase.from('stories').select('*').eq('id', storyId).single();
+            if (sDoc) setStory(sDoc);
 
-            const cDoc = await getDoc(doc(db, `stories/${storyId}/chapters/${chapterId}`));
-            if (cDoc.exists()) setChapter({ id: cDoc.id, ...cDoc.data() });
+            const { data: cDoc } = await supabase.from('chapters').select('*').eq('id', chapterId).single();
+            if (cDoc) setChapter(cDoc);
 
-            const chRef = collection(db, `stories/${storyId}/chapters`);
-            const chSnap = await getDocs(query(chRef, orderBy('chapterNum', 'asc')));
-            setAllChapters(chSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+            const { data: chSnap } = await supabase.from('chapters').select('*').eq('story_id', storyId).order('chapter_number', { ascending: true });
+            if (chSnap) setAllChapters(chSnap);
             
             // Auto add to library
             if (user) {
-                const libRef = doc(db, `users/${user.uid}/library/${storyId}`);
-                await setDoc(libRef, { storyId, addedAt: new Date() }, { merge: true });
+                const { data: libDoc } = await supabase.from('library').select('*').eq('user_id', user.uid).eq('story_id', storyId).maybeSingle();
+                if (!libDoc) {
+                    await supabase.from('library').insert({ user_id: user.uid, story_id: storyId });
+                }
             }
         };
 
@@ -78,88 +78,95 @@ export default function ReadingView() {
     if (!chapter) return <div className="h-screen bg-black text-white flex items-center justify-center">Cargando...</div>;
 
     return (
-        <div className="bg-[#111] min-h-screen relative text-slate-100 font-sans cursor-pointer selects-none" onClick={toggleUi}>
+        <div className="bg-[#111] min-h-screen relative text-slate-100 font-sans cursor-pointer select-none" onClick={toggleUi}>
             
             {/* Top UI */}
-            <div className={`fixed top-0 inset-x-0 h-16 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-between px-4 z-40 transition-transform duration-300 ${uiVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            <div className={`fixed top-0 inset-x-0 h-20 bg-white border-b-4 border-black flex items-center justify-between px-6 z-40 transition-transform duration-500 shadow-[0px_4px_0px_0px_rgba(0,0,0,1)] ${uiVisible ? 'translate-y-0' : '-translate-y-full'}`}>
                 <div 
                     className="flex flex-col"
                     onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`); }}
                 >
-                    <h2 className="font-bold text-sm line-clamp-1">{story?.title || 'Comic'}</h2>
-                    <p className="text-xs text-slate-300">Capítulo {chapter.chapterNum}</p>
+                    <h2 className="font-black text-primary-dark line-clamp-1 uppercase italic tracking-tighter leading-none">{story?.title || 'Comic'}</h2>
+                    <p className="text-xs font-black text-slate-400 mt-1 uppercase tracking-widest">Capítulo {chapter.chapter_number}</p>
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button onClick={toggleSubscribed} className="p-2 transition-colors hover:bg-white/10 rounded-full relative">
-                        {subscribed ? <Heart className="h-6 w-6 text-red-500 fill-red-500" /> : <Heart className="h-6 w-6 text-white" />}
-                        {!subscribed && <Plus className="h-3 w-3 absolute top-1 right-1 text-white border border-black bg-black rounded-full shadow" />}
+                    <button onClick={toggleSubscribed} className="toon-button bg-white p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative">
+                        {subscribed ? <Heart className="h-6 w-6 text-red-500 fill-red-500" /> : <Heart className="h-6 w-6 text-primary" />}
+                        {!subscribed && <Plus className="h-3 w-3 absolute top-0 right-0 text-white border-2 border-black bg-black rounded-full" />}
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`); }} className="p-2 transition-colors hover:bg-white/10 rounded-full">
-                        <Info className="h-6 w-6 text-white" />
+                    <button onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`); }} className="toon-button bg-white p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <Info className="h-6 w-6 text-primary" />
                     </button>
-                    <button onClick={handleShare} className="p-2 transition-colors hover:bg-white/10 rounded-full">
-                        <Share2 className="h-6 w-6 text-white" />
+                    <button onClick={handleShare} className="toon-button bg-white p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                        <Share2 className="h-6 w-6 text-primary" />
                     </button>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none pb-20">
-                {chapter.contentUrls && chapter.contentUrls.map((url: string, i: number) => (
+            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none pb-24">
+                {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => (
                     <img key={i} src={url} alt={`Page ${i+1}`} className="w-full h-auto block" loading="lazy" />
                 ))}
                 
-                <div className="py-12 flex flex-col items-center gap-4 border-t border-slate-800 w-full mt-4">
-                    <h3 className="text-lg font-bold">Fin del Capítulo {chapter.chapterNum}</h3>
-                    <div className="flex gap-4 cursor-auto" onClick={e=>e.stopPropagation()}>
-                        {prevChapter && <button onClick={() => navigate(`/read/${storyId}/${prevChapter.id}`)} className="px-6 py-2 bg-slate-800 rounded-full hover:bg-slate-700">Anterior</button>}
-                        {nextChapter && <button onClick={() => navigate(`/read/${storyId}/${nextChapter.id}`)} className="px-6 py-2 bg-indigo-600 rounded-full hover:bg-indigo-700 font-bold">Siguiente Capítulo</button>}
+                <div className="py-16 flex flex-col items-center gap-8 border-t-4 border-black/20 w-full mt-8 bg-black/40">
+                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">Fin del Capítulo {chapter.chapter_number}</h3>
+                    <div className="flex gap-4 cursor-auto px-4" onClick={e=>e.stopPropagation()}>
+                        {prevChapter && <button onClick={() => navigate(`/read/${storyId}/${prevChapter.id}`)} className="toon-button bg-slate-500 text-lg">Anterior</button>}
+                        {nextChapter && <button onClick={() => navigate(`/read/${storyId}/${nextChapter.id}`)} className="toon-button bg-primary text-xl px-10">Siguiente</button>}
                     </div>
                 </div>
             </div>
 
             {/* Bottom UI */}
-            <div className={`fixed bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black/90 to-black/50 flex items-center justify-between px-6 z-40 transition-transform duration-300 ${uiVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <div className={`fixed bottom-0 inset-x-0 h-20 bg-white border-t-4 border-black flex items-center justify-between px-8 z-40 transition-transform duration-500 shadow-[0px_-4px_0px_0px_rgba(0,0,0,1)] ${uiVisible ? 'translate-y-0' : 'translate-y-full'}`}>
                 <button 
                     onClick={(e) => { e.stopPropagation(); if(prevChapter) navigate(`/read/${storyId}/${prevChapter.id}`); }} 
-                    className={`p-2 transition-colors hover:bg-white/10 rounded-full ${!prevChapter ? 'opacity-30' : ''}`}
+                    className={`toon-button bg-slate-100 p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${!prevChapter ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
                     disabled={!prevChapter}
                 >
-                    <ChevronLeft className="h-8 w-8 text-white" />
+                    <ChevronLeft className="h-8 w-8 text-black" />
                 </button>
 
-                <button onClick={(e) => { e.stopPropagation(); setDrawerOpen(true); setUiVisible(false); }} className="p-2 transition-colors hover:bg-white/10 rounded-full">
+                <button onClick={(e) => { e.stopPropagation(); setDrawerOpen(true); setUiVisible(false); }} className="toon-button bg-primary-light p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-primary transition-colors">
                     <Menu className="h-8 w-8 text-white" />
                 </button>
 
                 <button 
                     onClick={(e) => { e.stopPropagation(); if(nextChapter) navigate(`/read/${storyId}/${nextChapter.id}`); }} 
-                    className={`p-2 transition-colors hover:bg-white/10 rounded-full ${!nextChapter ? 'opacity-30' : ''}`}
+                    className={`toon-button bg-slate-100 p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${!nextChapter ? 'opacity-30 grayscale cursor-not-allowed' : ''}`}
                     disabled={!nextChapter}
                 >
-                    <ChevronRight className="h-8 w-8 text-white" />
+                    <ChevronRight className="h-8 w-8 text-black" />
                 </button>
             </div>
 
             {/* Episodes Drawer */}
             {drawerOpen && (
-                <div className="fixed inset-0 z-50 flex flex-col bg-black/80 backdrop-blur-sm cursor-auto" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800">
-                        <h3 className="font-bold text-lg">Episodios</h3>
-                        <button onClick={() => setDrawerOpen(false)} className="p-2 hover:bg-slate-800 rounded-full"><X className="h-6 w-6" /></button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-                        {allChapters.map(chap => (
-                            <div 
-                                key={chap.id} 
-                                onClick={() => { setDrawerOpen(false); navigate(`/read/${storyId}/${chap.id}`); }}
-                                className={`flex items-center gap-4 p-2 rounded-lg cursor-pointer hover:bg-slate-800 ${chap.id === chapterId ? 'bg-slate-800 border border-indigo-500' : ''}`}
-                            >
-                                <img src={chap.coverUrl || story?.coverUrl} className="w-20 h-12 object-cover rounded" alt="" />
-                                <span className={`font-bold ${chap.id === chapterId ? 'text-indigo-400' : 'text-slate-200'}`}>Capítulo {chap.chapterNum}</span>
-                            </div>
-                        ))}
+                <div className="fixed inset-0 z-50 flex flex-col bg-primary/20 backdrop-blur-md cursor-auto p-4" onClick={(e) => e.stopPropagation()}>
+                    <div className="bg-white border-4 border-black rounded-[2.5rem] flex flex-col h-full shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden">
+                        <div className="flex items-center justify-between p-6 border-b-4 border-black bg-primary-light/10">
+                            <h3 className="font-black text-2xl text-primary-dark uppercase italic tracking-tighter">Episodios</h3>
+                            <button onClick={() => setDrawerOpen(false)} className="toon-button bg-white p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"><X className="h-6 w-6 text-black" /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar">
+                            {allChapters.map(chap => (
+                                <div 
+                                    key={chap.id} 
+                                    onClick={() => { setDrawerOpen(false); navigate(`/read/${storyId}/${chap.id}`); }}
+                                    className={`flex items-center gap-6 p-3 rounded-2xl cursor-pointer transition-all border-4 ${chap.id === chapterId ? 'bg-primary/10 border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' : 'bg-slate-50 border-transparent hover:border-black/10'}`}
+                                >
+                                    <div className="relative w-24 h-16 rounded-xl overflow-hidden border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                        <img src={story?.cover_url} className="w-full h-full object-cover" alt="" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
+                                            <span className="text-[10px] font-black text-white uppercase italic">Cap {chap.chapter_number}</span>
+                                        </div>
+                                    </div>
+                                    <span className={`font-black uppercase italic tracking-tighter text-lg ${chap.id === chapterId ? 'text-primary' : 'text-slate-700'}`}>Capítulo {chap.chapter_number}</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

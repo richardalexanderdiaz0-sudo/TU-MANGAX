@@ -1,22 +1,16 @@
--- Supabase Storage Setup for Nexus Manga & Manhwa
+-- Supabase Storage & Database Setup for Nexus Manga & Manhwa
 -- Run this in the Supabase SQL Editor
 
--- Create a storage bucket named 'nexus-storage'
+-- 1. Create a storage bucket named 'nexus-storage'
 insert into storage.buckets (id, name, public)
-values ('nexus-storage', 'nexus-storage', true);
+values ('nexus-storage', 'nexus-storage', true)
+on conflict (id) do nothing;
 
--- Policy to allow anyone to read files
 create policy "Public Access"
 on storage.objects for select
 to public
 using ( bucket_id = 'nexus-storage' );
 
--- Policy to allow authenticated users to upload files
--- We could restrict this to just the admin email if needed, but since we manage Auth via Firebase,
--- Supabase won't know the Firebase users. The user provided anonymous key, so they will upload from the client.
--- Since Supabase auth isn't integrated, we might just allow public uploads, but that's insecure.
--- Alternatively, the admin uploads using the Anon Key. Still insecure.
--- Let's just create a generic upload policy and the admin can secure it further if they want.
 create policy "Allow generic upload"
 on storage.objects for insert
 to public
@@ -31,3 +25,62 @@ create policy "Allow generic delete"
 on storage.objects for delete
 to public
 using ( bucket_id = 'nexus-storage' );
+
+
+-- 2. Create the Database Tables
+
+-- Table: users
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY, -- Firebase UID
+    email TEXT UNIQUE NOT NULL,
+    role TEXT NOT NULL DEFAULT 'user',
+    display_name TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table: stories
+CREATE TABLE IF NOT EXISTS stories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    synopsis TEXT,
+    cover_url TEXT,
+    author TEXT,
+    genres TEXT[],
+    status TEXT DEFAULT 'ONGOING',
+    likes_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table: chapters
+CREATE TABLE IF NOT EXISTS chapters (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    chapter_number INTEGER NOT NULL,
+    pages_urls TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Table: library (user favorites)
+CREATE TABLE IF NOT EXISTS library (
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+    story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
+    added_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (user_id, story_id)
+);
+
+-- Table: likes
+CREATE TABLE IF NOT EXISTS likes (
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+    story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    PRIMARY KEY (user_id, story_id)
+);
+
+-- Disable Row Level Security (RLS) for testing since Auth is in Firebase
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE stories DISABLE ROW LEVEL SECURITY;
+ALTER TABLE chapters DISABLE ROW LEVEL SECURITY;
+ALTER TABLE library DISABLE ROW LEVEL SECURITY;
+ALTER TABLE likes DISABLE ROW LEVEL SECURITY;
+

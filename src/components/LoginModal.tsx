@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { auth, db, googleProvider } from '../services/firebase';
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { X } from 'lucide-react';
+import { auth } from '../services/firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { supabase } from '../services/supabase';
+import { X, Mail, Lock } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
@@ -12,100 +12,121 @@ export default function LoginModal({ onClose }: Props) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const ensureUserDoc = async (userResult: any) => {
-    const userDocRef = doc(db, 'users', userResult.user.uid);
-    const userDoc = await getDoc(userDocRef);
-    if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-            email: userResult.user.email,
-            role: userResult.user.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
-            displayName: userResult.user.displayName || userResult.user.email?.split('@')[0] || 'Usuario',
-            createdAt: new Date(),
-        });
-    }
-  };
-
-  const signInGoogle = async () => {
+  const ensureUserDoc = async (userResult: any, dName?: string) => {
     try {
-      setError('');
-      const res = await signInWithPopup(auth, googleProvider);
-      await ensureUserDoc(res);
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
+        const { data: userDoc } = await supabase
+            .from('users')
+            .select('id')
+            .eq('id', userResult.user.uid)
+            .maybeSingle();
+            
+        if (!userDoc) {
+            await supabase.from('users').insert({
+                id: userResult.user.uid,
+                email: userResult.user.email,
+                role: userResult.user.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+                display_name: dName || displayName || userResult.user.email?.split('@')[0] || 'Usuario',
+            });
+        }
+    } catch (e) {
+        console.error("Aviso: No se pudo verificar o crear el perfil en Supabase. El inicio de sesión continuará.", e);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     try {
       if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        const res = await signInWithEmailAndPassword(auth, email, password);
+        await ensureUserDoc(res);
       } else {
         const res = await createUserWithEmailAndPassword(auth, email, password);
-        await ensureUserDoc(res);
+        await ensureUserDoc(res, displayName);
       }
       onClose();
     } catch (err: any) {
-      setError(err.message);
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Este correo ya está registrado.');
+      } else if (err.code === 'auth/invalid-credential') {
+        setError('Credenciales inválidas. Verifica tu correo y contraseña.');
+      } else {
+        setError(err.message);
+      }
+      setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-xl shadow-2xl overflow-hidden relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">
-          <X className="h-5 w-5" />
+    <div className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+      <div className="bg-white border-4 border-black w-full max-w-sm rounded-[2.5rem] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden relative">
+        <button onClick={onClose} disabled={loading} className="toon-button bg-white p-1 min-w-0 absolute top-4 right-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <X className="h-5 w-5 text-black" />
         </button>
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-white mb-6">
-            {isLogin ? 'Iniciar Sesión' : 'Regístrate'}
+          <h2 className="text-3xl font-black text-primary-dark mb-8 uppercase italic tracking-tighter">
+            {isLogin ? '¡HOLA DE NUEVO!' : '¡SÉ PARTE!'}
           </h2>
           
-          {error && <p className="text-red-400 text-sm mb-4 bg-red-400/10 p-2 rounded">{error}</p>}
+          {error && <p className="text-red-500 text-xs mb-6 bg-red-100 border-2 border-black p-3 rounded-xl font-black uppercase italic tracking-tighter shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">{error}</p>}
           
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            {!isLogin && (
+              <div>
+                <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Apodo / Name</label>
+                <input 
+                  type="text" 
+                  value={displayName} onChange={e=>setDisplayName(e.target.value)}
+                  className="w-full bg-slate-50 border-4 border-black rounded-2xl p-4 text-slate-800 font-bold outline-none focus:border-primary transition-colors placeholder:text-slate-300" 
+                  placeholder="Tu nombre ninja"
+                  disabled={loading}
+                />
+              </div>
+            )}
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-              <input 
-                type="email" 
-                value={email} onChange={e=>setEmail(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" 
-                required 
-              />
+              <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Email / Correo</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input 
+                  type="email" 
+                  value={email} onChange={e=>setEmail(e.target.value)}
+                  className="w-full bg-slate-50 border-4 border-black rounded-2xl pl-12 pr-4 py-4 text-slate-800 font-bold outline-none focus:border-primary transition-colors placeholder:text-slate-300" 
+                  placeholder="ejemplo@manga.com"
+                  required 
+                  disabled={loading}
+                />
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-1">Contraseña</label>
-              <input 
-                type="password" 
-                value={password} onChange={e=>setPassword(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg p-2.5 text-white" 
-                required 
-              />
+              <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">Password / Clave</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <input 
+                  type="password" 
+                  value={password} onChange={e=>setPassword(e.target.value)}
+                  className="w-full bg-slate-50 border-4 border-black rounded-2xl pl-12 pr-4 py-4 text-slate-800 font-bold outline-none focus:border-primary transition-colors placeholder:text-slate-300" 
+                  placeholder="••••••••"
+                  required 
+                  disabled={loading}
+                  minLength={6}
+                />
+              </div>
             </div>
-            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg transition-colors mt-2">
-              {isLogin ? 'Ingresar' : 'Crear Cuenta'}
+            <button type="submit" disabled={loading} className="toon-button bg-primary text-xl w-full py-4 mt-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex justify-center items-center gap-3">
+              {loading && <div className="h-5 w-5 rounded-full border-4 border-white/20 border-t-white animate-spin" />}
+              {loading ? 'DAME UN MOMENTO...' : isLogin ? 'ENTRAR' : '¡LISTO, UNIRME!'}
             </button>
           </form>
 
-          <div className="my-6 flex items-center gap-4">
-            <div className="flex-1 h-px bg-slate-700"></div>
-            <span className="text-sm text-slate-400 font-medium">O</span>
-            <div className="flex-1 h-px bg-slate-700"></div>
-          </div>
-
-          <button onClick={signInGoogle} className="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-            <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/><path fill="none" d="M1 1h22v22H1z"/></svg>
-            Continuar con Google
-          </button>
-
-          <p className="mt-6 text-center text-sm text-slate-400">
-            {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
-            <button onClick={() => setIsLogin(!isLogin)} className="text-indigo-400 hover:text-indigo-300 ml-1 font-semibold">
-              {isLogin ? 'Regístrate' : 'Ingresa'}
+          <p className="mt-8 text-center text-xs font-black uppercase text-slate-400 tracking-tighter">
+            {isLogin ? '¿PRIMERA VEZ AQUÍ?' : '¿YA TIENES CUENTA?'}
+            <button disabled={loading} onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-primary hover:text-primary-dark ml-2 underline decoration-black decoration-2 underline-offset-4 disabled:opacity-50 transition-all">
+              {isLogin ? 'REGÍSTRATE GRATIS' : 'INICIA SESIÓN'}
             </button>
           </p>
         </div>

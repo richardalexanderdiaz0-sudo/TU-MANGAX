@@ -1,65 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, getDocs, doc, getDoc } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { supabase } from '../services/supabase';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
 export default function Library() {
-    const { user } = useStore();
+    const { user, authLoading } = useStore();
     const navigate = useNavigate();
     const [savedStories, setSavedStories] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (authLoading) return;
+        
         if (!user) {
             navigate('/');
             return;
         }
 
         const fetchLibrary = async () => {
-            const libRef = collection(db, `users/${user.uid}/library`);
-            const snap = await getDocs(libRef);
+            // First fetch library items
+            const { data: libData } = await supabase.from('library').select('story_id').eq('user_id', user.uid);
             
-            const storyPromises = snap.docs.map(async (d) => {
-                const sDoc = await getDoc(doc(db, 'stories', d.data().storyId));
-                return sDoc.exists() ? { id: sDoc.id, ...sDoc.data() } : null;
-            });
-            
-            const stories = await Promise.all(storyPromises);
-            setSavedStories(stories.filter(Boolean));
+            if (libData && libData.length > 0) {
+                const storyIds = libData.map(l => l.story_id);
+                const { data: stories } = await supabase.from('stories').select('*').in('id', storyIds);
+                if (stories) {
+                    setSavedStories(stories);
+                }
+            }
             setLoading(false);
         };
 
         fetchLibrary();
-    }, [user, navigate]);
+    }, [user, navigate, authLoading]);
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
-            <h1 className="text-3xl font-bold mb-8">Mi Biblioteca</h1>
+            <h1 className="text-3xl font-black mb-8 text-primary-dark uppercase italic tracking-tighter font-display">Mi Biblioteca</h1>
             
             {loading ? (
-                <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div></div>
+                <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
             ) : savedStories.length === 0 ? (
-                <div className="text-center py-20 text-slate-400">
-                    <p className="text-xl mb-4">Aún no tienes historias guardadas.</p>
-                    <Link to="/directory" className="text-indigo-400 hover:text-indigo-300 font-medium">Explorar Historias</Link>
+                <div className="text-center py-20 bg-white rounded-3xl border-4 border-black border-dashed">
+                    <p className="text-xl mb-6 font-bold text-slate-400 uppercase">Aún no tienes historias guardadas.</p>
+                    <Link to="/directory" className="toon-button bg-primary inline-block">¡Explorar Historias!</Link>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
                     {savedStories.map(story => (
                         <Link 
                             key={story.id}
                             to={`/comic/${story.id}`} 
-                            className="flex flex-col gap-2 group relative"
+                            className="flex flex-col gap-3 group relative"
                         >
-                            <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-slate-800 border border-slate-700">
+                            <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <img 
-                                    src={story.coverUrl || 'https://via.placeholder.com/300x450'} 
+                                    src={story.cover_url || 'https://via.placeholder.com/300x450'} 
                                     alt={story.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500"
                                 />
                             </div>
-                            <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">{story.title}</h3>
+                            <h3 className="font-bold text-sm text-slate-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors px-1">{story.title}</h3>
                         </Link>
                     ))}
                 </div>

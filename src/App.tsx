@@ -3,53 +3,96 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { auth, db } from './services/firebase';
+import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { supabase } from './services/supabase';
 import { useStore } from './store';
 import Navbar from './components/Navbar';
+import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
 import Directory from './pages/Directory';
 import ComicDetail from './pages/ComicDetail';
 import ReadingView from './pages/ReadingView';
 import AdminStudio from './pages/AdminStudio';
 import Library from './pages/Library';
+import Profile from './pages/Profile';
 
-export default function App() {
-  const { setUser } = useStore();
-
-  useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        // Subscribe to profile changes
-        const unsubProfile = onSnapshot(doc(db, 'users', currentUser.uid), (userDoc) => {
-          setUser(currentUser, userDoc.exists() ? userDoc.data() : null);
-        });
-        return () => unsubProfile();
-      } else {
-        setUser(null, null);
-      }
-    });
-    return () => unsubAuth();
-  }, [setUser]);
+function Layout() {
+  const location = useLocation();
+  const isReadingView = location.pathname.startsWith('/read/');
 
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-slate-950 text-slate-200 font-sans flex flex-col">
-        <Navbar />
-        <main className="flex-1 flex flex-col">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/directory" element={<Directory />} />
-            <Route path="/comic/:id" element={<ComicDetail />} />
-            <Route path="/read/:storyId/:chapterId" element={<ReadingView />} />
-            <Route path="/admin/*" element={<AdminStudio />} />
-            <Route path="/library" element={<Library />} />
-          </Routes>
-        </main>
-      </div>
-    </BrowserRouter>
+    <div className="min-h-screen bg-background text-slate-800 font-sans flex flex-col">
+      {!isReadingView && <Navbar />}
+      <main className={`flex-1 flex flex-col ${!isReadingView ? 'pb-16 md:pb-0' : ''}`}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/directory" element={<Directory />} />
+          <Route path="/comic/:id" element={<ComicDetail />} />
+          <Route path="/read/:storyId/:chapterId" element={<ReadingView />} />
+          <Route path="/admin/*" element={<AdminStudio />} />
+          <Route path="/library" element={<Library />} />
+          <Route path="/profile" element={<Profile />} />
+        </Routes>
+      </main>
+      {!isReadingView && <BottomNav />}
+    </div>
+  );
+}
+
+export default function App() {
+  const { setUser, setAuthLoading } = useStore();
+
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        setAuthLoading(true);
+
+        try {
+          // Obtener el perfil del usuario desde Supabase
+          const { data: userDoc, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', currentUser.uid)
+            .single();
+
+          if (userDoc && !error) {
+            setUser(currentUser, userDoc);
+          } else {
+            // Si el documento no existe (aún), damos un perfil básico temporal basado en el correo
+            setUser(currentUser, {
+              email: currentUser.email,
+              role: currentUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+              display_name: currentUser.displayName || currentUser.email?.split('@')[0],
+              created_at: new Date().toISOString(),
+            });
+          }
+        } catch (e) {
+          console.error("Excepción al obtener perfil de Supabase:", e);
+          setUser(currentUser, {
+              email: currentUser.email,
+              role: currentUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+              display_name: currentUser.displayName || currentUser.email?.split('@')[0],
+              created_at: new Date().toISOString(),
+          });
+        }
+        setAuthLoading(false);
+      } else {
+        setUser(null, null);
+        setAuthLoading(false);
+      }
+    });
+
+    return () => {
+      unsubAuth();
+    };
+  }, [setUser, setAuthLoading]);
+
+  return (
+    <Router>
+      <Layout />
+    </Router>
   );
 }

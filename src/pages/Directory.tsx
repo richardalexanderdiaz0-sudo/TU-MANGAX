@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '../services/firebase';
+import { supabase } from '../services/supabase';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function Directory() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -10,29 +9,25 @@ export default function Directory() {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const typeFilter = searchParams.get('type') || '';
     const statusFilter = searchParams.get('status') || '';
-    const categoryFilter = searchParams.get('category') || '';
 
     useEffect(() => {
         fetchDirectory();
-    }, [typeFilter, statusFilter, categoryFilter]);
+    }, [statusFilter]);
 
     const fetchDirectory = async () => {
         setLoading(true);
-        let q = collection(db, 'stories');
-        
         try {
-            // Because Firestore requires composite indexes for multiple where + orderBy, 
-            // we will fetch all published stories and filter clientside. This is acceptable for modest catalogs.
-            const snap = await getDocs(query(q, where('isComingSoon', '==', false)));
-            let data = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) }));
+            let query = supabase.from('stories').select('*').order('created_at', { ascending: false });
 
-            if (typeFilter) data = data.filter((s: any) => s.type === typeFilter);
-            if (statusFilter) data = data.filter((s: any) => s.status === statusFilter);
-            if (categoryFilter) data = data.filter((s: any) => s.categories && s.categories.includes(categoryFilter));
-            
-            setStories(data);
+            if (statusFilter) {
+                query = query.eq('status', statusFilter);
+            }
+
+            const { data, error } = await query;
+            if (data && !error) {
+                setStories(data);
+            }
         } catch (err) {
             console.error("Directory fetch error:", err);
         }
@@ -45,36 +40,21 @@ export default function Directory() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-            <h1 className="text-3xl font-bold mb-8">Directorio</h1>
+            <h1 className="text-3xl font-black mb-8 text-primary-dark font-display uppercase italic tracking-tighter">Directorio</h1>
             
             <div className="flex flex-col md:flex-row gap-4 mb-8">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <input 
                         type="text" 
                         placeholder="Buscar por título..."
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-white border-4 border-black text-slate-800 rounded-2xl pl-12 pr-4 py-3 focus:outline-none focus:border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all font-bold placeholder:text-slate-300"
                     />
                 </div>
                 
                 <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-                    <select 
-                        value={typeFilter}
-                        onChange={(e) => {
-                            if (e.target.value) searchParams.set('type', e.target.value);
-                            else searchParams.delete('type');
-                            setSearchParams(searchParams);
-                        }}
-                        className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none"
-                    >
-                        <option value="">Cualquier Tipo</option>
-                        <option value="COMIC">Comic</option>
-                        <option value="MANGA">Manga</option>
-                        <option value="MANHWA">Manhwa</option>
-                    </select>
-
                     <select 
                         value={statusFilter}
                         onChange={(e) => {
@@ -82,7 +62,7 @@ export default function Directory() {
                             else searchParams.delete('status');
                             setSearchParams(searchParams);
                         }}
-                        className="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 focus:outline-none"
+                        className="bg-white border-4 border-black text-slate-800 rounded-2xl px-6 py-3 focus:outline-none focus:border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all font-bold appearance-none cursor-pointer"
                     >
                         <option value="">Cualquier Estado</option>
                         <option value="ONGOING">En Emisión</option>
@@ -92,27 +72,27 @@ export default function Directory() {
             </div>
 
             {loading ? (
-                <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-indigo-500"></div></div>
+                <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
                     {filteredStories.map(story => (
                         <Link 
                             key={story.id}
                             to={`/comic/${story.id}`} 
-                            className="flex flex-col gap-2 group"
+                            className="flex flex-col gap-3 group"
                         >
-                            <div className="relative aspect-[2/3] rounded-md overflow-hidden bg-slate-800">
+                            <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <img 
-                                    src={story.coverUrl || 'https://via.placeholder.com/300x450'} 
+                                    src={story.cover_url || 'https://via.placeholder.com/300x450'} 
                                     alt={story.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500"
                                 />
                                 <div className="absolute top-2 left-2 flex flex-col gap-1">
-                                    {story.status === 'COMPLETED' && <span className="bg-emerald-600 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded shadow">Finalizado</span>}
+                                    {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
+                                    {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
                                 </div>
                             </div>
-                            <h3 className="font-semibold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors">{story.title}</h3>
-                            <p className="text-xs text-slate-400 capitalize">{story.type.toLowerCase()}</p>
+                            <h3 className="font-bold text-sm text-slate-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors px-1">{story.title}</h3>
                         </Link>
                     ))}
                 </div>
