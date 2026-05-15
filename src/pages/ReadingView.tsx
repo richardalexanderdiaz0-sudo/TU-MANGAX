@@ -4,6 +4,7 @@ import { supabase } from '../services/supabase';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
 import CommentSection from '../components/CommentSection';
+import PdfReader from '../components/PdfReader';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -106,51 +107,12 @@ export default function ReadingView() {
             </div>
 
             {/* Content */}
-            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none">
+            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none pb-12">
                 {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => {
-                    let isDrive = false;
-                    let fileId = null;
+                    const isPdf = url.toLowerCase().includes('.pdf') || url.includes('.pdf?');
                     
-                    try {
-                        if (url.includes('drive.google.com')) {
-                            const pathMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-                            if (pathMatch) {
-                                fileId = pathMatch[1];
-                                isDrive = true;
-                            } else {
-                                const urlObj = new URL(url);
-                                if (urlObj.searchParams.has('id')) {
-                                    fileId = urlObj.searchParams.get('id');
-                                    isDrive = true;
-                                }
-                            }
-                        }
-                    } catch(e) {}
-
-                    if (isDrive && fileId) {
-                        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
-                        return (
-                            <div key={i} className="w-full h-[85vh] mb-4 bg-slate-900 rounded-[2rem] overflow-hidden border-4 border-black relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                <iframe 
-                                    src={previewUrl}
-                                    className="w-full h-full border-0"
-                                    title={`PDF Chapter ${i + 1}`}
-                                    allow="autoplay"
-                                ></iframe>
-                            </div>
-                        );
-                    }
-
-                    if (url.toLowerCase().trim().endsWith('.pdf') || url.includes('.pdf?')) {
-                        return (
-                            <div key={i} className="w-full h-[85vh] mb-4 bg-slate-900 rounded-[2rem] overflow-hidden border-4 border-black relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                                <iframe 
-                                    src={url}
-                                    className="w-full h-full border-0"
-                                    title={`PDF Chapter ${i + 1}`}
-                                ></iframe>
-                            </div>
-                        );
+                    if (isPdf) {
+                        return <PdfReader key={i} url={url} />;
                     }
 
                     return <img key={i} src={url} alt={`Page ${i+1}`} className="w-full h-auto block" loading="lazy" />;
