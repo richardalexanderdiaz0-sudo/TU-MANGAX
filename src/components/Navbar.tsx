@@ -17,8 +17,8 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
-              <div className="bg-primary p-2 rounded-2xl border-2 border-black rotate-[-3deg] group-hover:rotate-0 transition-transform">
-                <BookOpen className="h-8 w-8 text-white" />
+              <div className="bg-primary p-1 rounded-2xl border-2 border-black rotate-[-3deg] group-hover:rotate-0 transition-transform overflow-hidden w-12 h-12 flex items-center justify-center bg-white">
+                <img src="/TU-MANGAX/logo.svg" className="w-full h-full object-contain" alt="Logo" />
               </div>
               <span className="font-display font-bold text-2xl tracking-tight text-primary-dark">TU MANGAX</span>
             </Link>

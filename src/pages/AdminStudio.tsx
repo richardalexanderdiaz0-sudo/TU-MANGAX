@@ -451,6 +451,19 @@ function EditStory() {
     const [editSynopsis, setEditSynopsis] = useState('');
     const [editStatus, setEditStatus] = useState('');
 
+    const handleDeleteStory = async (id: string, title: string) => {
+        if (!confirm(`¿Estás seguro de que quieres borrar TODA la obra "${title}"? Esta acción no se puede deshacer.`)) return;
+        try {
+            await supabase.from('chapters').delete().eq('story_id', id);
+            const { error } = await supabase.from('stories').delete().eq('id', id);
+            if (error) throw error;
+            navigate('/admin');
+        } catch (err) {
+            console.error(err);
+            alert("Error al borrar la obra.");
+        }
+    };
+
     const loadData = async () => {
         if (!storyId) return;
         setLoadingView(true);
@@ -554,6 +567,14 @@ function EditStory() {
                         <button onClick={() => setIsEditingMetadata(!isEditingMetadata)} className="text-xs font-black text-primary hover:underline">
                             {isEditingMetadata ? 'CANCELAR EDICIÓN' : 'EDITAR DETALLES'}
                         </button>
+                        {!isEditingMetadata && (
+                            <button 
+                                onClick={() => handleDeleteStory(story.id, story.title)}
+                                className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-tighter"
+                            >
+                                Borrar Obra
+                            </button>
+                        )}
                     </div>
                 </div>
                 <Link to="/admin" className="text-slate-400 hover:text-black font-black uppercase text-sm">Volver</Link>
