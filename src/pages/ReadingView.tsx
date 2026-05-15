@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
+import CommentSection from '../components/CommentSection';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -75,7 +76,7 @@ export default function ReadingView() {
         }
     };
 
-    if (!chapter) return <div className="h-screen bg-black text-white flex items-center justify-center">Cargando...</div>;
+    if (!chapter) return <div className="h-screen bg-black text-white flex items-center justify-center font-black uppercase italic tracking-tighter">Cargando...</div>;
 
     return (
         <div className="bg-[#111] min-h-screen relative text-slate-100 font-sans cursor-pointer select-none" onClick={toggleUi}>
@@ -105,7 +106,7 @@ export default function ReadingView() {
             </div>
 
             {/* Content */}
-            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none pb-24">
+            <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none">
                 {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => (
                     <img key={i} src={url} alt={`Page ${i+1}`} className="w-full h-auto block" loading="lazy" />
                 ))}
@@ -117,6 +118,11 @@ export default function ReadingView() {
                         {nextChapter && <button onClick={() => navigate(`/read/${storyId}/${nextChapter.id}`)} className="toon-button bg-primary text-xl px-10">Siguiente</button>}
                     </div>
                 </div>
+
+                {/* Comment Section integration */}
+                <CommentSection chapterId={chapterId!} />
+                
+                <div className="pb-32"></div>
             </div>
 
             {/* Bottom UI */}

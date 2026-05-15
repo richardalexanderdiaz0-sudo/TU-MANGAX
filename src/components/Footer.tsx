@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copyright, Wrench, Heart, Star } from 'lucide-react';
+import { Copyright, Wrench, Heart, Star, HelpCircle } from 'lucide-react';
+import ErrorReportModal from './ErrorReportModal';
 
 export default function Footer() {
+  const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+
   return (
     <footer className="bg-white border-t-8 border-black mt-auto pb-24 md:pb-8 pt-12 px-4 sm:px-6 lg:px-8 overflow-hidden relative">
       {/* Background patterns */}
@@ -65,7 +69,13 @@ export default function Footer() {
                 <Link to="/faq" className="text-sm font-black text-slate-400 hover:text-primary transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">Preguntas Frecuentes</Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm font-black text-slate-400 hover:text-primary transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">Contacto</Link>
+                <button 
+                  onClick={() => setIsErrorModalOpen(true)}
+                  className="flex items-center gap-2 text-sm font-black text-slate-400 hover:text-red-500 transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  Reportar Errores
+                </button>
               </li>
               <li>
                 <div className="flex items-center gap-2 group cursor-help">
@@ -91,6 +101,12 @@ export default function Footer() {
           </div>
         </div>
       </div>
+
+      <ErrorReportModal 
+        isOpen={isErrorModalOpen} 
+        onClose={() => setIsErrorModalOpen(false)} 
+      />
     </footer>
   );
 }
+
