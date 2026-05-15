@@ -20,7 +20,7 @@ export default function Navbar() {
               <div className="bg-primary p-2 rounded-2xl border-2 border-black rotate-[-3deg] group-hover:rotate-0 transition-transform">
                 <BookOpen className="h-8 w-8 text-white" />
               </div>
-              <span className="font-display font-bold text-2xl tracking-tight text-primary-dark">Nexus Manga</span>
+              <span className="font-display font-bold text-2xl tracking-tight text-primary-dark">TU MANGAX</span>
             </Link>
           </div>
 
