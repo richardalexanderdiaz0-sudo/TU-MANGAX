@@ -154,7 +154,7 @@ function CreationWizard() {
     const [coverFile, setCoverFile] = useState<File|null>(null);
     const [chapterCount, setChapterCount] = useState(1);
 
-    const [chapters, setChapters] = useState<{cover: File|null, pages: File[]}[]>([]);
+    const [chapters, setChapters] = useState<{cover: File|null, pages: File[], externalUrl?: string}>([]);
     
     const [selectedCats, setSelectedCats] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -164,7 +164,7 @@ function CreationWizard() {
 
     useEffect(() => {
         if(chapterCount > chapters.length) {
-            const extra = Array.from({length: chapterCount - chapters.length}, () => ({cover: null, pages: []}));
+            const extra = Array.from({length: chapterCount - chapters.length}, () => ({cover: null, pages: [], externalUrl: ''}));
             setChapters([...chapters, ...extra]);
         } else if (chapterCount < chapters.length) {
             setChapters(chapters.slice(0, chapterCount));
@@ -208,11 +208,17 @@ function CreationWizard() {
             for (let i = 0; i < chapters.length; i++) {
                 const c = chapters[i];
                 const pageUrls = [];
-                for (let j = 0; j < c.pages.length; j++) {
-                    const p = c.pages[j];
-                    const url = await uploadFile(p, `pages/${storyId}_ch${i+1}_p${j}_${Date.now()}`);
-                    pageUrls.push(url);
+                
+                if (c.externalUrl && c.externalUrl.trim().length > 0) {
+                    pageUrls.push(c.externalUrl.trim());
+                } else {
+                    for (let j = 0; j < c.pages.length; j++) {
+                        const p = c.pages[j];
+                        const url = await uploadFile(p, `pages/${storyId}_ch${i+1}_p${j}_${Date.now()}`);
+                        pageUrls.push(url);
+                    }
                 }
+                
                 chapterDataToInsert.push({
                     story_id: storyId,
                     chapter_number: i + 1,
@@ -315,7 +321,21 @@ function CreationWizard() {
                             <div key={i} className="bg-slate-50 p-6 rounded-[2rem] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                                 <h3 className="font-black text-lg mb-4 text-primary uppercase">Capítulo {i+1}</h3>
                                 <div>
-                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles</label>
+                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes locales) O Link a PDF/Google Drive</label>
+                                    <input 
+                                        type="url"
+                                        placeholder="Ej: https://drive.google.com/file/d/... o enlace PDF"
+                                        value={ch.externalUrl || ''}
+                                        onChange={e => {
+                                            const newCh = [...chapters];
+                                            newCh[i].externalUrl = e.target.value;
+                                            setChapters(newCh);
+                                        }}
+                                        className="w-full bg-white border-4 border-black rounded-xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors mb-4"
+                                    />
+                                    
+                                    <span className="block text-center text-slate-400 font-black mb-4 uppercase italic">-- Ó --</span>
+
                                     <label className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
                                         <input 
                                             type="file" 

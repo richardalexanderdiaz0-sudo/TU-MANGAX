@@ -107,9 +107,54 @@ export default function ReadingView() {
 
             {/* Content */}
             <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none">
-                {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => (
-                    <img key={i} src={url} alt={`Page ${i+1}`} className="w-full h-auto block" loading="lazy" />
-                ))}
+                {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => {
+                    let isDrive = false;
+                    let fileId = null;
+                    
+                    try {
+                        if (url.includes('drive.google.com')) {
+                            const pathMatch = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+                            if (pathMatch) {
+                                fileId = pathMatch[1];
+                                isDrive = true;
+                            } else {
+                                const urlObj = new URL(url);
+                                if (urlObj.searchParams.has('id')) {
+                                    fileId = urlObj.searchParams.get('id');
+                                    isDrive = true;
+                                }
+                            }
+                        }
+                    } catch(e) {}
+
+                    if (isDrive && fileId) {
+                        const previewUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                        return (
+                            <div key={i} className="w-full h-[85vh] mb-4 bg-slate-900 rounded-[2rem] overflow-hidden border-4 border-black relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                                <iframe 
+                                    src={previewUrl}
+                                    className="w-full h-full border-0"
+                                    title={`PDF Chapter ${i + 1}`}
+                                    allow="autoplay"
+                                ></iframe>
+                            </div>
+                        );
+                    }
+
+                    if (url.toLowerCase().trim().endsWith('.pdf') || url.includes('.pdf?')) {
+                        return (
+                            <div key={i} className="w-full h-[85vh] mb-4 bg-slate-900 rounded-[2rem] overflow-hidden border-4 border-black relative z-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                                <iframe 
+                                    src={url}
+                                    className="w-full h-full border-0"
+                                    title={`PDF Chapter ${i + 1}`}
+                                ></iframe>
+                            </div>
+                        );
+                    }
+
+                    return <img key={i} src={url} alt={`Page ${i+1}`} className="w-full h-auto block" loading="lazy" />;
+                })}
                 
                 <div className="py-16 flex flex-col items-center gap-8 border-t-4 border-black/20 w-full mt-8 bg-black/40">
                     <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">Fin del Capítulo {chapter.chapter_number}</h3>
