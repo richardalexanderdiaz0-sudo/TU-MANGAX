@@ -93,12 +93,13 @@ function StudioHome() {
                         <div key={st.id} className="toon-card bg-white p-4 flex flex-col group relative">
                             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border-2 border-black mb-4">
                                 <img src={st.cover_url} className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition" alt=""/>
-                                <div className="absolute top-2 right-2 flex flex-col gap-2">
+                                <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                                     <button 
                                         onClick={(e) => { e.preventDefault(); handleDeleteStory(st.id, st.title); }}
-                                        className="bg-red-500 text-white p-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600 transition-all opacity-0 group-hover:opacity-100"
+                                        className="bg-red-500 text-white p-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600 transition-all flex items-center justify-center"
+                                        title="Borrar Obra"
                                     >
-                                        <X className="h-4 w-4" />
+                                        <X className="h-5 w-5" />
                                     </button>
                                 </div>
                                 <div className="absolute inset-0 bg-primary/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -567,17 +568,17 @@ function EditStory() {
                         <button onClick={() => setIsEditingMetadata(!isEditingMetadata)} className="text-xs font-black text-primary hover:underline">
                             {isEditingMetadata ? 'CANCELAR EDICIÓN' : 'EDITAR DETALLES'}
                         </button>
-                        {!isEditingMetadata && (
-                            <button 
-                                onClick={() => handleDeleteStory(story.id, story.title)}
-                                className="text-[10px] font-black text-red-500 hover:underline uppercase tracking-tighter"
-                            >
-                                Borrar Obra
-                            </button>
-                        )}
                     </div>
                 </div>
-                <Link to="/admin" className="text-slate-400 hover:text-black font-black uppercase text-sm">Volver</Link>
+                {!isEditingMetadata && (
+                    <button 
+                        onClick={() => handleDeleteStory(story.id, story.title)}
+                        className="bg-red-500 hover:bg-red-600 text-white font-black px-4 py-2 rounded-xl text-xs uppercase tracking-tighter shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] border-2 border-black ml-auto sm:ml-0"
+                    >
+                        Borrar Obra Completa
+                    </button>
+                )}
+                <Link to="/admin" className="text-slate-400 hover:text-black font-black uppercase text-sm mt-4 sm:mt-0 sm:ml-auto">Volver</Link>
             </div>
 
             {isEditingMetadata && (
