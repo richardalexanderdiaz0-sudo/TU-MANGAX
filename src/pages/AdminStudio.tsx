@@ -4,6 +4,14 @@ import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { supabase, uploadFile } from '../services/supabase';
 import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X } from 'lucide-react';
 
+const formatError = (err: any, defaultMsg: string) => {
+    const msg = String(err?.message || err?.error || '').toLowerCase();
+    if (msg.includes('quota') || msg.includes('limit') || msg.includes('exceeded') || err?.code === '402' || err?.code === '403') {
+        return "Plan supabase free agotado. (Quota excedida)";
+    }
+    return `${defaultMsg}: ${msg || "Error desconocido"}`;
+};
+
 export default function AdminStudio() {
     const { user, userProfile, authLoading } = useStore();
     const navigate = useNavigate();
@@ -72,7 +80,7 @@ function StudioHome() {
             fetchStories();
         } catch (err) {
             console.error(err);
-            alert("Error al borrar la obra.");
+            alert(formatError(err, "Error al borrar la obra"));
         }
     };
 
@@ -296,7 +304,7 @@ function CreationWizard() {
         } catch (err) {
             console.error(err);
             setLoading(false);
-            alert("Error al publicar.");
+            alert(formatError(err, "Error al publicar"));
         }
     };
 
@@ -561,7 +569,7 @@ function EditStory() {
             navigate('/admin');
         } catch (err) {
             console.error(err);
-            alert("Error al borrar la obra.");
+            alert(formatError(err, "Error al borrar la obra"));
         }
     };
 
@@ -599,7 +607,7 @@ function EditStory() {
             alert("Datos actualizados!");
         } catch (err) {
             console.error(err);
-            alert("Error al actualizar.");
+            alert(formatError(err, "Error al actualizar"));
         }
     };
 
@@ -633,7 +641,7 @@ function EditStory() {
         } catch (err) {
             console.error(err);
             setLoading(false);
-            alert("Error al subir el capítulo.");
+            alert(formatError(err, "Error al subir el capítulo"));
         }
     };
 
