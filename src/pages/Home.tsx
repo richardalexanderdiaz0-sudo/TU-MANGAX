@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '../services/supabase';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Play } from 'lucide-react';
 
 interface StoryInfo {
     id: string;
@@ -10,6 +10,76 @@ interface StoryInfo {
     status: string;
     likes_count: number;
     created_at: string;
+}
+
+function HeroSlider({ stories }: { stories: StoryInfo[] }) {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+        if (!stories || stories.length === 0) return;
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % stories.length);
+        }, 8000);
+        return () => clearInterval(interval);
+    }, [stories]);
+
+    if (!stories || stories.length === 0) return null;
+
+    const currentStory = stories[currentIndex];
+
+    return (
+        <div className="w-full relative h-[60vh] sm:h-[70vh] lg:h-[80vh] min-h-[400px] mb-12 overflow-hidden bg-slate-900 mx-auto max-w-7xl sm:rounded-b-[3rem] shadow-[0_20px_0_0_rgba(0,0,0,1)] border-b-8 border-black">
+            {stories.map((story, index) => (
+                <div 
+                    key={story.id}
+                    className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                >
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-transparent z-10"></div>
+                    <div className="absolute inset-0 bg-black/30 z-10"></div>
+                    <img 
+                        src={story.cover_url} 
+                        alt={story.title} 
+                        className="w-full h-full object-cover opacity-80 scale-105"
+                    />
+                </div>
+            ))}
+            
+            <div className="absolute bottom-0 left-0 right-0 z-20 p-8 sm:p-12 lg:p-20 flex flex-col items-start max-w-4xl">
+                <div className="flex gap-2 mb-4">
+                    {currentStory.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
+                    {currentStory.status === 'ONGOING' && <span className="bg-blue-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
+                    {currentStory.status === 'SOON' && <span className="bg-primary text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
+                    <span className="bg-pink-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Tendencia</span>
+                </div>
+                
+                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white uppercase italic tracking-tighter mb-4 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] line-clamp-2">
+                    {currentStory.title}
+                </h1>
+                
+                <div className="flex items-center gap-4 mt-4">
+                    <button 
+                        onClick={() => navigate(`/comic/${currentStory.id}`)}
+                        className="flex items-center gap-2 bg-white text-black font-black uppercase text-lg sm:text-xl px-8 py-4 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-primary hover:text-white transition-all active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                    >
+                        <Play className="w-6 h-6 fill-current" />
+                        Leer Ahora
+                    </button>
+                </div>
+            </div>
+
+            {/* Indicators */}
+            <div className="absolute bottom-6 right-6 sm:bottom-12 sm:right-12 z-20 flex gap-2">
+                {stories.map((_, idx) => (
+                    <button
+                        key={idx}
+                        onClick={() => setCurrentIndex(idx)}
+                        className={`w-3 h-3 rounded-full border-2 border-black transition-all ${idx === currentIndex ? 'bg-primary w-8 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/50 hover:bg-white'}`}
+                    />
+                ))}
+            </div>
+        </div>
+    );
 }
 
 export default function Home() {
@@ -106,7 +176,8 @@ export default function Home() {
     };
 
     return (
-        <div className="py-8">
+        <div className="pb-8">
+            <HeroSlider stories={trending.slice(0, 5)} />
             {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
             {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
             {renderSection("PRÓXIMAMENTE", comingSoon)}
