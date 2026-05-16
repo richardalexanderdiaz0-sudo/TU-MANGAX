@@ -17,7 +17,7 @@ function LazyPdfPage({ pageNumber, width }: { pageNumber: number, width: number 
         // Desmontar las páginas que están lejos para ahorrar memoria en móviles (evita el "Aw, Snap!")
         setInView(entries[0].isIntersecting);
       },
-      { rootMargin: '2500px 0px' } // Cargar 2500px antes/después
+      { rootMargin: '1000px 0px' } // Cargar 1000px antes/después
     );
 
     if (ref.current) observer.observe(ref.current);
@@ -86,9 +86,9 @@ export default function PdfReader({ url }: PdfReaderProps) {
         onLoadSuccess={onDocumentLoadSuccess}
         onLoadError={onDocumentLoadError}
         loading={
-          <div className="p-12 flex flex-col justify-center items-center font-black uppercase tracking-widest text-primary">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mb-6"></div>
-            CARGANDO...
+          <div className="p-12 flex flex-col justify-center items-center font-black uppercase tracking-widest text-primary text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mb-6 mx-auto"></div>
+            CARGANDO MANHWA / CÓMIC...
           </div>
         }
         className="w-full flex flex-col mx-auto"

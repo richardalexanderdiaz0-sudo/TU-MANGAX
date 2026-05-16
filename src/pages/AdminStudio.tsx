@@ -371,8 +371,11 @@ function CreationWizard() {
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-black mb-2 uppercase text-slate-500">Capítulos</label>
+                            <label className="block text-sm font-black mb-2 uppercase text-slate-500" title="Número de bloques de subida">Cant. Bloques de Subida</label>
                             <input type="number" min="1" value={chapterCount} onChange={e=>setChapterCount(parseInt(e.target.value)||1)} className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
+                            <p className="text-[10px] text-slate-400 mt-2 font-bold italic leading-tight">
+                                * Ej: Si tu PDF incluye capítulos 1 al 7, pon "1" bloque aquí y luego lo nombras "Capítulos 1-7".
+                            </p>
                         </div>
                     </div>
 
@@ -391,10 +394,10 @@ function CreationWizard() {
                             <div key={i} className="bg-slate-50 p-6 rounded-[2rem] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                                 <h3 className="font-black text-lg mb-4 text-primary uppercase">Capítulo {i+1}</h3>
                                 <div className="mb-4">
-                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Nombre del Capítulo (Opcional)</label>
+                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">¿Qué capítulos incluye este bloque? (Ej: Capítulos 1-7)</label>
                                     <input 
                                         type="text" 
-                                        placeholder={`Ej: El Comienzo`}
+                                        placeholder={`Ej: Capítulos 1-7, Extra`}
                                         value={ch.title || ''}
                                         onChange={e => {
                                             const newCh = [...chapters];
@@ -707,10 +710,10 @@ function EditStory() {
                     
                     <div className="space-y-6">
                         <div>
-                            <label className="block text-xs font-black mb-2 uppercase text-slate-400">Nombre del Capítulo (Opcional)</label>
+                            <label className="block text-xs font-black mb-2 uppercase text-slate-400">¿Qué capítulos incluye este bloque? (Ej: Capítulos 1-7)</label>
                             <input 
                                 type="text" 
-                                placeholder="Ej: Un nuevo amanecer"
+                                placeholder="Ej: Capítulos 1-7, Extra"
                                 value={newChapterTitle}
                                 onChange={e => setNewChapterTitle(e.target.value)}
                                 className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary mb-4"
