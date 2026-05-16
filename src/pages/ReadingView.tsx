@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
-import CommentSection from '../components/CommentSection';
 import PdfReader from '../components/PdfReader';
 
 export default function ReadingView() {
@@ -119,16 +118,16 @@ export default function ReadingView() {
                 })}
                 
                 <div className="py-16 flex flex-col items-center gap-8 border-t-4 border-black/20 w-full mt-8 bg-black/40">
-                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)]">Fin del Capítulo {chapter.chapter_number}</h3>
+                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] text-center px-4">
+                        Fin del Capítulo {chapter.chapter_number}
+                        {chapter.title && chapter.title !== `Capítulo ${chapter.chapter_number}` ? ` - ${chapter.title}` : ''}
+                    </h3>
                     <div className="flex gap-4 cursor-auto px-4" onClick={e=>e.stopPropagation()}>
                         {prevChapter && <button onClick={() => navigate(`/read/${storyId}/${prevChapter.id}`)} className="toon-button bg-slate-500 text-lg">Anterior</button>}
                         {nextChapter && <button onClick={() => navigate(`/read/${storyId}/${nextChapter.id}`)} className="toon-button bg-primary text-xl px-10">Siguiente</button>}
                     </div>
                 </div>
 
-                {/* Comment Section integration */}
-                <CommentSection chapterId={chapterId!} />
-                
                 <div className="pb-32"></div>
             </div>
 
@@ -176,7 +175,7 @@ export default function ReadingView() {
                                             <span className="text-[10px] font-black text-white uppercase italic">Cap {chap.chapter_number}</span>
                                         </div>
                                     </div>
-                                    <span className={`font-black uppercase italic tracking-tighter text-lg ${chap.id === chapterId ? 'text-primary' : 'text-slate-700'}`}>Capítulo {chap.chapter_number}</span>
+                                    <span className={`font-black uppercase italic tracking-tighter text-lg ${chap.id === chapterId ? 'text-primary' : 'text-slate-700'}`}>{chap.title || `Capítulo ${chap.chapter_number}`}</span>
                                 </div>
                             ))}
                         </div>

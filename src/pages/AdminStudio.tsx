@@ -136,8 +136,8 @@ function StudioHome() {
 // -------------------------------------------------------------
 // WIZARD
 // -------------------------------------------------------------
-const CATEGORIES = ["YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN"];
-const TAGS = ["Acción", "Fantasía", "Drama", "Suspenso", "Vida Cotidiana", "Vida Escolar", "Cárcel", "Bullying", "Chico Rudo", "Romance", "Comedia"];
+const CATEGORIES = ["YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN", "JOSEI", "KODOMO", "ISEKAI", "YURI", "GL", "OMEGAVERSE"];
+const TAGS = ["Acción", "Fantasía", "Drama", "Suspenso", "Vida Cotidiana", "Vida Escolar", "Cárcel", "Bullying", "Chico Rudo", "Romance", "Comedia", "Terror", "Misterio", "Deportes", "Magia", "Vampiros", "Zombies", "Post-apocalíptico", "Reencarnación", "Sistema", "Venganza", "Artes Marciales", "Tragedia"];
 
 function CreationWizard() {
     const navigate = useNavigate();
@@ -154,7 +154,7 @@ function CreationWizard() {
     const [coverFile, setCoverFile] = useState<File|null>(null);
     const [chapterCount, setChapterCount] = useState(1);
 
-    const [chapters, setChapters] = useState<{cover: File|null, pages: File[]}[]>([]);
+    const [chapters, setChapters] = useState<{cover: File|null, pages: File[], title: string}[]>([]);
     
     const [selectedCats, setSelectedCats] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -221,7 +221,7 @@ function CreationWizard() {
 
     useEffect(() => {
         if(chapterCount > chapters.length) {
-            const extra = Array.from({length: chapterCount - chapters.length}, () => ({cover: null, pages: []}));
+            const extra = Array.from({length: chapterCount - chapters.length}, () => ({cover: null, pages: [], title: ''}));
             setChapters([...chapters, ...extra]);
         } else if (chapterCount < chapters.length) {
             setChapters(chapters.slice(0, chapterCount));
@@ -276,7 +276,7 @@ function CreationWizard() {
                 chapterDataToInsert.push({
                     story_id: storyId,
                     chapter_number: i + 1,
-                    title: `Capítulo ${i+1}`,
+                    title: c.title.trim() || `Capítulo ${i+1}`,
                     pages_urls: pageUrls,
                 });
             }
@@ -390,6 +390,20 @@ function CreationWizard() {
                         {chapters.map((ch, i) => (
                             <div key={i} className="bg-slate-50 p-6 rounded-[2rem] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)]">
                                 <h3 className="font-black text-lg mb-4 text-primary uppercase">Capítulo {i+1}</h3>
+                                <div className="mb-4">
+                                    <label className="block text-xs font-black mb-2 uppercase text-slate-400">Nombre del Capítulo (Opcional)</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder={`Ej: El Comienzo`}
+                                        value={ch.title || ''}
+                                        onChange={e => {
+                                            const newCh = [...chapters];
+                                            newCh[i].title = e.target.value;
+                                            setChapters(newCh);
+                                        }}
+                                        className="w-full bg-white border-4 border-black rounded-xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors"
+                                    />
+                                </div>
                                 <div>
                                     <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes o PDF local)</label>
                                     <label htmlFor={`chapterFile-${i}`} className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
@@ -520,6 +534,7 @@ function EditStory() {
     const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
     const [pages, setPages] = useState<File[]>([]);
+    const [newChapterTitle, setNewChapterTitle] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingView, setLoadingView] = useState(true);
     const [isEditingMetadata, setIsEditingMetadata] = useState(false);
@@ -598,11 +613,12 @@ function EditStory() {
             await supabase.from('chapters').insert({
                 story_id: storyId,
                 chapter_number: nextChapNum,
-                title: `Capítulo ${nextChapNum}`,
+                title: newChapterTitle.trim() || `Capítulo ${nextChapNum}`,
                 pages_urls: pageUrls,
             });
 
             setPages([]);
+            setNewChapterTitle('');
             loadData();
             setLoading(false);
             alert("Capítulo añadido con éxito!");
@@ -691,6 +707,16 @@ function EditStory() {
                     
                     <div className="space-y-6">
                         <div>
+                            <label className="block text-xs font-black mb-2 uppercase text-slate-400">Nombre del Capítulo (Opcional)</label>
+                            <input 
+                                type="text" 
+                                placeholder="Ej: Un nuevo amanecer"
+                                value={newChapterTitle}
+                                onChange={e => setNewChapterTitle(e.target.value)}
+                                className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary mb-4"
+                            />
+                        </div>
+                        <div>
                             <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest text-center">Toca para cargar archivos</label>
                             <label htmlFor="newChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
                                 <input 
@@ -730,8 +756,8 @@ function EditStory() {
                         {chapters.map(chap => (
                             <div key={chap.id} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-black rounded-2xl group active:translate-y-[2px] transition-all">
                                 <div className="flex flex-col">
-                                    <span className="font-black text-slate-800 italic uppercase">Cap. {chap.chapter_number}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{chap.pages_urls?.length || 0} páginas</span>
+                                    <span className="font-black text-slate-800 italic uppercase">{chap.title || `Capítulo ${chap.chapter_number}`}</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cap. {chap.chapter_number} • {chap.pages_urls?.length || 0} páginas</span>
                                 </div>
                                 <button 
                                     onClick={() => handleDeleteChapter(chap.id, chap.chapter_number)}
