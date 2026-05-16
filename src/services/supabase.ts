@@ -22,13 +22,14 @@ export async function uploadFile(file: File, path: string): Promise<string> {
             });
 
         if (error) {
-            // Si el error es por límite de espacio (Quota/Limit), saltamos al proyecto 2
-            const isLimitError = error.message.toLowerCase().includes('quota') || 
-                               error.message.toLowerCase().includes('limit') || 
-                               error.message.toLowerCase().includes('capacity');
+            const errorMsg = error.message.toLowerCase();
+            const isLimitError = errorMsg.includes('quota') || 
+                               errorMsg.includes('limit') || 
+                               errorMsg.includes('capacity') ||
+                               errorMsg.includes('payload too large');
             
             if (isLimitError) {
-                console.log('--- PROYECTO 1 LLENO. Subiendo a Proyecto 2... ---');
+                console.log('--- STORAGE PROYECTO 1 LLENO. Probando Proyecto 2... ---');
                 return await uploadToSecondary(file, path);
             }
             throw error;
@@ -36,25 +37,31 @@ export async function uploadFile(file: File, path: string): Promise<string> {
 
         const { data: publicUrlData } = supabase.storage.from('nexus-storage').getPublicUrl(path);
         return publicUrlData.publicUrl;
-    } catch (err) {
-        console.warn('Error en Proyecto 1, intentando Proyecto 2:', err);
+    } catch (err: any) {
+        // Si no es un error de red básico, intentamos el secundario
+        console.warn('Reintentando en Proyecto 2 por error en Proyecto 1:', err);
         return await uploadToSecondary(file, path);
     }
 }
 
 async function uploadToSecondary(file: File, path: string): Promise<string> {
-    const { data, error } = await supabaseSecondary.storage
-        .from('nexus-storage')
-        .upload(path, file, {
-            upsert: true,
-            cacheControl: '3600'
-        });
+    try {
+        const { data, error } = await supabaseSecondary.storage
+            .from('nexus-storage')
+            .upload(path, file, {
+                upsert: true,
+                cacheControl: '3600'
+            });
 
-    if (error) {
-        console.error('Error fatal subiendo a ambos proyectos:', error);
-        throw error;
+        if (error) {
+            console.error('Error crítico: Proyecto 2 también falló o no está configurado:', error);
+            throw error;
+        }
+
+        const { data: publicUrlData } = supabaseSecondary.storage.from('nexus-storage').getPublicUrl(path);
+        return publicUrlData.publicUrl;
+    } catch (err) {
+        console.error('Fallo total en ambos proyectos de Supabase.');
+        throw err;
     }
-
-    const { data: publicUrlData } = supabaseSecondary.storage.from('nexus-storage').getPublicUrl(path);
-    return publicUrlData.publicUrl;
 }
