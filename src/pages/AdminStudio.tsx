@@ -109,14 +109,19 @@ function StudioHome() {
                                 </div>
                             </div>
                             
-                            <div className="flex-1">
+                            <div className="flex-1 flex flex-col">
                                 <h3 className="font-black text-slate-800 line-clamp-1 mb-1">{st.title}</h3>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 mb-3">
                                     <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border-2 border-black ${
                                         st.status === 'COMPLETED' ? 'bg-emerald-400' : st.status === 'SOON' ? 'bg-primary text-white' : 'bg-blue-400'
                                     }`}>
                                         {st.status === 'COMPLETED' ? 'Finalizada' : st.status === 'SOON' ? 'Próximamente' : 'Emisión'}
                                     </span>
+                                </div>
+                                <div className="mt-auto pt-2">
+                                    <Link to={`/admin/edit/${st.id}`} className="lg:hidden flex items-center justify-center gap-2 bg-primary text-white font-black text-xs uppercase border-2 border-black px-3 py-2 rounded-xl text-center w-full active:bg-primary-dark shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all">
+                                        Gestionar Obra
+                                    </Link>
                                 </div>
                             </div>
                         </div>
