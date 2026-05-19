@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { auth } from '../services/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { supabase } from '../services/supabase';
+import { useStore } from '../store';
+import { api } from '../services/api';
 import { X, Mail, Lock } from 'lucide-react';
 
 interface Props {
@@ -16,48 +15,33 @@ export default function LoginModal({ onClose }: Props) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const ensureUserDoc = async (userResult: any, dName?: string) => {
-    try {
-        const { data: userDoc } = await supabase
-            .from('users')
-            .select('id')
-            .eq('id', userResult.user.uid)
-            .maybeSingle();
-            
-        if (!userDoc) {
-            await supabase.from('users').insert({
-                id: userResult.user.uid,
-                email: userResult.user.email,
-                role: userResult.user.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
-                display_name: dName || displayName || userResult.user.email?.split('@')[0] || 'Usuario',
-            });
-        }
-    } catch (e) {
-        console.error("Aviso: No se pudo verificar o crear el perfil en Supabase. El inicio de sesión continuará.", e);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
+      let authData;
       if (isLogin) {
-        const res = await signInWithEmailAndPassword(auth, email, password);
-        await ensureUserDoc(res);
+        authData = await api.auth.login({ email, password });
       } else {
-        const res = await createUserWithEmailAndPassword(auth, email, password);
-        await ensureUserDoc(res, displayName);
+        const data = {
+          email,
+          password,
+          display_name: displayName || email.split('@')[0],
+          role: email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+        };
+        await api.auth.register(data);
+        authData = await api.auth.login({ email, password });
+      }
+
+      if (authData?.token) {
+        localStorage.setItem('nexus_token', authData.token);
+        window.location.reload(); 
       }
       onClose();
     } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
-        setError('Este correo ya está registrado.');
-      } else if (err.code === 'auth/invalid-credential') {
-        setError('Credenciales inválidas. Verifica tu correo y contraseña.');
-      } else {
-        setError(err.message);
-      }
+      console.error(err);
+      setError(err.message || 'Error al procesar la solicitud');
       setLoading(false);
     }
   };

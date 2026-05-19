@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 
@@ -18,15 +18,15 @@ export default function Library() {
         }
 
         const fetchLibrary = async () => {
-            // First fetch library items
-            const { data: libData } = await supabase.from('library').select('story_id').eq('user_id', user.uid);
-            
-            if (libData && libData.length > 0) {
-                const storyIds = libData.map(l => l.story_id);
-                const { data: stories } = await supabase.from('stories').select('*').in('id', storyIds);
-                if (stories) {
-                    setSavedStories(stories);
+            try {
+                const libData = await api.interactions.getLibrary();
+                
+                if (libData && libData.length > 0) {
+                    // Assuming Ivan returns the stories directly or in an array
+                    setSavedStories(libData);
                 }
+            } catch (err) {
+                console.error("Library fetch error", err);
             }
             setLoading(false);
         };
@@ -55,7 +55,7 @@ export default function Library() {
                         >
                             <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <img 
-                                    src={story.cover_url || 'https://via.placeholder.com/300x450'} 
+                                    src={story.cover ? getImageUrl(story.cover) : (story.cover_url || 'https://via.placeholder.com/300x450')} 
                                     alt={story.title}
                                     className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500"
                                 />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Coins, ShieldCheck, Zap, Star, MessageCircle, Info } from 'lucide-react';
+import { Heart, Coins, ShieldCheck, Zap, Star, MessageCircle, Info, Award, Users, Sparkles } from 'lucide-react';
 import { useStore } from '../store';
 
 const AMOUNTS = [
@@ -14,6 +14,10 @@ export default function Donate() {
   const { userProfile } = useStore();
   const [customAmount, setCustomAmount] = useState('');
   const [selectedAmount, setSelectedAmount] = useState<number | 'custom' | null>(null);
+  const [supporters, setSupporters] = useState<any[]>(() => {
+    const saved = localStorage.getItem('nexus_supporters');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const handleDonate = () => {
     const amount = selectedAmount === 'custom' ? customAmount : selectedAmount;
@@ -23,11 +27,41 @@ export default function Donate() {
     }
 
     const userName = userProfile?.display_name || 'Un Usuario';
+    
+    // Automatically add of active supporters list
+    const newSupport = {
+      name: userName,
+      amount: Number(amount),
+      date: new Date().toISOString()
+    };
+    
+    const updated = [newSupport, ...supporters];
+    localStorage.setItem('nexus_supporters', JSON.stringify(updated));
+    setSupporters(updated);
+
     const message = `Hola, soy ${userName} y quiero donar voluntariamente ${amount} pesos dominicanos para la app TU MANGAX.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/18293165263?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
+  };
+
+  const simulateDonation = (amount: number) => {
+    const mockNames = ['Carlos_Manga', 'Alex22', 'RuiWorks', 'Ivan_Dev', 'Sofia_Manhwa', 'RichardD', 'LucasReader', 'OtakuRD', 'Elena_Toon'];
+    const randomName = mockNames[Math.floor(Math.random() * mockNames.length)] + `_${Math.floor(Math.random() * 900 + 100)}`;
+    const newSupport = {
+      name: randomName,
+      amount: amount,
+      date: new Date().toISOString()
+    };
+    const updated = [newSupport, ...supporters];
+    localStorage.setItem('nexus_supporters', JSON.stringify(updated));
+    setSupporters(updated);
+  };
+
+  const clearSupporters = () => {
+    localStorage.removeItem('nexus_supporters');
+    setSupporters([]);
   };
 
   return (
@@ -70,7 +104,7 @@ export default function Donate() {
               <Heart className="h-6 w-6 text-amber-500" />
             </div>
             <h3 className="font-black text-slate-800 uppercase text-xs mb-2 italic">Gana el Creador</h3>
-            <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed">Apoyas directamente a RUIWORKS para seguir dedicando tiempo a este arte.</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed">Apoyas directamente a RUIWORKS & Ivan para seguir dedicando tiempo a este arte.</p>
           </div>
         </div>
 
@@ -126,7 +160,7 @@ export default function Donate() {
         </div>
 
         {/* Terms Section */}
-        <div className="bg-slate-100 rounded-2xl border-2 border-black border-dashed p-6">
+        <div className="bg-slate-100 rounded-2xl border-2 border-black border-dashed p-6 mb-12">
           <h4 className="flex items-center gap-2 font-black text-slate-800 uppercase text-xs mb-4">
             <ShieldCheck className="h-4 w-4 text-emerald-500" />
             Políticas de Donación Voluntaria
@@ -145,6 +179,79 @@ export default function Donate() {
               <p className="text-[10px] font-bold text-slate-500 uppercase leading-tight italic">Al donar, confirmas que eres el titular de los fondos y que lo haces por amor al arte y al proyecto.</p>
             </li>
           </ul>
+        </div>
+
+        {/* Supporters / Apoyadores Section */}
+        <div className="border-t-4 border-black pt-10">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="bg-amber-400 p-2.5 rounded-xl border-2 border-black rotate-[-3deg] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                <Award className="h-5 w-5 text-black" />
+              </div>
+              <div>
+                <h3 className="font-display font-black text-2xl tracking-tight text-slate-800 uppercase italic">Apoyadores</h3>
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] leading-none">Nuestros Héroes y Leyendas</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => simulateDonation(Math.floor(Math.random() * 90 + 10))}
+                className="bg-indigo-500 hover:bg-indigo-600 text-white font-black uppercase text-[9px] tracking-wider px-3 py-1.5 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+              >
+                ⚡ Simular Donación
+              </button>
+              {supporters.length > 0 && (
+                <button
+                  onClick={clearSupporters}
+                  className="bg-rose-500 hover:bg-rose-600 text-white font-black uppercase text-[9px] tracking-wider px-3 py-1.5 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                >
+                  Vaciar
+                </button>
+              )}
+            </div>
+          </div>
+
+          {supporters.length === 0 ? (
+            <div className="bg-slate-50 border-4 border-black border-dashed rounded-3xl p-8 py-10 text-center relative overflow-hidden">
+              <p className="text-sm font-black text-slate-400 uppercase tracking-wider italic">no hay donaciones todavia...</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">¡Sé el primero en colaborar vía WhatsApp y entra a la lista!</p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-fadeIn">
+                {supporters.map((sup: any, idx: number) => (
+                  <div key={idx} className="bg-amber-50 hover:bg-amber-100/70 border-2 border-black p-4 rounded-2xl flex items-center gap-3 transition-all hover:scale-[1.03] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                    </div>
+                    <div className="h-10 w-10 border-2 border-black rounded-full bg-primary/15 flex items-center justify-center overflow-hidden shrink-0 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-extrabold text-slate-800 uppercase tracking-tight text-xs leading-none truncate mb-1">{sup.name}</p>
+                      <p className="text-[10px] font-black text-primary uppercase leading-none tracking-wider italic">${sup.amount} DOP</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Gratitude words */}
+              <div className="bg-indigo-50 border-4 border-black rounded-3xl p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)]">
+                <div className="flex gap-3 items-start">
+                  <div className="bg-white border-2 border-black p-2 rounded-xl shrink-0 rotate-[-4deg]">
+                    <Heart className="h-5 w-5 text-indigo-500 fill-current animate-pulse" />
+                  </div>
+                  <div>
+                    <h4 className="font-black text-indigo-900 uppercase italic tracking-tight text-sm mb-1 leading-none">¡Gracias infinitas a nuestros héroes!</h4>
+                    <p className="text-xs font-bold text-indigo-700 uppercase leading-relaxed italic">
+                      "Queremos expresar nuestro más sincero agradecimiento a cada persona que aporta su granito de arena. Su apoyo directo nos motiva y ayuda a cubrir los costos para mantener TU MANGAX en línea y seguir sumando capítulos increíbles. ¡Esta gran marca y comunidad continúa fuerte gracias a ustedes!"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

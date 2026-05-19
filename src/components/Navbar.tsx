@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { logout } from '../services/firebase';
+import { api, getImageUrl } from '../services/api';
 import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library } from 'lucide-react';
 import LoginModal from './LoginModal';
 
@@ -18,7 +18,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
               <div className="bg-primary p-1 rounded-2xl border-2 border-black rotate-[-3deg] group-hover:rotate-0 transition-transform overflow-hidden w-12 h-12 flex items-center justify-center bg-white">
-                <img src="/TU-MANGAX/logo.svg" className="w-full h-full object-contain" alt="Logo" />
+                <img src={`${import.meta.env.BASE_URL}logo.svg`} className="w-full h-full object-contain" alt="Logo" />
               </div>
               <span className="font-display font-bold text-2xl tracking-tight text-primary-dark">TU MANGAX</span>
             </Link>
@@ -45,13 +45,13 @@ export default function Navbar() {
 
                 <div className="flex items-center gap-3 ml-2">
                   <div className="h-10 w-10 border-2 border-black rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                    {user.photoURL ? (
-                      <img src={user.photoURL} alt="Avatar" className="h-full w-full object-cover" />
+                    {user.avatar ? (
+                      <img src={getImageUrl(user.avatar)} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
                       <UserIcon className="h-5 w-5 text-slate-400" />
                     )}
                   </div>
-                  <button onClick={logout} className="text-slate-400 hover:text-primary-dark transition-colors" title="Cerrar sesión">
+                  <button onClick={() => { localStorage.removeItem('nexus_token'); window.location.reload(); }} className="text-slate-400 hover:text-primary-dark transition-colors" title="Cerrar sesión">
                     <LogOut className="h-5 w-5" />
                   </button>
                 </div>

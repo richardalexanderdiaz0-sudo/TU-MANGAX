@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copyright, Wrench, Heart, Star, HelpCircle } from 'lucide-react';
+import { Copyright, Wrench, Heart, Star, HelpCircle, Instagram } from 'lucide-react';
 import ErrorReportModal from './ErrorReportModal';
 
 export default function Footer() {
@@ -14,24 +14,25 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Logo and Credit */}
           <div className="col-span-1">
             <div className="flex items-center gap-2 mb-6">
               <div className="bg-primary p-1 rounded-xl border-4 border-black rotate-[-3deg]">
-                <img src="/TU-MANGAX/logo.svg" className="w-8 h-8 object-contain" alt="Logo" />
+                <img src={`${import.meta.env.BASE_URL}logo.svg`} className="w-8 h-8 object-contain" alt="Logo" />
               </div>
               <span className="font-display font-black text-2xl tracking-tighter text-primary-dark italic uppercase">TU MANGAX</span>
             </div>
             
             <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-slate-100 p-2 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                  <Wrench className="h-5 w-5 text-slate-800" />
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">HECHO POR</p>
+                  <p className="text-sm font-black text-slate-800 uppercase tracking-tighter">RIVA Technologies <Copyright className="inline h-3 w-3 -mt-1 text-slate-500" /></p>
                 </div>
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Desarrollado por</p>
-                  <p className="font-black text-slate-800 uppercase italic tracking-tighter">RUIWORKS</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">FUNDADO POR</p>
+                  <p className="text-sm font-black text-slate-800 uppercase tracking-tighter">RUIWORKS & Ivan</p>
                 </div>
               </div>
               
@@ -81,6 +82,19 @@ export default function Footer() {
                 <div className="flex items-center gap-2 group cursor-help">
                   <span className="text-[10px] font-black bg-slate-100 border-2 border-black px-2 py-0.5 rounded-lg text-slate-500 grayscale group-hover:grayscale-0 transition-all">v2.0.26 Beta</span>
                 </div>
+              </li>
+            </ul>
+          </div>
+
+          {/* Redes */}
+          <div>
+            <h4 className="font-black text-primary-dark uppercase italic tracking-tighter mb-6 border-b-4 border-black/10 inline-block">Redes</h4>
+            <ul className="flex flex-col gap-3">
+              <li>
+                <a href="https://instagram.com/Iam_ruichard" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-black text-slate-400 hover:text-pink-500 transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </a>
               </li>
             </ul>
           </div>

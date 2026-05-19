@@ -1,6 +1,6 @@
 import React from 'react';
 import { useStore } from '../store';
-import { logout } from '../services/firebase';
+import { api, getImageUrl } from '../services/api';
 import LoginModal from '../components/LoginModal';
 import { User, LogOut, Shield } from 'lucide-react';
 
@@ -43,7 +43,7 @@ export default function Profile() {
             <div className="bg-white border-4 border-black rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row items-center gap-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)]">
                 <div className="relative">
                     <img 
-                        src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.display_name || userProfile?.displayName || user.email?.split('@')[0] || 'U')}&background=ff69b4&color=fff&size=200`} 
+                        src={getImageUrl(user.avatar) || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(userProfile?.display_name || userProfile?.displayName || user.email?.split('@')[0] || 'U')}&background=ff69b4&color=fff&size=200`} 
                         alt="Avatar" 
                         className="h-32 w-32 rounded-full object-cover bg-slate-50 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" 
                     />
@@ -76,7 +76,10 @@ export default function Profile() {
 
             <div className="mt-16 space-y-6">
                 <button 
-                    onClick={logout} 
+                    onClick={() => {
+                        localStorage.removeItem('nexus_token');
+                        window.location.reload();
+                    }} 
                     className="flex items-center justify-center gap-2 text-white font-black bg-red-500 hover:bg-red-600 border-4 border-black px-8 py-5 rounded-3xl w-full transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-widest text-lg italic"
                 >
                     <LogOut className="h-6 w-6 stroke-[3px]" /> Salir de Nexus

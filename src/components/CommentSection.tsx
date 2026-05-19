@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../services/supabase';
+import { api } from '../services/api';
 import { useStore } from '../store';
 import { MessageCircle, Send, Trash2, Reply, ChevronDown, ChevronUp, User } from 'lucide-react';
 
 interface Comment {
   id: string;
-  chapter_id: string;
-  user_id: string;
+  chapter: string;
+  user: string;
   content: string;
-  parent_id: string | null;
-  created_at: string;
-  user_profile?: {
-    display_name: string;
-    role: string;
+  parent: string | null;
+  created: string;
+  expand?: {
+    user: {
+      display_name: string;
+      role: string;
+    }
   }
 }
 
@@ -30,24 +32,10 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
   const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          user_profile:users(display_name, role)
-        `)
-        .eq('chapter_id', chapterId)
-        .order('created_at', { ascending: true });
+      const data = await api.interactions.getComments(chapterId);
 
-      if (error) {
-        if (error.code === 'PGRST116' || error.code === '42P01') {
-          console.warn("Table 'comments' might not exist yet.");
-          setComments([]);
-        } else {
-          throw error;
-        }
-      } else {
-        setComments(data as Comment[]);
+      if (data) {
+          setComments(data);
       }
     } catch (err) {
       console.error("Error fetching comments:", err);
@@ -70,14 +58,11 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
     if (!content.trim()) return;
 
     try {
-      const { error } = await supabase.from('comments').insert({
-        chapter_id: chapterId,
-        user_id: user.uid,
-        content: content.trim(),
-        parent_id: parentId
+      await api.interactions.postComment({
+          chapter_id: chapterId,
+          content: content.trim(),
+          parent_id: parentId
       });
-
-      if (error) throw error;
       
       setNewComment('');
       setCustomReplyContent('');
@@ -85,7 +70,7 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
       fetchComments();
     } catch (err) {
       console.error("Error posting comment:", err);
-      alert("Hubo un error al publicar tu comentario. Asegúrate de que la tabla 'comments' esté creada en Supabase.");
+      alert("Hubo un error al publicar tu comentario.");
     }
   };
 
@@ -94,8 +79,7 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Borrar este comentario?")) return;
     try {
-      const { error } = await supabase.from('comments').delete().eq('id', id);
-      if (error) throw error;
+      await api.interactions.deleteComment(id);
       fetchComments();
     } catch (err) {
       console.error(err);
@@ -103,25 +87,27 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
   };
 
   const renderComment = (comment: Comment, isReply = false) => {
-    const isOwner = user?.uid === comment.user_id || userProfile?.role === 'admin';
+    const isOwner = user?.id === comment.user || userProfile?.role === 'admin';
+    const displayName = comment.expand?.user?.display_name || 'Anónimo';
+    const role = comment.expand?.user?.role || 'user';
     
     return (
       <div key={comment.id} className={`flex gap-4 p-4 rounded-3xl border-4 border-black mb-4 transition-all ${isReply ? 'ml-8 bg-slate-50 scale-95' : 'bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]'}`}>
-        <div className={`w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-slate-200 shrink-0 ${comment.user_profile?.role === 'admin' ? 'bg-primary/20 ring-2 ring-primary ring-offset-2' : ''}`}>
-          <User className={`h-6 w-6 ${comment.user_profile?.role === 'admin' ? 'text-primary' : 'text-slate-500'}`} />
+        <div className={`w-10 h-10 rounded-full border-2 border-black flex items-center justify-center bg-slate-200 shrink-0 ${role === 'admin' ? 'bg-primary/20 ring-2 ring-primary ring-offset-2' : ''}`}>
+          <User className={`h-6 w-6 ${role === 'admin' ? 'text-primary' : 'text-slate-500'}`} />
         </div>
         
         <div className="flex-1">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="font-black text-slate-800 uppercase italic tracking-tighter">
-                {comment.user_profile?.display_name || 'Anónimo'}
+                {displayName}
               </span>
-              {comment.user_profile?.role === 'admin' && (
+              {role === 'admin' && (
                 <span className="bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-lg border border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">ADMIN</span>
               )}
               <span className="text-[10px] font-bold text-slate-400">
-                {new Date(comment.created_at).toLocaleDateString()}
+                {new Date(comment.created).toLocaleDateString()}
               </span>
             </div>
             
@@ -161,13 +147,13 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
           )}
 
           {/* Render Replies */}
-          {!isReply && comments.filter(c => c.parent_id === comment.id).map(reply => renderComment(reply, true))}
+          {!isReply && comments.filter(c => c.parent === comment.id).map(reply => renderComment(reply, true))}
         </div>
       </div>
     );
   };
 
-  const topLevelComments = comments.filter(c => !c.parent_id);
+  const topLevelComments = comments.filter(c => !c.parent);
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4 py-12 border-t-8 border-black bg-white/30" onClick={e=>e.stopPropagation()}>

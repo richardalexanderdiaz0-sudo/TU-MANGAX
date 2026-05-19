@@ -1,11 +1,10 @@
 import { create } from 'zustand';
-import { User } from 'firebase/auth';
 
 interface AppState {
-    user: User | null;
+    user: any | null;
     userProfile: any | null;
     authLoading: boolean;
-    setUser: (user: User | null, profile?: any | null) => void;
+    setUser: (user: any | null, profile?: any | null) => void;
     setAuthLoading: (loading: boolean) => void;
     sidebarOpen: boolean;
     setSidebarOpen: (isOpen: boolean) => void;

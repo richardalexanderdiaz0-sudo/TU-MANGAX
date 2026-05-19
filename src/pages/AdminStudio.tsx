@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
-import { supabase, uploadFile } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X } from 'lucide-react';
 
 const formatError = (err: any, defaultMsg: string) => {
     const msg = String(err?.message || err?.error || '').toLowerCase();
-    if (msg.includes('quota') || msg.includes('limit') || msg.includes('exceeded') || err?.code === '402' || err?.code === '403') {
-        return "Plan supabase free agotado. (Quota excedida)";
-    }
     return `${defaultMsg}: ${msg || "Error desconocido"}`;
 };
 
@@ -56,9 +53,11 @@ function StudioHome() {
 
     const fetchStories = async () => {
         setLoadingFetch(true);
-        const { data } = await supabase.from('stories').select('*').order('created_at', { ascending: false });
-        if (data) {
-            setStories(data);
+        try {
+            const data = await api.stories.getAll();
+            setStories(data || []);
+        } catch(e) {
+            console.error("fetch", e);
         }
         setLoadingFetch(false);
     };
@@ -71,12 +70,7 @@ function StudioHome() {
         if (!confirm(`¿Estás seguro de que quieres borrar TODA la obra "${title}"? Esta acción no se puede deshacer.`)) return;
         
         try {
-            // First delete chapters associated (Supabase might handle this via Cascade, but let's be safe if not configured)
-            await supabase.from('chapters').delete().eq('story_id', id);
-            // Then delete the story
-            const { error } = await supabase.from('stories').delete().eq('id', id);
-            
-            if (error) throw error;
+            await api.stories.delete(id);
             fetchStories();
         } catch (err) {
             console.error(err);
@@ -100,7 +94,7 @@ function StudioHome() {
                     {stories.map(st => (
                         <div key={st.id} className="toon-card bg-white p-4 flex flex-col group relative">
                             <div className="relative aspect-[2/3] rounded-2xl overflow-hidden border-2 border-black mb-4">
-                                <img src={st.cover_url} className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition" alt=""/>
+                                <img src={st.cover ? getImageUrl(st.cover) : (st.cover_url || '')} className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition" alt=""/>
                                 <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                                     <button 
                                         onClick={(e) => { e.preventDefault(); handleDeleteStory(st.id, st.title); }}
@@ -244,58 +238,38 @@ function CreationWizard() {
     const handlePublish = async () => {
         setLoading(true);
         try {
-            // Upload main cover
-            let mainCoverUrl = '';
-            if (coverFile) {
-                mainCoverUrl = await uploadFile(coverFile, `covers/${Date.now()}_${coverFile.name}`);
-            }
-
-            // Create story in supabase
-            const isComingSoon = status === 'ONGOING' && publishMode === 'SOON';
-            
-            // Combine type + tags + cats for genres column
             const allGenres = [...selectedCats, ...selectedTags];
             if (!allGenres.includes(type)) {
                 allGenres.push(type);
             }
 
-            const { data: insertedStory, error: storyErr } = await supabase.from('stories').insert({
-                title,
-                synopsis,
-                author: authorNameInput || userProfile?.display_name || 'Administrador',
-                cover_url: mainCoverUrl,
-                status: isComingSoon ? 'SOON' : status,
-                genres: allGenres,
-            }).select('id').single();
-
-            if (storyErr || !insertedStory) {
-                throw storyErr || new Error("Story insertion failed");
+            // Create story record
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('synopsis', synopsis);
+            formData.append('author', authorNameInput || userProfile?.display_name || 'Administrador');
+            formData.append('status', (status === 'ONGOING' && publishMode === 'SOON') ? 'SOON' : status);
+            formData.append('genres', JSON.stringify(allGenres));
+            if (coverFile) {
+                formData.append('cover', coverFile);
             }
-            const storyId = insertedStory.id;
 
-            // Upload chapter covers and pages
-            const chapterDataToInsert = [];
+            const storyResult = await api.stories.create(formData);
+            const storyId = storyResult.id;
+
+            // Create chapters
             for (let i = 0; i < chapters.length; i++) {
                 const c = chapters[i];
-                const pageUrls = [];
+                const cFormData = new FormData();
+                cFormData.append('story', storyId);
+                cFormData.append('chapter_number', String(i + 1));
+                cFormData.append('title', c.title.trim() || `Capítulo ${i+1}`);
                 
                 for (let j = 0; j < c.pages.length; j++) {
-                    const p = c.pages[j];
-                    const ext = p.name.split('.').pop();
-                    const url = await uploadFile(p, `pages/${storyId}_ch${i+1}_p${j}_${Date.now()}.${ext}`);
-                    pageUrls.push(url);
+                    cFormData.append('pages', c.pages[j]);
                 }
                 
-                chapterDataToInsert.push({
-                    story_id: storyId,
-                    chapter_number: i + 1,
-                    title: c.title.trim() || `Capítulo ${i+1}`,
-                    pages_urls: pageUrls,
-                });
-            }
-
-            if (chapterDataToInsert.length > 0) {
-                await supabase.from('chapters').insert(chapterDataToInsert);
+                await api.chapters.create(cFormData);
             }
 
             setLoading(false);
@@ -563,9 +537,7 @@ function EditStory() {
     const handleDeleteStory = async (id: string, title: string) => {
         if (!confirm(`¿Estás seguro de que quieres borrar TODA la obra "${title}"? Esta acción no se puede deshacer.`)) return;
         try {
-            await supabase.from('chapters').delete().eq('story_id', id);
-            const { error } = await supabase.from('stories').delete().eq('id', id);
-            if (error) throw error;
+            await api.stories.delete(id);
             navigate('/admin');
         } catch (err) {
             console.error(err);
@@ -576,16 +548,22 @@ function EditStory() {
     const loadData = async () => {
         if (!storyId) return;
         setLoadingView(true);
-        const { data: sData } = await supabase.from('stories').select('*').eq('id', storyId).single();
-        if (sData) {
-            setStory(sData);
-            setEditTitle(sData.title);
-            setEditSynopsis(sData.synopsis);
-            setEditStatus(sData.status);
-        }
+        try {
+            const sData = await api.stories.getOne(storyId);
+            if (sData) {
+                setStory(sData);
+                setEditTitle(sData.title);
+                setEditSynopsis(sData.synopsis);
+                setEditStatus(sData.status);
+            }
 
-        const { data: cData } = await supabase.from('chapters').select('*').eq('story_id', storyId).order('chapter_number', { ascending: false });
-        if (cData) setChapters(cData);
+            const cData = await api.chapters.getByStory(storyId);
+            if (cData) {
+                setChapters(cData);
+            }
+        } catch(e) {
+            console.error(e);
+        }
         setLoadingView(false);
     };
 
@@ -595,13 +573,12 @@ function EditStory() {
 
     const handleUpdateMetadata = async () => {
         try {
-            const { error } = await supabase.from('stories').update({
+            await api.stories.update(storyId!, {
                 title: editTitle,
                 synopsis: editSynopsis,
                 status: editStatus
-            }).eq('id', storyId);
+            });
 
-            if (error) throw error;
             setIsEditingMetadata(false);
             loadData();
             alert("Datos actualizados!");
@@ -615,23 +592,18 @@ function EditStory() {
         if (!story || pages.length === 0) return;
         setLoading(true);
         try {
-            const { data: existingChapters } = await supabase.from('chapters').select('chapter_number').eq('story_id', storyId);
-            const nextChapNum = existingChapters ? Math.max(0, ...existingChapters.map(c => c.chapter_number)) + 1 : 1;
+            const nextChapNum = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) + 1 : 1;
 
-            const pageUrls = [];
+            const cFormData = new FormData();
+            cFormData.append('story', storyId!);
+            cFormData.append('chapter_number', String(nextChapNum));
+            cFormData.append('title', newChapterTitle.trim() || `Capítulo ${nextChapNum}`);
+            
             for (let i = 0; i < pages.length; i++) {
-                const p = pages[i];
-                const ext = p.name.split('.').pop();
-                const url = await uploadFile(p, `pages/${storyId}_ch${nextChapNum}_p${i}_${Date.now()}.${ext}`);
-                pageUrls.push(url);
+                cFormData.append('pages', pages[i]);
             }
 
-            await supabase.from('chapters').insert({
-                story_id: storyId,
-                chapter_number: nextChapNum,
-                title: newChapterTitle.trim() || `Capítulo ${nextChapNum}`,
-                pages_urls: pageUrls,
-            });
+            await api.chapters.create(cFormData);
 
             setPages([]);
             setNewChapterTitle('');
@@ -648,7 +620,7 @@ function EditStory() {
     const handleDeleteChapter = async (chapId: string, chapNum: number) => {
         if (!confirm(`¿Borrar Capítulo ${chapNum}?`)) return;
         try {
-            await supabase.from('chapters').delete().eq('id', chapId);
+            await api.chapters.delete(chapId);
             loadData();
         } catch (err) {
             console.error(err);
@@ -666,7 +638,7 @@ function EditStory() {
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-20">
             {/* Header Mini Card */}
             <div className="toon-card bg-white p-6 flex flex-col sm:flex-row gap-6 items-center">
-                <img src={story.cover_url} className="w-24 aspect-[2/3] object-cover rounded-xl border-2 border-black" alt="" />
+                <img src={story.cover ? getImageUrl(story.cover) : (story?.cover_url || '')} className="w-24 aspect-[2/3] object-cover rounded-xl border-2 border-black" alt="" />
                 <div className="text-center sm:text-left flex-1">
                     <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tighter mb-1 font-display">{story.title}</h2>
                     <div className="flex items-center gap-2 justify-center sm:justify-start">

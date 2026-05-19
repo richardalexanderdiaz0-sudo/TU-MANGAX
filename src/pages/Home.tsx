@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { supabase } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronRight, Play } from 'lucide-react';
 
@@ -12,6 +12,7 @@ interface StoryInfo {
     created_at: string;
 }
 
+// ... HeroSlider stays same ...
 function HeroSlider({ stories }: { stories: StoryInfo[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const navigate = useNavigate();
@@ -95,45 +96,22 @@ export default function Home() {
     useEffect(() => {
         const fetchStories = async () => {
             try {
-                // Recently added
-                const { data: recentSnap } = await supabase
-                    .from('stories')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(15);
-                    
-                // Trending (by likes)
-                const { data: trendSnap } = await supabase
-                    .from('stories')
-                    .select('*')
-                    .order('likes_count', { ascending: false })
-                    .limit(15);
+                const response = await api.stories.getAll();
+                const allStories = response.map((s: any) => ({
+                    ...s,
+                    cover_url: s.cover ? getImageUrl(s.cover) : (s.cover_url || '')
+                }));
 
-                const { data: allSnap } = await supabase
-                    .from('stories')
-                    .select('*')
-                    .order('created_at', { ascending: false })
-                    .limit(30);
-                    
-                const { data: compSnap } = await supabase
-                    .from('stories')
-                    .select('*')
-                    .eq('status', 'COMPLETED')
-                    .limit(15);
+                const sortedByRecency = [...allStories].sort((a: any, b: any) => new Date(b.created || b.created_at).getTime() - new Date(a.created || a.created_at).getTime());
+                const sortedByLikes = [...allStories].sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
 
-                const { data: soonSnap } = await supabase
-                    .from('stories')
-                    .select('*')
-                    .eq('status', 'SOON')
-                    .limit(15);
+                setRecentlyAdded(sortedByRecency.slice(0, 15));
+                setTrending(sortedByLikes.slice(0, 15));
+                setAllComics(sortedByRecency.slice(0, 30));
                 
-                if (recentSnap) setRecentlyAdded(recentSnap as StoryInfo[]);
-                if (trendSnap) setTrending(trendSnap as StoryInfo[]);
-                if (allSnap) setAllComics(allSnap as StoryInfo[]);
-                if (compSnap) setCompleted(compSnap as StoryInfo[]);
-                if (soonSnap) setComingSoon(soonSnap as StoryInfo[]);
-                // For daily updates, let's just use recently added for now or random
-                if (recentSnap) setDailyUpdates(recentSnap.slice(0, 8) as StoryInfo[]);
+                setCompleted(allStories.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
+                setComingSoon(allStories.filter((s: any) => s.status === 'SOON').slice(0, 15));
+                setDailyUpdates(sortedByRecency.slice(0, 8));
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }

@@ -5,10 +5,8 @@
 
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-import { auth } from './services/firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { supabase } from './services/supabase';
 import { useStore } from './store';
+import { api } from './services/api';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
@@ -56,48 +54,26 @@ export default function App() {
   const { setUser, setAuthLoading } = useStore();
 
   useEffect(() => {
-    const unsubAuth = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setAuthLoading(true);
-
+    const initAuth = async () => {
+      setAuthLoading(true);
+      const token = localStorage.getItem('nexus_token');
+      
+      if (token) {
         try {
-          // Obtener el perfil del usuario desde Supabase
-          const { data: userDoc, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', currentUser.uid)
-            .single();
-
-          if (userDoc && !error) {
-            setUser(currentUser, userDoc);
-          } else {
-            // Si el documento no existe (aún), damos un perfil básico temporal basado en el correo
-            setUser(currentUser, {
-              email: currentUser.email,
-              role: currentUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
-              display_name: currentUser.displayName || currentUser.email?.split('@')[0],
-              created_at: new Date().toISOString(),
-            });
-          }
-        } catch (e) {
-          console.error("Excepción al obtener perfil de Supabase:", e);
-          setUser(currentUser, {
-              email: currentUser.email,
-              role: currentUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
-              display_name: currentUser.displayName || currentUser.email?.split('@')[0],
-              created_at: new Date().toISOString(),
-          });
+          const user = await api.auth.me();
+          setUser(user, user);
+        } catch (err) {
+          console.error("Auth init error:", err);
+          localStorage.removeItem('nexus_token');
+          setUser(null, null);
         }
-        setAuthLoading(false);
       } else {
         setUser(null, null);
-        setAuthLoading(false);
       }
-    });
-
-    return () => {
-      unsubAuth();
+      setAuthLoading(false);
     };
+
+    initAuth();
   }, [setUser, setAuthLoading]);
 
   return (

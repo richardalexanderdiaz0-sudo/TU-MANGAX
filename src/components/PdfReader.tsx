@@ -6,7 +6,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 // Configurar el worker de PDF.js usando CDN para evitar problemas de Vite/Webpack
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-function LazyPdfPage({ pageNumber, width }: { pageNumber: number, width: number }) {
+function LazyPdfPage({ pageNumber, width }: { pageNumber: number, width: number, key?: any }) {
   const [inView, setInView] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const [loadedHeight, setLoadedHeight] = useState<number | undefined>(undefined);
@@ -54,6 +54,7 @@ function LazyPdfPage({ pageNumber, width }: { pageNumber: number, width: number 
 
 interface PdfReaderProps {
   url: string;
+  key?: any;
 }
 
 export default function PdfReader({ url }: PdfReaderProps) {

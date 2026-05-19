@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
 import { Share2, MoreVertical, ThumbsUp, Eye, BookMarked, Flag } from 'lucide-react';
 
@@ -19,23 +19,26 @@ export default function ComicDetail() {
         if (!id) return;
         
         const fetchDetail = async () => {
-            const { data: sData } = await supabase.from('stories').select('*').eq('id', id).single();
-            if (sData) {
-                setStory(sData);
-                // Supabase doesn't easily allow arbitrary increments without RPC, we'll just ignore viewsCount for now.
-            }
+            try {
+                const sData = await api.stories.getOne(id);
+                if (sData) {
+                    setStory(sData);
+                }
 
-            const { data: cData } = await supabase.from('chapters').select('*').eq('story_id', id).order('chapter_number', { ascending: true });
-            if (cData) {
-                setChapters(cData);
-            }
+                const cData = await api.chapters.getByStory(id);
+                if (cData) {
+                    setChapters(cData);
+                }
 
-            if (user) {
-                const { data: libData } = await supabase.from('library').select('user_id').eq('user_id', user.uid).eq('story_id', id).maybeSingle();
-                setIsSaved(!!libData);
-
-                const { data: likeData } = await supabase.from('likes').select('user_id').eq('user_id', user.uid).eq('story_id', id).maybeSingle();
-                setIsLiked(!!likeData);
+                if (user) {
+                    // Logic to check library/likes will depend on Ivan's endpoints
+                    // For now, initializing state from story data if Ivan includes it
+                    // Or placeholders
+                    setIsSaved(false);
+                    setIsLiked(false);
+                }
+            } catch(e) {
+                console.error(e);
             }
         };
 
@@ -59,51 +62,46 @@ export default function ComicDetail() {
 
     const handleLike = async () => {
         if (!user || !id || !story) return;
-        
-        if (isLiked) {
-            await supabase.from('likes').delete().eq('user_id', user.uid).eq('story_id', id);
-            // We should use an RPC, but since we disabled RLS we might fetch and update logic manually, 
-            // but we can skip likes_count updating correctly without an RPC and just do what we can.
-            // A simple update requires fetching current then updating. Oh wait, we have `story.likes_count`.
-            const newCount = Math.max(0, (story.likes_count || 0) - 1);
-            await supabase.from('stories').update({ likes_count: newCount }).eq('id', id);
-            setIsLiked(false);
-            setStory({...story, likes_count: newCount});
-        } else {
-            await supabase.from('likes').insert({ user_id: user.uid, story_id: id });
-            const newCount = (story.likes_count || 0) + 1;
-            await supabase.from('stories').update({ likes_count: newCount }).eq('id', id);
-            setIsLiked(true);
-            setStory({...story, likes_count: newCount});
+        try {
+            await api.interactions.toggleLike(id);
+            setIsLiked(!isLiked);
+            // Counter update logic would ideally come from refreshing story data
+        } catch(e) {
+            console.error(e);
         }
     };
 
     const handleLibrary = async () => {
         if (!user || !id) return;
-        if (isSaved) {
-            await supabase.from('library').delete().eq('user_id', user.uid).eq('story_id', id);
-            setIsSaved(false);
-        } else {
-            await supabase.from('library').insert({ user_id: user.uid, story_id: id });
-            setIsSaved(true);
+        try {
+            if (isSaved) {
+                await api.interactions.removeFromLibrary(id);
+                setIsSaved(false);
+            } else {
+                await api.interactions.addToLibrary(id);
+                setIsSaved(true);
+            }
+        } catch(e) {
+            console.error(e);
         }
     };
 
     if (!story) return <div className="p-8 text-center text-slate-400">Cargando...</div>;
 
     const displayedChapters = orderAsc ? chapters : [...chapters].reverse();
+    const coverUrl = story.cover ? getImageUrl(story.cover) : (story.cover_url || '');
 
     return (
         <div className="pb-16 relative">
             <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh]">
                 <div className="absolute inset-0">
-                    <img src={story.cover_url} className="w-full h-full object-cover blur-3xl opacity-60 mix-blend-multiply" alt="" />
+                    <img src={coverUrl} className="w-full h-full object-cover blur-3xl opacity-60 mix-blend-multiply" alt="" />
                     <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
                 </div>
                 
                 <div className="absolute bottom-0 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 translate-y-1/3 md:translate-y-1/4 flex gap-6 items-end">
                     <div className="w-32 md:w-48 xl:w-56 shrink-0 rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black aspect-[2/3] bg-white hidden sm:block">
-                         <img src={story.cover_url} className="w-full h-full object-cover" alt="Cover" />
+                         <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
                     </div>
                 </div>
             </div>
@@ -124,7 +122,7 @@ export default function ComicDetail() {
                             </button>
                             {showReport && (
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-20 overflow-hidden">
-                                    <button 
+                                     <button 
                                         onClick={() => {
                                             alert("Reporte enviado.");
                                             setShowReport(false);
@@ -184,7 +182,7 @@ export default function ComicDetail() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                         {displayedChapters.map(chap => (
                             <Link to={`/read/${id}/${chap.id}`} key={chap.id} className="group relative rounded-3xl overflow-hidden bg-white aspect-[3/4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
-                                <img src={story.cover_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 grayscale-[10%] group-hover:grayscale-0" alt="" />
+                                <img src={coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 grayscale-[10%] group-hover:grayscale-0" alt="" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent flex flex-col items-center justify-end p-4 pb-6 transition-all">
                                     <span className="font-black text-4xl text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)] italic">#{chap.chapter_number}</span>
                                     {chap.title && <span className="text-[10px] font-black text-white mt-1 line-clamp-1 uppercase tracking-tighter bg-primary px-2 py-0.5 rounded-lg border-2 border-black drop-shadow-sm">{chap.title}</span>}

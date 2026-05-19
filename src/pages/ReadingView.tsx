@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
 import PdfReader from '../components/PdfReader';
@@ -21,21 +21,28 @@ export default function ReadingView() {
         if (!storyId || !chapterId) return;
 
         const fetchData = async () => {
-            const { data: sDoc } = await supabase.from('stories').select('*').eq('id', storyId).single();
-            if (sDoc) setStory(sDoc);
+            try {
+                const sDoc = await api.stories.getOne(storyId);
+                if (sDoc) setStory(sDoc);
 
-            const { data: cDoc } = await supabase.from('chapters').select('*').eq('id', chapterId).single();
-            if (cDoc) setChapter(cDoc);
+                const cDoc = await api.chapters.getOne(chapterId);
+                if (cDoc) setChapter(cDoc);
 
-            const { data: chSnap } = await supabase.from('chapters').select('*').eq('story_id', storyId).order('chapter_number', { ascending: true });
-            if (chSnap) setAllChapters(chSnap);
-            
-            // Auto add to library
-            if (user) {
-                const { data: libDoc } = await supabase.from('library').select('*').eq('user_id', user.uid).eq('story_id', storyId).maybeSingle();
-                if (!libDoc) {
-                    await supabase.from('library').insert({ user_id: user.uid, story_id: storyId });
+                const chSnap = await api.chapters.getByStory(storyId);
+                if (chSnap) {
+                    setAllChapters(chSnap);
                 }
+                
+                // Auto add to library
+                if (user) {
+                    try {
+                        await api.interactions.addToLibrary(storyId);
+                    } catch(e) {
+                         // Likely already in library or auth error
+                    }
+                }
+            } catch(e) {
+                console.error(e);
             }
         };
 
@@ -107,8 +114,9 @@ export default function ReadingView() {
 
             {/* Content */}
             <div className="w-full max-w-3xl mx-auto flex flex-col items-center select-none pb-12">
-                {chapter.pages_urls && chapter.pages_urls.map((url: string, i: number) => {
-                    const isPdf = url.toLowerCase().includes('.pdf') || url.includes('.pdf?');
+                {chapter.pages && chapter.pages.map((filename: string, i: number) => {
+                    const url = getImageUrl(filename);
+                    const isPdf = filename.toLowerCase().includes('.pdf');
                     
                     if (isPdf) {
                         return <PdfReader key={i} url={url} />;
@@ -169,7 +177,7 @@ export default function ReadingView() {
                                     className={`flex items-center gap-6 p-3 rounded-2xl cursor-pointer transition-all border-4 ${chap.id === chapterId ? 'bg-primary/10 border-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]' : 'bg-slate-50 border-transparent hover:border-black/10'}`}
                                 >
                                     <div className="relative w-24 h-16 rounded-xl overflow-hidden border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                                        <img src={story?.cover_url} className="w-full h-full object-cover" alt="" />
+                                        <img src={story?.cover ? getImageUrl(story.cover) : (story?.cover_url || '')} className="w-full h-full object-cover" alt="" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-1">
                                             <span className="text-[10px] font-black text-white uppercase italic">Cap {chap.chapter_number}</span>
                                         </div>

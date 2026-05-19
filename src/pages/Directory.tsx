@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../services/supabase';
+import { api, getImageUrl } from '../services/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
@@ -18,16 +18,9 @@ export default function Directory() {
     const fetchDirectory = async () => {
         setLoading(true);
         try {
-            let query = supabase.from('stories').select('*').order('created_at', { ascending: false });
-
-            if (statusFilter) {
-                query = query.eq('status', statusFilter);
-            }
-
-            const { data, error } = await query;
-            if (data && !error) {
-                setStories(data);
-            }
+            const params = statusFilter ? `status=${statusFilter}` : '';
+            const data = await api.stories.getAll(params);
+            setStories(data);
         } catch (err) {
             console.error("Directory fetch error:", err);
         }
@@ -84,7 +77,7 @@ export default function Directory() {
                         >
                             <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                                 <img 
-                                    src={story.cover_url || 'https://via.placeholder.com/300x450'} 
+                                    src={story.cover ? getImageUrl(story.cover) : (story.cover_url || 'https://via.placeholder.com/300x450')} 
                                     alt={story.title}
                                     className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-500"
                                 />
