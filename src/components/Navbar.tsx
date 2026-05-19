@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
+import { logout } from '../services/firebase';
 import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library } from 'lucide-react';
 import LoginModal from './LoginModal';
 
@@ -45,13 +46,13 @@ export default function Navbar() {
 
                 <div className="flex items-center gap-3 ml-2">
                   <div className="h-10 w-10 border-2 border-black rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                    {user.avatar ? (
-                      <img src={getImageUrl(user.avatar)} alt="Avatar" className="h-full w-full object-cover" />
+                    {user.avatar || user.photoURL ? (
+                      <img src={user.photoURL || getImageUrl(user.avatar)} alt="Avatar" className="h-full w-full object-cover" />
                     ) : (
                       <UserIcon className="h-5 w-5 text-slate-400" />
                     )}
                   </div>
-                  <button onClick={() => { localStorage.removeItem('nexus_token'); window.location.reload(); }} className="text-slate-400 hover:text-primary-dark transition-colors" title="Cerrar sesión">
+                  <button onClick={() => logout()} className="text-slate-400 hover:text-primary-dark transition-colors" title="Cerrar sesión">
                     <LogOut className="h-5 w-5" />
                   </button>
                 </div>

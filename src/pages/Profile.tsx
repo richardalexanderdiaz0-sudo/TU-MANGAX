@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
+import { logout } from '../services/firebase';
 import LoginModal from '../components/LoginModal';
 import { User, LogOut, Shield } from 'lucide-react';
 
@@ -76,10 +77,7 @@ export default function Profile() {
 
             <div className="mt-16 space-y-6">
                 <button 
-                    onClick={() => {
-                        localStorage.removeItem('nexus_token');
-                        window.location.reload();
-                    }} 
+                    onClick={() => logout()} 
                     className="flex items-center justify-center gap-2 text-white font-black bg-red-500 hover:bg-red-600 border-4 border-black px-8 py-5 rounded-3xl w-full transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase tracking-widest text-lg italic"
                 >
                     <LogOut className="h-6 w-6 stroke-[3px]" /> Salir de Nexus

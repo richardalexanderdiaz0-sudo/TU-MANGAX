@@ -7,6 +7,8 @@ import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-d
 import { useEffect } from 'react';
 import { useStore } from './store';
 import { api } from './services/api';
+import { auth } from './services/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
@@ -54,26 +56,30 @@ export default function App() {
   const { setUser, setAuthLoading } = useStore();
 
   useEffect(() => {
-    const initAuth = async () => {
-      setAuthLoading(true);
-      const token = localStorage.getItem('nexus_token');
-      
-      if (token) {
-        try {
-          const user = await api.auth.me();
-          setUser(user, user);
-        } catch (err) {
-          console.error("Auth init error:", err);
-          localStorage.removeItem('nexus_token');
-          setUser(null, null);
-        }
+    setAuthLoading(true);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        const mappedUser = {
+          uid: firebaseUser.uid,
+          id: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+          avatar: firebaseUser.photoURL, // mapear para que user.avatar obtenga la foto de google
+        };
+        const mappedProfile = {
+          display_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuario',
+          displayName: firebaseUser.displayName,
+          role: firebaseUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+        };
+        setUser(mappedUser, mappedProfile);
       } else {
         setUser(null, null);
       }
       setAuthLoading(false);
-    };
+    });
 
-    initAuth();
+    return () => unsubscribe();
   }, [setUser, setAuthLoading]);
 
   return (
@@ -82,3 +88,4 @@ export default function App() {
     </Router>
   );
 }
+
