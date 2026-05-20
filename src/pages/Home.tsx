@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { api, getImageUrl } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronRight, Play } from 'lucide-react';
+import { Search, ChevronRight, Play } from 'lucide-react';
 
 interface StoryInfo {
     id: string;
@@ -10,6 +10,7 @@ interface StoryInfo {
     status: string;
     likes_count: number;
     created_at: string;
+    author?: string;
 }
 
 // ... HeroSlider stays same ...
@@ -90,6 +91,8 @@ export default function Home() {
     const [completed, setCompleted] = useState<StoryInfo[]>([]);
     const [comingSoon, setComingSoon] = useState<StoryInfo[]>([]);
     const [dailyUpdates, setDailyUpdates] = useState<StoryInfo[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<StoryInfo[]>([]);
 
     const navigate = useNavigate();
 
@@ -107,7 +110,7 @@ export default function Home() {
 
                 setRecentlyAdded(sortedByRecency.slice(0, 15));
                 setTrending(sortedByLikes.slice(0, 15));
-                setAllComics(sortedByRecency.slice(0, 30));
+                setAllComics(sortedByRecency);
                 
                 setCompleted(allStories.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
                 setComingSoon(allStories.filter((s: any) => s.status === 'SOON').slice(0, 15));
@@ -119,6 +122,19 @@ export default function Home() {
 
         fetchStories();
     }, []);
+
+    useEffect(() => {
+        if (searchQuery.trim() === '') {
+            setSearchResults([]);
+        } else {
+            const query = searchQuery.toLowerCase();
+            const results = allComics.filter(c => 
+                c.title.toLowerCase().includes(query) || 
+                (c.author && c.author.toLowerCase().includes(query))
+            );
+            setSearchResults(results);
+        }
+    }, [searchQuery, allComics]);
 
     const renderSection = (title: string, stories: StoryInfo[], link?: string) => {
         return (
@@ -156,12 +172,32 @@ export default function Home() {
     return (
         <div className="pb-8">
             <HeroSlider stories={trending.slice(0, 5)} />
-            {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
-            {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
-            {renderSection("PRÓXIMAMENTE", comingSoon)}
-            {renderSection("TÍTULOS EN TENDENCIA", trending)}
-            {renderSection("TODAS LAS OBRAS", allComics, "/directory")}
-            {renderSection("TERMINADOS", completed)}
+            
+            <div className="px-4 sm:px-6 lg:px-8 mb-12 max-w-7xl mx-auto">
+                <div className="relative group">
+                    <input 
+                        type="text"
+                        placeholder="Buscar obra o autor/a..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full bg-white border-4 border-black rounded-[2rem] pl-14 pr-6 py-4 sm:py-5 text-sm sm:text-lg font-bold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-primary/20 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] focus:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all"
+                    />
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
+                </div>
+            </div>
+
+            {searchQuery.trim() !== '' ? (
+                renderSection(`RESULTADOS PARA "${searchQuery.toUpperCase()}"`, searchResults)
+            ) : (
+                <>
+                    {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
+                    {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
+                    {renderSection("PRÓXIMAMENTE", comingSoon)}
+                    {renderSection("TÍTULOS EN TENDENCIA", trending)}
+                    {renderSection("TODAS LAS OBRAS", allComics.slice(0, 30), "/directory")}
+                    {renderSection("TERMINADOS", completed)}
+                </>
+            )}
         </div>
     );
 }
