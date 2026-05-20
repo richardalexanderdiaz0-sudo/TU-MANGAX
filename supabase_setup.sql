@@ -70,10 +70,10 @@ CREATE TABLE comments (
 );
 
 -- 3. Habilitar Storage y crear el bucket 'nexus-storage'
--- Esto crea el bucket si no existe
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('nexus-storage', 'nexus-storage', true)
-ON CONFLICT (id) DO NOTHING;
+-- Esto crea el bucket si no existe y aumenta el limite a 500MB para los PDFs largos
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('nexus-storage', 'nexus-storage', true, 524288000)
+ON CONFLICT (id) DO UPDATE SET file_size_limit = 524288000;
 
 -- 4. Deshabilitar RLS temporalmente para asegurar que el Front-End (con Firebase Auth) conectado por API Key Anónima pueda operar sin trabas
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;

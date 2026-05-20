@@ -110,7 +110,7 @@ export default function ComicDetail() {
                 <div className="flex justify-between items-start">
                     <div>
                         <h1 className="text-3xl md:text-5xl font-black text-primary-dark mb-2 tracking-tight drop-shadow-sm font-display">{story.title}</h1>
-                        <p className="text-slate-500 font-black mb-4 text-lg">Por <span className="text-primary-dark underline decoration-wavy decoration-primary-light underline-offset-4">{story.author || 'Desconocido'}</span></p>
+                        <p className="text-slate-500 font-black mb-4 text-lg">Por <Link to={`/author/${encodeURIComponent(story.author || 'Desconocido')}`} className="text-primary-dark underline decoration-wavy decoration-primary-light underline-offset-4 hover:text-primary transition-colors">{story.author || 'Desconocido'}</Link></p>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={handleShare} className="p-3 bg-white hover:bg-primary-light text-slate-800 rounded-full transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
