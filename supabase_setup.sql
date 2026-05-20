@@ -1,86 +1,105 @@
--- Supabase Storage & Database Setup for Nexus Manga & Manhwa
--- Run this in the Supabase SQL Editor
+-- Supabase Storage, Tables, & Database Setup for Nexus Manga & Manhwa
+-- Ejecuta este código completo directamente en el SQL Editor de tu proyecto de Supabase Pro!
 
--- 1. Create a storage bucket named 'nexus-storage'
-insert into storage.buckets (id, name, public)
-values ('nexus-storage', 'nexus-storage', true)
-on conflict (id) do nothing;
+-- 1. Eliminar tablas antiguas si existen (para poder crearlas de forma limpia)
+DROP TABLE IF EXISTS comments CASCADE;
+DROP TABLE IF EXISTS likes CASCADE;
+DROP TABLE IF EXISTS library CASCADE;
+DROP TABLE IF EXISTS chapters CASCADE;
+DROP TABLE IF EXISTS stories CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
-create policy "Public Access"
-on storage.objects for select
-to public
-using ( bucket_id = 'nexus-storage' );
+-- 2. Crear las Tablas Limpias
 
-create policy "Allow generic upload"
-on storage.objects for insert
-to public
-with check ( bucket_id = 'nexus-storage' );
-
-create policy "Allow generic update"
-on storage.objects for update
-to public
-using ( bucket_id = 'nexus-storage' );
-
-create policy "Allow generic delete"
-on storage.objects for delete
-to public
-using ( bucket_id = 'nexus-storage' );
-
-
--- 2. Create the Database Tables
-
--- Table: users
-CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY, -- Firebase UID
+-- Tabla: users (Firebase Auth UIDs as primary keys)
+CREATE TABLE users (
+    id TEXT PRIMARY KEY,                       -- UID de Firebase Auth
     email TEXT UNIQUE NOT NULL,
     role TEXT NOT NULL DEFAULT 'user',
     display_name TEXT,
+    photo_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table: stories
-CREATE TABLE IF NOT EXISTS stories (
+-- Tabla: stories (Obras)
+CREATE TABLE stories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title TEXT NOT NULL,
     synopsis TEXT,
     cover_url TEXT,
-    author TEXT,
-    genres TEXT[],
+    author TEXT DEFAULT 'Desconocido',
+    genres TEXT[] DEFAULT '{}',
     status TEXT DEFAULT 'ONGOING',
     likes_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table: chapters
-CREATE TABLE IF NOT EXISTS chapters (
+-- Tabla: chapters (Capítulos)
+CREATE TABLE chapters (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     chapter_number INTEGER NOT NULL,
-    pages_urls TEXT[],
+    pages_urls TEXT[] DEFAULT '{}',             -- URLs de las imágenes y PDFs convertidos
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Table: library (user favorites)
-CREATE TABLE IF NOT EXISTS library (
+-- Tabla: library (Mis mangas guardados/Biblioteca)
+CREATE TABLE library (
     user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
     story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
     added_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     PRIMARY KEY (user_id, story_id)
 );
 
--- Table: likes
-CREATE TABLE IF NOT EXISTS likes (
+-- Tabla: likes (Likes a obras)
+CREATE TABLE likes (
     user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
     story_id UUID REFERENCES stories(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     PRIMARY KEY (user_id, story_id)
 );
 
--- Disable Row Level Security (RLS) for testing since Auth is in Firebase
+-- Tabla: comments (Comentarios en capítulos)
+CREATE TABLE comments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chapter_id UUID REFERENCES chapters(id) ON DELETE CASCADE,
+    user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- 3. Habilitar Storage y crear el bucket 'nexus-storage'
+-- Esto crea el bucket si no existe
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('nexus-storage', 'nexus-storage', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Deshabilitar RLS temporalmente para asegurar que el Front-End (con Firebase Auth) conectado por API Key Anónima pueda operar sin trabas
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE stories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE chapters DISABLE ROW LEVEL SECURITY;
 ALTER TABLE library DISABLE ROW LEVEL SECURITY;
 ALTER TABLE likes DISABLE ROW LEVEL SECURITY;
+ALTER TABLE comments DISABLE ROW LEVEL SECURITY;
 
+-- Políticas de Storage abiertas para acceso público total al bucket (Subidas, descargas, etc)
+CREATE POLICY "Public Access"
+ON storage.objects FOR SELECT
+TO public
+USING ( bucket_id = 'nexus-storage' );
+
+CREATE POLICY "Allow generic upload"
+ON storage.objects FOR INSERT
+TO public
+WITH CHECK ( bucket_id = 'nexus-storage' );
+
+CREATE POLICY "Allow generic update"
+ON storage.objects FOR UPDATE
+TO public
+USING ( bucket_id = 'nexus-storage' );
+
+CREATE POLICY "Allow generic delete"
+ON storage.objects FOR DELETE
+TO public
+USING ( bucket_id = 'nexus-storage' );
