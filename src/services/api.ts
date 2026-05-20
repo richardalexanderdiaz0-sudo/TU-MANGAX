@@ -82,7 +82,7 @@ export const api = {
   // Stories (Mangas/Manhwas)
   stories: {
     getAll: async (params?: string) => {
-      let query = supabase.from('stories').select('*').order('created_at', { ascending: false });
+      let query = supabase.from('stories').select('*, chapters(created_at)').order('created_at', { ascending: false });
       
       if (params && params.includes('status=')) {
         const statusVal = params.split('status=')[1]?.split('&')[0];
@@ -93,7 +93,16 @@ export const api = {
       
       const { data, error } = await query;
       if (error) throw new Error(error.message);
-      return data || [];
+      
+      return (data || []).map((story: any) => {
+          const chapterDates = story.chapters?.map((c: any) => new Date(c.created_at).getTime()) || [];
+          const lastUpdate = chapterDates.length > 0 ? new Date(Math.max(...chapterDates)).toISOString() : story.created_at;
+          const { chapters, ...rest } = story; // Remove chapters from payload to keep it light
+          return {
+              ...rest,
+              updated_at: lastUpdate
+          };
+      });
     },
 
     getOne: async (id: string) => {
@@ -226,6 +235,10 @@ export const api = {
         .single();
 
       if (error) throw new Error(error.message);
+      
+      // Update story to ONGOING if it was SOON
+      await supabase.from('stories').update({ status: 'ONGOING' }).eq('id', storyId).eq('status', 'SOON');
+
       return {
         ...data,
         pages: data.pages_urls || []

@@ -9,6 +9,7 @@ export default function ComicDetail() {
     const { user } = useStore();
     const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
+    const [similarStories, setSimilarStories] = useState<any[]>([]);
     const [expandedSyn, setExpandedSyn] = useState(false);
     const [orderAsc, setOrderAsc] = useState(true);
     const [isSaved, setIsSaved] = useState(false);
@@ -16,6 +17,7 @@ export default function ComicDetail() {
     const [showReport, setShowReport] = useState(false);
     
     useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
         if (!id) return;
         
         const fetchDetail = async () => {
@@ -29,6 +31,31 @@ export default function ComicDetail() {
                 if (cData) {
                     setChapters(cData);
                 }
+
+                // Fetch similar stories
+                const allStories = await api.stories.getAll();
+                const currentGenres = sData?.genres || [];
+                let related = allStories
+                    .filter((s: any) => s.id !== id)
+                    .map((s: any) => {
+                        let score = 0;
+                        const sGenres = s.genres || [];
+                        const commonGenres = currentGenres.filter((g: string) => sGenres.includes(g));
+                        score += commonGenres.length * 2;
+                        
+                        if (sData?.author && s.author && sData.author === s.author) {
+                            score += 3;
+                        }
+
+                        // Add small randomizer to break ties and keep UI fresh
+                        score += Math.random() * 0.5;
+
+                        return { ...s, score };
+                    })
+                    .sort((a: any, b: any) => b.score - a.score)
+                    .slice(0, 12);
+
+                setSimilarStories(related);
 
                 if (user) {
                     // Logic to check library/likes will depend on Ivan's endpoints
@@ -191,6 +218,35 @@ export default function ComicDetail() {
                         ))}
                     </div>
                 </div>
+
+                {similarStories.length > 0 && (
+                    <div className="pt-16 pb-8">
+                        <div className="flex justify-between items-end mb-8 border-b-4 border-black pb-4">
+                            <h2 className="text-2xl font-black text-primary-dark tracking-tight uppercase">Obras Parecidas</h2>
+                        </div>
+                        <div className="flex overflow-x-auto gap-4 pb-8 snap-x snap-mandatory scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0">
+                            {similarStories.map(sim => (
+                                <Link 
+                                    key={sim.id} 
+                                    to={`/comic/${sim.id}`} 
+                                    className="flex-none w-32 sm:w-40 flex flex-col gap-3 group snap-start"
+                                >
+                                    <div className="relative aspect-[2/3] rounded-2xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                        <img 
+                                            src={sim.cover ? getImageUrl(sim.cover) : (sim.cover_url || 'https://via.placeholder.com/300x450')} 
+                                            alt={sim.title}
+                                            className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-300"
+                                        />
+                                        <div className="absolute top-2 left-2 flex flex-col gap-1">
+                                            {sim.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[9px] uppercase font-black px-1.5 py-0.5 rounded-md border-2 border-black shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">FIN</span>}
+                                        </div>
+                                    </div>
+                                    <h3 className="font-bold text-xs sm:text-sm text-slate-800 line-clamp-2 leading-tight group-hover:text-primary transition-colors px-1">{sim.title}</h3>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

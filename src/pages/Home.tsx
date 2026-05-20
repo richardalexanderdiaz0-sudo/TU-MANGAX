@@ -10,6 +10,8 @@ interface StoryInfo {
     status: string;
     likes_count: number;
     created_at: string;
+    updated_at?: string;
+    isRecentlyUpdated?: boolean;
     author?: string;
 }
 
@@ -100,21 +102,52 @@ export default function Home() {
         const fetchStories = async () => {
             try {
                 const response = await api.stories.getAll();
-                const allStories = response.map((s: any) => ({
-                    ...s,
-                    cover_url: s.cover ? getImageUrl(s.cover) : (s.cover_url || '')
-                }));
+                const now = new Date().getTime();
+
+                const allStories = response.map((s: any) => {
+                    const createdDate = new Date(s.created || s.created_at).getTime();
+                    // isRecentlyUpdated logic
+                    let isRecentlyUpdated = false;
+                    if (s.updated_at) {
+                        const updatedDate = new Date(s.updated_at).getTime();
+                        if (updatedDate - createdDate > 1000) {
+                            const diffDaysUpdate = (now - updatedDate) / (1000 * 60 * 60 * 24);
+                            if (diffDaysUpdate <= 1) {
+                                isRecentlyUpdated = true;
+                            }
+                        }
+                    }
+                    
+                    return {
+                        ...s,
+                        isRecentlyUpdated,
+                        cover_url: s.cover ? getImageUrl(s.cover) : (s.cover_url || '')
+                    };
+                });
 
                 const sortedByRecency = [...allStories].sort((a: any, b: any) => new Date(b.created || b.created_at).getTime() - new Date(a.created || a.created_at).getTime());
                 const sortedByLikes = [...allStories].sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
 
-                setRecentlyAdded(sortedByRecency.slice(0, 15));
+                const addedRecently = sortedByRecency.filter((s: any) => {
+                    const createdDate = new Date(s.created || s.created_at).getTime();
+                    const diffDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+                    if (s.status === 'COMPLETED') {
+                        return diffDays <= 1;
+                    } else {
+                        return diffDays <= 2;
+                    }
+                });
+
+                const dailyUpdatesList = allStories.filter(s => s.isRecentlyUpdated)
+                    .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+                setRecentlyAdded(addedRecently);
                 setTrending(sortedByLikes.slice(0, 15));
                 setAllComics(sortedByRecency);
                 
                 setCompleted(allStories.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
                 setComingSoon(allStories.filter((s: any) => s.status === 'SOON').slice(0, 15));
-                setDailyUpdates(sortedByRecency.slice(0, 8));
+                setDailyUpdates(dailyUpdatesList);
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }
@@ -215,6 +248,7 @@ function StoryCard({ story }: { story: StoryInfo, key?: React.Key }) {
                     className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-300"
                 />
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {story.isRecentlyUpdated && <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">¡ACTUALIZADO!</span>}
                     {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
                     {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
                     {story.status === 'SOON' && <span className="bg-primary text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}

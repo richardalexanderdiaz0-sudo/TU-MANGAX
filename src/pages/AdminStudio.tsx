@@ -147,11 +147,12 @@ const CATEGORIES = [
     "YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN", "JOSEI", "KODOMO", "ISEKAI", "YURI", "GL", "OMEGAVERSE", "WEBTOON", "MANHWA", "MANHUAS", "DOUJINSHI", "NOVELA LIGERA"
 ];
 const TAGS = [
-    "Acción", "Fantasía", "Fantasía Oscura", "Mecha", "Drama", "Suspenso", "Vida Cotidiana", "Vida Escolar", "Escolar", "Cárcel", "Bullying", "Chico Rudo", 
-    "Romance", "Comedia", "Comedia Romántica", "Terror", "Horror", "Misterio", "Deportes", "Magia", "Vampiros", "Zombies", "Demografias", "Superpoderes", "Supervivencia",
-    "Post-apocalíptico", "Reencarnación", "Sistema", "Venganza", "Artes Marciales", "Tragedia", "Histórico", "Policial", "Psicológico",
-    "Regresión", "Torre", "Cazadores", "Cultivación", "Murim", "Monstruos", "Sobrenatural", "Demonios", "Ángeles", "Ciencia Ficción", "Cyberpunk",
-    "Magia Académica", "Videojuegos", "Realidad Virtual", "Thriller", "Militar", "Político", "Crimen", "Mafia", "Pandillas"
+    "Acción", "Adulto", "Apocalíptico", "Artes Marciales", "Aventura", "Boys Love", "Ciencia Ficción", "Comedia", 
+    "Cosas de la vida", "Crimen", "Demonios", "Deporte", "Detective", "Diferencia de edad", "Doujinshi", "Drama", 
+    "Ecchi", "Familia", "Fantasía", "Girls Love", "Guerra", "Harem", "Historia", "Horror", "Magia", "Misterio", 
+    "Murim", "Música", "Niños", "Oficina", "Omegaverse", "One shot", "Policiaco", "Psicológico", "Realidad", 
+    "Realidad virtual", "Recuentos de la vida", "Reencarnación", "Regresión", "Romance", "Sistema", "Sobrenatural", 
+    "Superpoderes", "Supervivencia", "Thriller", "Tragedia", "Vampiros", "Vida Escolar", "Yaoi", "Yuri"
 ];
 
 function CreationWizard() {
