@@ -6,6 +6,23 @@ import { auth } from './firebase';
  * Gestiona el permiso de notificaciones nativas en dispositivo y la suscripción a Supabase Realtime.
  */
 
+// Registrar el Service Worker para soportar clics y notificaciones en segundo plano
+export const registerServiceWorker = async () => {
+    if ('serviceWorker' in navigator) {
+        try {
+            // Verificar si ya está registrado o registrar uno nuevo
+            const registration = await navigator.serviceWorker.register('/sw.js', {
+                scope: '/'
+            });
+            console.log('Service Worker de TU MANGAX registrado con éxito:', registration.scope);
+            return registration;
+        } catch (error) {
+            console.error('Error registrando el Service Worker:', error);
+        }
+    }
+    return null;
+};
+
 // Solicitar permisos de notificación al usuario
 export const requestNotificationPermission = async (): Promise<boolean> => {
     if (!('Notification' in window)) {
@@ -16,11 +33,15 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
+            // Asegurarse de tener el Service Worker registrado antes de la primera notificación
+            await registerServiceWorker();
+            
             // Mostrar notificación de prueba elegante
             showNotification(
                 '¡Notificaciones Activadas! 🔔',
                 'Te avisaremos inmediatamente cuando se suban nuevos capítulos de tus historias en la biblioteca.',
-                '/logo.svg'
+                '/logo.svg',
+                { url: '/' }
             );
             return true;
         }
@@ -37,6 +58,9 @@ export const showNotification = async (title: string, body: string, iconUrl?: st
     }
 
     try {
+        // Asegurarse de registrar el Service Worker si aún no está listo
+        await registerServiceWorker();
+
         // Preferir mostrar por el Service Worker registrado para que aparezca en el tray y pantalla de bloqueo en móviles
         if ('serviceWorker' in navigator) {
             const registration = await navigator.serviceWorker.ready;
@@ -56,10 +80,16 @@ export const showNotification = async (title: string, body: string, iconUrl?: st
         }
 
         // Fallback a notificación clásica si no hay Service Worker activo
-        new Notification(title, {
+        const notif = new Notification(title, {
             body,
             icon: iconUrl || '/logo.svg'
         });
+        notif.onclick = () => {
+            window.focus();
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        };
     } catch (e) {
         console.error('Error mostrando la notificación:', e);
     }
@@ -69,6 +99,9 @@ export const showNotification = async (title: string, body: string, iconUrl?: st
 export const initializeRealtimeNotifications = () => {
     const currentUser = auth.currentUser;
     if (!currentUser) return null;
+
+    // Registrar Service worker preventivamente
+    registerServiceWorker();
 
     // Suscribirse a inserciones de nuevos capítulos (INSERT es el evento cuando se añade un capítulo)
     const channel = supabase
