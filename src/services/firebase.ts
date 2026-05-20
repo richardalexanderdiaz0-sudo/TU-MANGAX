@@ -8,11 +8,18 @@ import {
   updateProfile,
   signOut
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyD4t6Tq1bAell9u6V8UcErv1Ee4gFo78y0",
+  authDomain: "nexusapp-c0a21.firebaseapp.com",
+  databaseURL: "https://nexusapp-c0a21-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "nexusapp-c0a21",
+  storageBucket: "nexusapp-c0a21.firebasestorage.app",
+  messagingSenderId: "487113661451",
+  appId: "1:487113661451:web:d8407d9235631b7fc6fb0e"
+};
 
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
