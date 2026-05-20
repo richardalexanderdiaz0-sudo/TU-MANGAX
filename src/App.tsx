@@ -9,6 +9,7 @@ import { useStore } from './store';
 import { api } from './services/api';
 import { auth } from './services/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { initializeRealtimeNotifications } from './services/notifications';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
 import Home from './pages/Home';
@@ -59,7 +60,15 @@ export default function App() {
 
   useEffect(() => {
     setAuthLoading(true);
+    let channel: any = null;
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      // Unsubscribe existing registration on status switch
+      if (channel) {
+        channel.unsubscribe();
+        channel = null;
+      }
+
       if (firebaseUser) {
         const mappedUser = {
           uid: firebaseUser.uid,
@@ -75,13 +84,23 @@ export default function App() {
           role: firebaseUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
         };
         setUser(mappedUser, mappedProfile);
+
+        // Iniciar suscripción para notificaciones sobre nuevos capítulos
+        setTimeout(() => {
+          channel = initializeRealtimeNotifications();
+        }, 1200);
       } else {
         setUser(null, null);
       }
       setAuthLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (channel) {
+        channel.unsubscribe();
+      }
+    };
   }, [setUser, setAuthLoading]);
 
   return (

@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { api, getImageUrl } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ChevronRight, Play } from 'lucide-react';
+import { Search, ChevronRight, Play, Bell } from 'lucide-react';
+import { useStore } from '../store';
+import { requestNotificationPermission } from '../services/notifications';
 
 interface StoryInfo {
     id: string;
@@ -95,6 +97,18 @@ export default function Home() {
     const [dailyUpdates, setDailyUpdates] = useState<StoryInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<StoryInfo[]>([]);
+    const [notifStatus, setNotifStatus] = useState<string>(
+        ('Notification' in window) ? Notification.permission : 'denied'
+    );
+
+    const handleEnableNotifs = async () => {
+        const granted = await requestNotificationPermission();
+        if (granted) {
+            setNotifStatus('granted');
+        } else {
+            setNotifStatus('Notification' in window ? Notification.permission : 'denied');
+        }
+    };
 
     const navigate = useNavigate();
 
@@ -206,7 +220,7 @@ export default function Home() {
         <div className="pb-8">
             <HeroSlider stories={trending.slice(0, 5)} />
             
-            <div className="px-4 sm:px-6 lg:px-8 mb-12 max-w-7xl mx-auto">
+            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto">
                 <div className="relative group">
                     <input 
                         type="text"
@@ -218,6 +232,31 @@ export default function Home() {
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
                 </div>
             </div>
+
+            {/* Banner elegante para activar notificaciones push */}
+            {notifStatus === 'default' && (
+                <div className="px-4 sm:px-6 lg:px-8 mb-10 max-w-7xl mx-auto">
+                    <div className="bg-primary/5 border-4 border-dashed border-primary/40 rounded-[2.5rem] p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:bg-primary/10">
+                        <div className="flex items-start gap-4">
+                            <div className="p-3.5 bg-primary text-white rounded-2xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex-shrink-0 animate-pulse">
+                                <Bell className="h-6 w-6 stroke-[3px]" />
+                            </div>
+                            <div>
+                                <h4 className="font-black text-lg text-primary-dark uppercase italic tracking-tight">¡No te pierdas ningún estreno! 🔔</h4>
+                                <p className="text-xs sm:text-sm text-slate-600 font-bold mt-1 max-w-2xl leading-relaxed">
+                                    Activa las notificaciones automáticas para recibir avisos al instante en tu celular cuando tus mangas favoritos en tu biblioteca publiquen nuevos capítulos.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleEnableNotifs}
+                            className="w-full md:w-auto toon-button bg-primary text-white py-3 px-8 uppercase text-xs font-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] whitespace-nowrap active:translate-x-[2px] active:translate-y-[2px]"
+                        >
+                            🔔 Activar Notificaciones
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {searchQuery.trim() !== '' ? (
                 renderSection(`RESULTADOS PARA "${searchQuery.toUpperCase()}"`, searchResults)
