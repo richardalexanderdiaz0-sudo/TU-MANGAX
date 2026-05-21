@@ -158,15 +158,54 @@ export const api = {
     },
 
     update: async (id: string, data: any) => {
-      const { data: updated, error } = await supabase
-        .from('stories')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
+      await ensureSupabaseUser();
+      if (data instanceof FormData) {
+        const updateData: any = {};
+        
+        const title = data.get('title');
+        const synopsis = data.get('synopsis');
+        const status = data.get('status');
+        const author = data.get('author');
+        const genres = data.get('genres');
+        const coverFile = data.get('cover');
 
-      if (error) throw new Error(error.message);
-      return updated;
+        if (title !== null) updateData.title = title as string;
+        if (synopsis !== null) updateData.synopsis = synopsis as string;
+        if (status !== null) updateData.status = status as string;
+        if (author !== null) updateData.author = author as string;
+        if (genres !== null) {
+          try {
+            updateData.genres = JSON.parse(genres as string);
+          } catch (e) {
+            updateData.genres = genres;
+          }
+        }
+
+        if (coverFile instanceof File && coverFile.size > 0) {
+          const cover_url = await uploadToSupabaseStorage(coverFile, 'covers');
+          updateData.cover_url = cover_url;
+        }
+
+        const { data: updated, error } = await supabase
+          .from('stories')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw new Error(error.message);
+        return updated;
+      } else {
+        const { data: updated, error } = await supabase
+          .from('stories')
+          .update(data)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw new Error(error.message);
+        return updated;
+      }
     }
   },
 
@@ -253,6 +292,61 @@ export const api = {
 
       if (error) throw new Error(error.message);
       return { success: true };
+    },
+
+    update: async (id: string, payload: any) => {
+      await ensureSupabaseUser();
+      if (payload instanceof FormData) {
+        const title = payload.get('title') as string;
+        const chapterNum = payload.get('chapter_number') ? Number(payload.get('chapter_number')) : undefined;
+        const storyId = payload.get('story_id') as string;
+        
+        const updateData: any = {};
+        if (title !== undefined) updateData.title = title;
+        if (chapterNum !== undefined) updateData.chapter_number = chapterNum;
+
+        const pagesFiles = payload.getAll('pages');
+        if (pagesFiles && pagesFiles.length > 0) {
+          const pages_urls: string[] = [];
+          for (const file of pagesFiles) {
+            if (file instanceof File && file.size > 0) {
+              const uploadedUrl = await uploadToSupabaseStorage(file, `pages/${storyId}/chap-${chapterNum || 'edit'}`);
+              pages_urls.push(uploadedUrl);
+            } else if (typeof file === 'string' && file.startsWith('http')) {
+              pages_urls.push(file);
+            }
+          }
+          if (pages_urls.length > 0) {
+            updateData.pages_urls = pages_urls;
+          }
+        }
+
+        const { data, error } = await supabase
+          .from('chapters')
+          .update(updateData)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw new Error(error.message);
+        return {
+          ...data,
+          pages: data.pages_urls || []
+        };
+      } else {
+        const { data, error } = await supabase
+          .from('chapters')
+          .update(payload)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) throw new Error(error.message);
+        return {
+          ...data,
+          pages: data.pages_urls || []
+        };
+      }
     }
   },
 

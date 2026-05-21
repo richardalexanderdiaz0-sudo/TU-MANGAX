@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
-import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X } from 'lucide-react';
+import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash } from 'lucide-react';
 
 const formatError = (err: any, defaultMsg: string) => {
     const msg = String(err?.message || err?.error || '').toLowerCase();
@@ -538,10 +538,20 @@ function EditStory() {
     const [loadingView, setLoadingView] = useState(true);
     const [isEditingMetadata, setIsEditingMetadata] = useState(false);
 
-    // Edit states
+    // Edit Metadata states
     const [editTitle, setEditTitle] = useState('');
     const [editSynopsis, setEditSynopsis] = useState('');
     const [editStatus, setEditStatus] = useState('');
+    const [editAuthor, setEditAuthor] = useState('');
+    const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
+    const [editSelectedCats, setEditSelectedCats] = useState<string[]>([]);
+    const [editSelectedTags, setEditSelectedTags] = useState<string[]>([]);
+
+    // Chapter Edit states
+    const [editingChapter, setEditingChapter] = useState<any | null>(null);
+    const [editChapterTitle, setEditChapterTitle] = useState('');
+    const [editChapterNumber, setEditChapterNumber] = useState<number>(1);
+    const [editChapterPages, setEditChapterPages] = useState<File[]>([]);
 
     const handleDeleteStory = async (id: string, title: string) => {
         if (!confirm(`¿Estás seguro de que quieres borrar TODA la obra "${title}"? Esta acción no se puede deshacer.`)) return;
@@ -561,16 +571,32 @@ function EditStory() {
             const sData = await api.stories.getOne(storyId);
             if (sData) {
                 setStory(sData);
-                setEditTitle(sData.title);
-                setEditSynopsis(sData.synopsis);
-                setEditStatus(sData.status);
+                setEditTitle(sData.title || '');
+                setEditSynopsis(sData.synopsis || '');
+                setEditStatus(sData.status || '');
+                setEditAuthor(sData.author || '');
+                
+                // Mapear genres
+                let genresList: string[] = [];
+                try {
+                    genresList = Array.isArray(sData.genres) 
+                        ? sData.genres 
+                        : (typeof sData.genres === 'string' ? JSON.parse(sData.genres) : []);
+                } catch (e) {
+                    genresList = [];
+                }
+                
+                const cats = genresList.filter((g: string) => CATEGORIES.includes(g));
+                const tags = genresList.filter((g: string) => !CATEGORIES.includes(g) && g !== sData.type);
+                setEditSelectedCats(cats);
+                setEditSelectedTags(tags);
             }
 
             const cData = await api.chapters.getByStory(storyId);
             if (cData) {
                 setChapters(cData);
             }
-        } catch(e) {
+        } catch (e) {
             console.error(e);
         }
         setLoadingView(false);
@@ -581,19 +607,35 @@ function EditStory() {
     }, [storyId]);
 
     const handleUpdateMetadata = async () => {
+        setLoading(true);
         try {
-            await api.stories.update(storyId!, {
-                title: editTitle,
-                synopsis: editSynopsis,
-                status: editStatus
-            });
+            const formData = new FormData();
+            formData.append('title', editTitle);
+            formData.append('synopsis', editSynopsis);
+            formData.append('status', editStatus);
+            formData.append('author', editAuthor);
+
+            const allGenres = [...editSelectedCats, ...editSelectedTags];
+            if (story?.type && !allGenres.includes(story.type)) {
+                allGenres.push(story.type);
+            }
+            formData.append('genres', JSON.stringify(allGenres));
+
+            if (editCoverFile) {
+                formData.append('cover', editCoverFile);
+            }
+
+            await api.stories.update(storyId!, formData);
 
             setIsEditingMetadata(false);
-            loadData();
-            alert("Datos actualizados!");
+            setEditCoverFile(null);
+            await loadData();
+            setLoading(false);
+            alert("¡Obra actualizada con éxito!");
         } catch (err) {
             console.error(err);
-            alert(formatError(err, "Error al actualizar"));
+            setLoading(false);
+            alert(formatError(err, "Error al actualizar la obra"));
         }
     };
 
@@ -604,7 +646,7 @@ function EditStory() {
             const nextChapNum = chapters.length > 0 ? Math.max(...chapters.map(c => c.chapter_number)) + 1 : 1;
 
             const cFormData = new FormData();
-            cFormData.append('story', storyId!);
+            cFormData.append('story_id', storyId!);
             cFormData.append('chapter_number', String(nextChapNum));
             cFormData.append('title', newChapterTitle.trim() || `Capítulo ${nextChapNum}`);
             
@@ -616,9 +658,9 @@ function EditStory() {
 
             setPages([]);
             setNewChapterTitle('');
-            loadData();
+            await loadData();
             setLoading(false);
-            alert("Capítulo añadido con éxito!");
+            alert("¡Capítulo añadido con éxito!");
         } catch (err) {
             console.error(err);
             setLoading(false);
@@ -626,18 +668,62 @@ function EditStory() {
         }
     };
 
+    const handleStartEditChapter = (chap: any) => {
+        setEditingChapter(chap);
+        setEditChapterTitle(chap.title || '');
+        setEditChapterNumber(chap.chapter_number || 1);
+        setEditChapterPages([]);
+    };
+
+    const handleUpdateChapter = async () => {
+        if (!editingChapter) return;
+        setLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('story_id', storyId!);
+            formData.append('chapter_number', String(editChapterNumber));
+            formData.append('title', editChapterTitle.trim() || `Capítulo ${editChapterNumber}`);
+            
+            if (editChapterPages.length > 0) {
+                for (let i = 0; i < editChapterPages.length; i++) {
+                    formData.append('pages', editChapterPages[i]);
+                }
+            }
+
+            await api.chapters.update(editingChapter.id, formData);
+
+            setEditingChapter(null);
+            setEditChapterPages([]);
+            setEditChapterTitle('');
+            await loadData();
+            setLoading(false);
+            alert("¡Capítulo actualizado con éxito!");
+        } catch (err) {
+            console.error(err);
+            setLoading(false);
+            alert(formatError(err, "Error al actualizar el capítulo"));
+        }
+    };
+
     const handleDeleteChapter = async (chapId: string, chapNum: number) => {
         if (!confirm(`¿Borrar Capítulo ${chapNum}?`)) return;
         try {
             await api.chapters.delete(chapId);
-            loadData();
+            await loadData();
+            alert("¡Capítulo eliminado!");
         } catch (err) {
             console.error(err);
+            alert("Error al borrar el capítulo");
         }
     };
 
     if (loading) {
-        return <div className="flex flex-col items-center justify-center p-20"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mb-4"></div><p className="text-primary font-black uppercase text-center">Subiendo capítulo...<br/>Por favor espera.</p></div>;
+        return (
+            <div className="flex flex-col items-center justify-center p-20 bg-white border-4 border-black rounded-[2.5rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary mb-4"></div>
+                <p className="text-primary font-black uppercase text-center">Subiendo cambios... Por favor espera.</p>
+            </div>
+        );
     }
 
     if (loadingView) return <div className="p-8 text-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary mx-auto"></div></div>;
@@ -647,17 +733,20 @@ function EditStory() {
         <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-20">
             {/* Header Mini Card */}
             <div className="toon-card bg-white p-6 flex flex-col sm:flex-row gap-6 items-center">
-                <img src={story.cover ? getImageUrl(story.cover) : (story?.cover_url || '')} className="w-24 aspect-[2/3] object-cover rounded-xl border-2 border-black" alt="" />
+                <div className="border-4 border-black rounded-xl overflow-hidden shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex-shrink-0">
+                    <img src={story.cover_url || (story.cover ? getImageUrl(story.cover) : '')} className="w-24 aspect-[2/3] object-cover" alt="" />
+                </div>
                 <div className="text-center sm:text-left flex-1">
                     <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tighter mb-1 font-display">{story.title}</h2>
+                    <p className="text-xs text-slate-500 font-bold mb-2">Autor: <span className="text-primary italic">{story.author || 'Desconocido'}</span></p>
                     <div className="flex items-center gap-2 justify-center sm:justify-start">
                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border-2 border-black ${
                             story.status === 'COMPLETED' ? 'bg-emerald-400' : story.status === 'SOON' ? 'bg-primary text-white' : 'bg-blue-400'
                         }`}>
                             {story.status === 'COMPLETED' ? 'Finalizada' : story.status === 'SOON' ? 'Próximamente' : 'Emisión'}
                         </span>
-                        <button onClick={() => setIsEditingMetadata(!isEditingMetadata)} className="text-xs font-black text-primary hover:underline">
-                            {isEditingMetadata ? 'CANCELAR EDICIÓN' : 'EDITAR DETALLES'}
+                        <button onClick={() => setIsEditingMetadata(!isEditingMetadata)} className="text-xs font-black text-primary hover:underline uppercase tracking-tight ml-2">
+                            {isEditingMetadata ? 'CANCELAR EDICIÓN' : '✏️ EDITAR DETALLES / PORTADA'}
                         </button>
                     </div>
                 </div>
@@ -674,76 +763,203 @@ function EditStory() {
 
             {isEditingMetadata && (
                 <div className="toon-card bg-white p-8 animate-in fade-in slide-in-from-top-4">
-                    <h3 className="font-black text-primary-dark border-b-4 border-black/10 pb-4 mb-6 uppercase italic">Editar Información</h3>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Título</label>
-                            <input value={editTitle} onChange={e=>setEditTitle(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
+                    <h3 className="font-black text-primary-dark border-b-4 border-black/10 pb-4 mb-6 uppercase italic">Editar Información y Portada</h3>
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Título</label>
+                                <input value={editTitle} onChange={e=>setEditTitle(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Nombre del Autor</label>
+                                <input value={editAuthor} onChange={e=>setEditAuthor(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
+                            </div>
                         </div>
+
                         <div>
                             <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Sinopsis</label>
                             <textarea value={editSynopsis} onChange={e=>setEditSynopsis(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary h-24 resize-none" />
                         </div>
-                        <div>
-                            <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Estado</label>
-                            <select value={editStatus} onChange={e=>setEditStatus(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary">
-                                <option value="ONGOING">En Emisión</option>
-                                <option value="COMPLETED">Finalizada</option>
-                                <option value="SOON">Próximamente</option>
-                            </select>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Estado</label>
+                                <select value={editStatus} onChange={e=>setEditStatus(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary cursor-pointer">
+                                    <option value="ONGOING">En Emisión</option>
+                                    <option value="COMPLETED">Finalizada</option>
+                                    <option value="SOON">Próximamente</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Sustituir Portada (Dejar vacío para no cambiar)</label>
+                                <label htmlFor="editCoverFile" className="flex flex-col items-center justify-center w-full min-h-[50px] rounded-xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer px-4 py-2 group">
+                                    <input 
+                                        id="editCoverFile"
+                                        type="file" 
+                                        accept="image/jpeg,image/png,image/webp" 
+                                        onChange={e => setEditCoverFile(e.target.files?.[0] || null)} 
+                                        className="hidden" 
+                                    />
+                                    <span className="font-black text-xs text-slate-400 group-hover:text-primary-dark transition-colors uppercase">
+                                        {editCoverFile ? 'Cambiar Portada' : 'Subir archivo de nueva portada'}
+                                    </span>
+                                    {editCoverFile && <span className="text-[10px] text-primary font-black mt-1 underline leading-none">{editCoverFile.name}</span>}
+                                </label>
+                            </div>
                         </div>
-                        <button onClick={handleUpdateMetadata} className="toon-button bg-emerald-500 w-full mt-4">GUARDAR CAMBIOS</button>
+
+                        <div>
+                            <h3 className="font-black mb-3 uppercase text-slate-400 text-[10px] tracking-widest">Categorías Principales</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {CATEGORIES.map(c => (
+                                    <button 
+                                        type="button"
+                                        key={c} onClick={() => setEditSelectedCats(prev => prev.includes(c) ? prev.filter(x=>x!==c) : [...prev, c])}
+                                        className={`px-3 py-1.5 rounded-xl border-2 border-black text-xs font-black transition-all transform active:scale-95 ${editSelectedCats.includes(c) ? 'bg-primary text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -translate-y-[1px]' : 'bg-white text-slate-800 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]'}`}
+                                    >
+                                        {c}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 className="font-black mb-3 uppercase text-slate-400 text-[10px] tracking-widest">Etiquetas</h3>
+                            <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-2 custom-scrollbar">
+                                {TAGS.map(t => (
+                                    <button 
+                                        type="button"
+                                        key={t} onClick={() => setEditSelectedTags(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t])}
+                                        className={`px-3 py-1 rounded-xl border-2 border-black text-[10px] font-black transition-all transform active:scale-95 ${editSelectedTags.includes(t) ? 'bg-emerald-500 text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -translate-y-[1px]' : 'bg-white text-slate-800 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]'}`}
+                                    >
+                                        #{t.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button onClick={() => setIsEditingMetadata(false)} type="button" className="toon-button bg-slate-400 w-1/2">CANCELAR</button>
+                            <button onClick={handleUpdateMetadata} type="button" className="toon-button bg-emerald-500 w-1/2 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">GUARDAR CAMBIOS</button>
+                        </div>
                     </div>
                 </div>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                {/* Add Chapter Form */}
-                <div className="toon-card bg-white p-8">
-                    <h3 className="font-black text-primary-dark border-b-4 border-black/10 pb-4 mb-6 uppercase italic">Nuevo Capítulo</h3>
-                    
-                    <div className="space-y-6">
-                        <div>
-                            <label className="block text-xs font-black mb-2 uppercase text-slate-400">¿Qué capítulos incluye este bloque? (Ej: Capítulos 1-7)</label>
-                            <input 
-                                type="text" 
-                                placeholder="Ej: Capítulos 1-7, Extra"
-                                value={newChapterTitle}
-                                onChange={e => setNewChapterTitle(e.target.value)}
-                                className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary mb-4"
-                            />
+                {/* NEW CHAPTER OR EDIT CHAPTER FORM */}
+                {editingChapter ? (
+                    <div className="toon-card bg-amber-50/70 border-amber-400 p-8">
+                        <div className="flex items-center justify-between border-b-4 border-amber-400 pb-4 mb-6">
+                            <h3 className="font-black text-amber-600 uppercase italic">✏️ Editar Capítulo</h3>
+                            <button onClick={() => setEditingChapter(null)} className="text-xs font-black text-slate-400 hover:text-slate-800 uppercase underline">Cancelar</button>
                         </div>
-                        <div>
-                            <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest text-center">Toca para cargar archivos</label>
-                            <label htmlFor="newChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                        
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-xs font-black mb-2 uppercase text-amber-600">Título / Rango de Capítulo (Ej: Capítulos 1-7)</label>
                                 <input 
-                                    id="newChapterFiles"
-                                    type="file" 
-                                    multiple 
-                                    accept="image/jpeg,image/png,image/webp,application/pdf" 
-                                    onChange={e => setPages(Array.from(e.target.files || []))} 
-                                    className="hidden" 
+                                    type="text" 
+                                    placeholder="Ej: Capítulos 1-7"
+                                    value={editChapterTitle}
+                                    onChange={e => setEditChapterTitle(e.target.value)}
+                                    className="w-full bg-white border-4 border-amber-400 rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-amber-500"
                                 />
-                                <Upload className="h-10 w-10 text-slate-200 group-hover:text-primary mb-3 transition-colors" />
-                                <span className="font-black text-slate-300 group-hover:text-primary-dark transition-all text-sm uppercase">Cargar Imágenes o PDF</span>
-                            </label>
-                            
-                            {pages.length > 0 && (
-                                <div className="mt-4 p-4 bg-emerald-100 border-2 border-black rounded-2xl text-center text-xs font-black text-emerald-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)]">
-                                    {pages.length} ARCHIVOS CARGADOS
-                                </div>
-                            )}
-                        </div>
+                            </div>
 
-                        <button 
-                            onClick={handleAddChapter} 
-                            disabled={pages.length === 0} 
-                            className="toon-button bg-primary w-full text-lg mt-4 disabled:bg-slate-200 disabled:border-slate-300 disabled:shadow-none"
-                        >
-                            ¡PUBLICAR CAPÍTULO!
-                        </button>
+                            <div>
+                                <label className="block text-xs font-black mb-2 uppercase text-amber-600">Número de Orden</label>
+                                <input 
+                                    type="number" 
+                                    value={editChapterNumber}
+                                    onChange={e => setEditChapterNumber(parseInt(e.target.value) || 1)}
+                                    className="w-full bg-white border-4 border-amber-400 rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-amber-500 animate-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-black mb-2 uppercase text-amber-600">Reemplazar imágenes (Dejar vacío para conservar las actuales)</label>
+                                <label htmlFor="editChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-amber-300 bg-white hover:bg-amber-100/50 transition-all cursor-pointer p-6 group">
+                                    <input 
+                                        id="editChapterFiles"
+                                        type="file" 
+                                        multiple 
+                                        accept="image/jpeg,image/png,image/webp,application/pdf" 
+                                        onChange={e => setEditChapterPages(Array.from(e.target.files || []))} 
+                                        className="hidden" 
+                                    />
+                                    <Upload className="h-10 w-10 text-amber-300 group-hover:text-amber-500 mb-2 transition-colors" />
+                                    <span className="font-black text-slate-400 text-sm uppercase">Cargar Nuevas Páginas o PDF</span>
+                                </label>
+                                
+                                {editChapterPages.length > 0 ? (
+                                    <div className="mt-4 p-4 bg-emerald-100 border-2 border-emerald-500 rounded-2xl text-center text-xs font-black text-emerald-700">
+                                        {editChapterPages.length} NUEVOS ARCHIVOS SELECCIONADOS (Esto sustituirá las páginas de este capítulo)
+                                    </div>
+                                ) : (
+                                    <p className="text-[10px] text-amber-600 font-medium leading-tight mt-2">
+                                        * Actualmente este capítulo tiene <span className="font-black underline">{editingChapter?.pages_urls?.length || 0} páginas</span>. Si no seleccionas ningún archivo, se conservarán las mismas.
+                                    </p>
+                                )}
+                            </div>
+
+                            <button 
+                                onClick={handleUpdateChapter} 
+                                className="toon-button bg-amber-400 w-full text-lg mt-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-amber-500 text-white"
+                            >
+                                ¡GUARDAR CAMBIOS DEL CAPÍTULO!
+                            </button>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="toon-card bg-white p-8">
+                        <h3 className="font-black text-primary-dark border-b-4 border-black/10 pb-4 mb-6 uppercase italic">Nuevo Capítulo</h3>
+                        
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-xs font-black mb-2 uppercase text-slate-400">¿Qué capítulos incluye este bloque? (Ej: Capítulos 1-7)</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="Ej: Capítulos 1-7, Extra"
+                                    value={newChapterTitle}
+                                    onChange={e => setNewChapterTitle(e.target.value)}
+                                    className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary mb-4"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest text-center">Toca para cargar archivos</label>
+                                <label htmlFor="newChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                                    <input 
+                                        id="newChapterFiles"
+                                        type="file" 
+                                        multiple 
+                                        accept="image/jpeg,image/png,image/webp,application/pdf" 
+                                        onChange={e => setPages(Array.from(e.target.files || []))} 
+                                        className="hidden" 
+                                    />
+                                    <Upload className="h-10 w-10 text-slate-200 group-hover:text-primary mb-3 transition-colors" />
+                                    <span className="font-black text-slate-300 group-hover:text-primary-dark transition-all text-sm uppercase">Cargar Imágenes o PDF</span>
+                                </label>
+                                
+                                {pages.length > 0 && (
+                                    <div className="mt-4 p-4 bg-emerald-100 border-2 border-black rounded-2xl text-center text-xs font-black text-emerald-600 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                        {pages.length} ARCHIVOS CARGADOS
+                                    </div>
+                                )}
+                            </div>
+
+                            <button 
+                                onClick={handleAddChapter} 
+                                disabled={pages.length === 0} 
+                                className="toon-button bg-primary w-full text-lg mt-4 disabled:bg-slate-200 disabled:border-slate-300 disabled:shadow-none"
+                            >
+                                ¡PUBLICAR CAPÍTULO!
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Chapter List */}
                 <div className="toon-card bg-white p-8">
@@ -751,17 +967,27 @@ function EditStory() {
                     
                     <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar space-y-3">
                         {chapters.map(chap => (
-                            <div key={chap.id} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-black rounded-2xl group active:translate-y-[2px] transition-all">
+                            <div key={chap.id} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-black rounded-2xl group transition-all">
                                 <div className="flex flex-col">
                                     <span className="font-black text-slate-800 italic uppercase">{chap.title || `Capítulo ${chap.chapter_number}`}</span>
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cap. {chap.chapter_number} • {chap.pages_urls?.length || 0} páginas</span>
                                 </div>
-                                <button 
-                                    onClick={() => handleDeleteChapter(chap.id, chap.chapter_number)}
-                                    className="p-2 border-2 border-black rounded-xl bg-white text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none"
-                                >
-                                    <X className="h-4 w-4" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => handleStartEditChapter(chap)}
+                                        className="p-2 border-2 border-black rounded-xl bg-white text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none mr-1"
+                                        title="Editar Capítulo"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeleteChapter(chap.id, chap.chapter_number)}
+                                        className="p-2 border-2 border-black rounded-xl bg-white text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none"
+                                        title="Eliminar Capítulo"
+                                    >
+                                        <Trash className="h-4 w-4" />
+                                    </button>
+                                </div>
                             </div>
                         ))}
                         {chapters.length === 0 && (

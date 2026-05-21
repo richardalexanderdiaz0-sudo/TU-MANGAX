@@ -15,6 +15,7 @@ interface StoryInfo {
     updated_at?: string;
     isRecentlyUpdated?: boolean;
     author?: string;
+    isAnnouncement?: boolean;
 }
 
 // ... HeroSlider stays same ...
