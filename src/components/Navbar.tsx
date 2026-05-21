@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
 import { logout } from '../services/firebase';
-import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library } from 'lucide-react';
+import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library, Bell } from 'lucide-react';
 import LoginModal from './LoginModal';
 
 export default function Navbar() {
   const { user, userProfile } = useStore();
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
+  const [hasReadNews, setHasReadNews] = useState(localStorage.getItem('hasReadAndroidNews') === 'true');
+
+  useEffect(() => {
+    const handleNewsRead = () => {
+      setHasReadNews(localStorage.getItem('hasReadAndroidNews') === 'true');
+    };
+    window.addEventListener('androidNewsRead', handleNewsRead);
+    return () => window.removeEventListener('androidNewsRead', handleNewsRead);
+  }, []);
 
   return (
     <>
@@ -26,6 +35,13 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
+            <Link to="/android-announcement" className="relative p-2 text-slate-600 hover:text-primary transition-colors" title="Novedades">
+                <Bell className="h-6 w-6" />
+                {!hasReadNews && (
+                    <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+                )}
+            </Link>
+
             <Link to="/directory" className="hidden md:block text-sm font-bold hover:text-primary transition-colors">
               Explorar
             </Link>

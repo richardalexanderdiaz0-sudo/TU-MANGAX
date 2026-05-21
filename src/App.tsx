@@ -20,6 +20,7 @@ import AdminStudio from './pages/AdminStudio';
 import Library from './pages/Library';
 import Profile from './pages/Profile';
 import AuthorProfile from './pages/AuthorProfile';
+import AndroidAnnouncement from './pages/AndroidAnnouncement';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import FAQ from './pages/FAQ';
@@ -40,6 +41,7 @@ function Layout() {
           <Route path="/comic/:id" element={<ComicDetail />} />
           <Route path="/read/:storyId/:chapterId" element={<ReadingView />} />
           <Route path="/author/:name" element={<AuthorProfile />} />
+          <Route path="/android-announcement" element={<AndroidAnnouncement />} />
           <Route path="/admin/*" element={<AdminStudio />} />
           <Route path="/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
