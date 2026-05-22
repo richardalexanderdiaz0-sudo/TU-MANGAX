@@ -490,6 +490,121 @@ export const api = {
       if (error) throw new Error(error.message);
       return { success: true };
     }
+  },
+
+  // Announcements (Noticias para enviar al icono de la campana)
+  announcements: {
+    getAll: async () => {
+      try {
+        const { data, error } = await supabase
+          .from('announcements')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        return data || [];
+      } catch (err) {
+        // Fallback robusto a localStorage (para desarrollo o si no existe la tabla)
+        const local = localStorage.getItem('nexus_announcements');
+        if (local) {
+          try {
+            return JSON.parse(local);
+          } catch (e) {
+            return [];
+          }
+        }
+        // Noticia inicial por defecto
+        return [
+          {
+            id: 'initial-android-announcement',
+            title: '¡TU MANGAX Llegará a Android Muy Pronto! 📱',
+            content: '¡TU MANGAX próximamente será una App nativa para tu celular! Así es, RUIWORKS ESTÁ TRABAJANDO y dedicando todo el esfuerzo gracias a tu apoyo para crear una APLICACIÓN PARA ANDROID oficial y exclusiva de TU MANGAX.\n\nPosiblemente estará disponible en los próximos 2 o 3 días, o menos o más... No te podemos dar una fecha exacta porque estamos puliendo detalles para que quede perfecta. ¡Pero de que estará disponible, LO ESTARÁ! Prepárate para leer todos tus manhwas y mangas favoritos con el mejor rendimiento y la mejor experiencia de lectura directamente desde una app en tu móvil.',
+            media_urls: ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1200&auto=format&fit=crop'],
+            created_at: '2026-05-22T21:00:00.000Z'
+          }
+        ];
+      }
+    },
+
+    create: async (title: string, content: string, files: File[], linkUrl?: string) => {
+      await ensureSupabaseUser();
+      const media_urls: string[] = [];
+      const video_urls: string[] = [];
+
+      for (const file of files) {
+        if (file && file.size > 0) {
+          try {
+            const uploadedUrl = await uploadToSupabaseStorage(file, 'announcements');
+            if (file.type.startsWith('video/')) {
+              video_urls.push(uploadedUrl);
+            } else {
+              media_urls.push(uploadedUrl);
+            }
+          } catch (e) {
+            console.error("Error subiendo archivo:", e);
+          }
+        }
+      }
+
+      const newAnnouncement = {
+        title,
+        content,
+        media_urls,
+        video_url: video_urls[0] || null,
+        link_url: linkUrl || null,
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const { data, error } = await supabase
+          .from('announcements')
+          .insert(newAnnouncement)
+          .select()
+          .single();
+        
+        if (error) {
+          throw error;
+        }
+        return data;
+      } catch (err) {
+        // Guardar en localStorage como fallback
+        let current: any[] = [];
+        const local = localStorage.getItem('nexus_announcements');
+        if (local) {
+          try { current = JSON.parse(local); } catch (e) {}
+        }
+        const createdObj = {
+          id: `local-${Date.now()}`,
+          ...newAnnouncement
+        };
+        current.unshift(createdObj);
+        localStorage.setItem('nexus_announcements', JSON.stringify(current));
+        return createdObj;
+      }
+    },
+
+    delete: async (id: string | number) => {
+      try {
+        const { error } = await supabase
+          .from('announcements')
+          .delete()
+          .eq('id', id);
+        
+        if (error) throw error;
+      } catch (e) {
+        // Borrar de localStorage
+        let current: any[] = [];
+        const local = localStorage.getItem('nexus_announcements');
+        if (local) {
+          try { current = JSON.parse(local); } catch (err) {}
+        }
+        current = current.filter(item => item.id !== id);
+        localStorage.setItem('nexus_announcements', JSON.stringify(current));
+      }
+      return { success: true };
+    }
   }
 };
 

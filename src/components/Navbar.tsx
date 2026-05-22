@@ -10,12 +10,34 @@ export default function Navbar() {
   const { user, userProfile } = useStore();
   const navigate = useNavigate();
   const [showLogin, setShowLogin] = useState(false);
-  const [hasReadNews, setHasReadNews] = useState(localStorage.getItem('hasReadAndroidNews') === 'true');
+  const [hasReadNews, setHasReadNews] = useState(true);
 
   useEffect(() => {
-    const handleNewsRead = () => {
-      setHasReadNews(localStorage.getItem('hasReadAndroidNews') === 'true');
+    const checkNewsStatus = async () => {
+      try {
+        const news = await api.announcements.getAll();
+        if (news && news.length > 0) {
+          const latestId = String(news[0].id || news[0].created_at || 'initial');
+          const storedId = localStorage.getItem('last_seen_announcement_id');
+          if (storedId === latestId) {
+            setHasReadNews(true);
+          } else {
+            setHasReadNews(false);
+          }
+        } else {
+          setHasReadNews(true);
+        }
+      } catch (err) {
+        setHasReadNews(true);
+      }
     };
+
+    checkNewsStatus();
+
+    const handleNewsRead = () => {
+      checkNewsStatus();
+    };
+    
     window.addEventListener('androidNewsRead', handleNewsRead);
     return () => window.removeEventListener('androidNewsRead', handleNewsRead);
   }, []);

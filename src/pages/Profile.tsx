@@ -3,7 +3,7 @@ import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
 import { logout } from '../services/firebase';
 import LoginModal from '../components/LoginModal';
-import { User, LogOut, Shield, Bell, BellOff, BellRing } from 'lucide-react';
+import { User, LogOut, Shield, Bell, BellOff, BellRing, Megaphone, Image as ImageIcon, Video, Send, X } from 'lucide-react';
 import { requestNotificationPermission } from '../services/notifications';
 
 export default function Profile() {
@@ -12,6 +12,56 @@ export default function Profile() {
     const [permission, setPermission] = React.useState<NotificationPermission>(
         ('Notification' in window) ? Notification.permission : 'default'
     );
+
+    // News draft states for community news (campana)
+    const [newsTitle, setNewsTitle] = React.useState('');
+    const [newsContent, setNewsContent] = React.useState('');
+    const [newsLink, setNewsLink] = React.useState('');
+    const [newsFiles, setNewsFiles] = React.useState<File[]>([]);
+    const [uploadingNews, setUploadingNews] = React.useState(false);
+    const [submitSuccess, setSubmitSuccess] = React.useState(false);
+    const [submitError, setSubmitError] = React.useState('');
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const arr = Array.from(e.target.files);
+            setNewsFiles((prev) => [...prev, ...arr]);
+        }
+    };
+
+    const removeSelectedFile = (idx: number) => {
+        setNewsFiles((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    const handlePublishNews = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newsTitle.trim() || !newsContent.trim()) return;
+
+        setUploadingNews(true);
+        setSubmitError('');
+        setSubmitSuccess(false);
+
+        try {
+            await api.announcements.create(newsTitle, newsContent, newsFiles, newsLink.trim() || undefined);
+            setSubmitSuccess(true);
+            setNewsTitle('');
+            setNewsContent('');
+            setNewsLink('');
+            setNewsFiles([]);
+            
+            // Dispatch dynamic news update event to sync bell immediately
+            window.dispatchEvent(new Event('androidNewsRead'));
+            
+            setTimeout(() => {
+                setSubmitSuccess(false);
+            }, 5000);
+        } catch (err: any) {
+            console.error(err);
+            setSubmitError(err.message || 'Error al subir archivos e insertar noticia.');
+        } finally {
+            setUploadingNews(false);
+        }
+    };
 
     const handleEnableNotifications = async () => {
         const granted = await requestNotificationPermission();
@@ -129,6 +179,140 @@ export default function Profile() {
                     </div>
                 )}
             </div>
+
+            {/* Panel de Creación de Noticias para Administración */}
+            {userProfile?.role === 'admin' && (
+                <div id="admin-news-panel" className="mt-10 bg-white border-4 border-black rounded-[2.5rem] p-6 sm:p-10 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] text-slate-850">
+                    <div className="flex items-center gap-3 border-b-4 border-black pb-4 mb-6">
+                        <div className="bg-primary p-2.5 rounded-xl border-2 border-black rotate-[-3deg] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                            <Megaphone className="h-6 w-6 text-white stroke-[2.5px]" />
+                        </div>
+                        <div>
+                            <h3 className="font-black text-2xl uppercase tracking-tighter">Nueva Noticia Global</h3>
+                            <p className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest">Se enviará inmediatamente al icono de la campana</p>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handlePublishNews} className="space-y-6">
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Título de la Noticia</label>
+                            <input 
+                                type="text"
+                                value={newsTitle}
+                                onChange={(e) => setNewsTitle(e.target.value)}
+                                placeholder="Ej: ¡Nuevo Manhwa en emisión o Actualización de la App!"
+                                required
+                                className="w-full px-5 py-4 border-4 border-black rounded-2xl bg-slate-50 font-bold focus:outline-none focus:ring-4 focus:ring-primary focus:bg-white text-sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Contenido de la Noticia</label>
+                            <textarea 
+                                value={newsContent}
+                                onChange={(e) => setNewsContent(e.target.value)}
+                                placeholder="Escribe el cuerpo del anuncio o contenido detallado..."
+                                required
+                                rows={6}
+                                className="w-full px-5 py-4 border-4 border-black rounded-2xl bg-slate-50 font-bold focus:outline-none focus:ring-4 focus:ring-primary focus:bg-white text-sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Pegar Link / Enlace de Interés (Opcional)</label>
+                            <input 
+                                type="url"
+                                value={newsLink}
+                                onChange={(e) => setNewsLink(e.target.value)}
+                                placeholder="Ej: https://tupagina.com/unir-discord o un capitulo de manhwa"
+                                className="w-full px-5 py-4 border-4 border-black rounded-2xl bg-slate-50 font-bold focus:outline-none focus:ring-4 focus:ring-primary focus:bg-white text-sm"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-black uppercase tracking-widest text-slate-500 mb-2">Adjuntar Fotos y Videos (Opcional)</label>
+                            
+                            <div className="border-4 border-dashed border-black rounded-2xl bg-slate-50 p-6 text-center hover:bg-slate-100/50 transition-colors relative cursor-pointer group">
+                                <input 
+                                    type="file"
+                                    multiple
+                                    accept="image/*,video/*"
+                                    onChange={handleFileChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
+                                <div className="flex flex-col items-center justify-center gap-2 py-4">
+                                    <div className="p-3 bg-white rounded-xl border-2 border-black group-hover:rotate-12 transition-transform shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] text-slate-600">
+                                        <ImageIcon className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-xs font-black uppercase tracking-widest text-slate-705 mt-2">Arrastra o elige imágenes/videos aquí</p>
+                                    <p className="text-[10px] text-slate-400 font-bold">Formatos permitidos: imágenes y videos ruiworks</p>
+                                </div>
+                            </div>
+
+                            {/* Previsualización de archivos seleccionados */}
+                            {newsFiles.length > 0 && (
+                                <div className="mt-4 space-y-2">
+                                    <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest">Archivos adjuntos ({newsFiles.length})</p>
+                                    <div className="grid gap-2 grid-cols-1 sm:grid-cols-2">
+                                        {newsFiles.map((file, idx) => (
+                                            <div key={idx} className="flex items-center justify-between p-3 border-2 border-black bg-white rounded-xl text-xs font-bold gap-3 animate-fade-in">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    {file.type.startsWith('video/') ? (
+                                                        <Video className="w-4 h-4 text-rose-500 shrink-0" />
+                                                    ) : (
+                                                        <ImageIcon className="w-4 h-4 text-sky-500 shrink-0" />
+                                                    )}
+                                                    <span className="truncate text-slate-700">{file.name}</span>
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => removeSelectedFile(idx)}
+                                                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all border-2 border-transparent hover:border-black active:translate-x-[0.5px] active:translate-y-[0.5px]"
+                                                >
+                                                    <X className="w-4 h-4 stroke-[3px]" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {submitError && (
+                            <div className="bg-red-50 text-red-600 border-2 border-red-505 p-4 rounded-xl text-xs font-bold animate-pulse">
+                                ⚠ Error: {submitError}
+                            </div>
+                        )}
+
+                        {submitSuccess && (
+                            <div className="bg-emerald-50 text-emerald-600 border-2 border-emerald-500 p-4 rounded-xl text-xs font-black uppercase tracking-tight">
+                                🎉 ¡Noticia global publicada y enviada a todas las campanas!
+                            </div>
+                        )}
+
+                        <button 
+                            type="submit"
+                            disabled={uploadingNews}
+                            className={`flex items-center justify-center gap-2 text-white font-black border-4 border-black px-6 py-4 rounded-2xl w-full transition-all uppercase tracking-widest text-sm shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${
+                                uploadingNews 
+                                    ? 'bg-slate-300 border-slate-400 text-slate-500 cursor-not-allowed' 
+                                    : 'bg-primary hover:bg-primary-dark'
+                            }`}
+                        >
+                            {uploadingNews ? (
+                                <>
+                                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-white"></div>
+                                    Subiendo y alertando...
+                                </>
+                            ) : (
+                                <>
+                                    <Send className="w-4 h-4 stroke-[2.5px]" /> Publicar Noticia Global
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
+            )}
 
             <div className="mt-6 space-y-6">
                 <button 
