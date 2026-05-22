@@ -156,12 +156,12 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
   const topLevelComments = comments.filter(c => !c.parent);
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4 py-12 border-t-8 border-black bg-white/30" onClick={e=>e.stopPropagation()}>
+    <div className="w-full max-w-2xl mx-auto px-4 py-8" onClick={e=>e.stopPropagation()}>
       <div className="flex items-center gap-3 mb-8">
-        <div className="bg-primary p-3 rounded-2xl border-4 border-black rotate-[-3deg]">
+        <div className="bg-primary p-3 rounded-2xl border-4 border-black rotate-[-3deg] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
           <MessageCircle className="h-6 w-6 text-white" />
         </div>
-        <h3 className="text-3xl font-black text-slate-800 uppercase italic tracking-tighter">Comentarios ({comments.length})</h3>
+        <h3 className="text-3xl font-black text-white drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] uppercase italic tracking-tighter">Comentarios ({comments.length})</h3>
       </div>
 
       <form onSubmit={(e) => handleSubmit(e)} className="mb-12 relative group">

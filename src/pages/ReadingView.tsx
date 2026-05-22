@@ -4,6 +4,7 @@ import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
 import PdfReader from '../components/PdfReader';
+import CommentSection from '../components/CommentSection';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -133,6 +134,10 @@ export default function ReadingView() {
                         {prevChapter && <button onClick={() => navigate(`/read/${storyId}/${prevChapter.id}`)} className="toon-button bg-slate-500 text-lg">Anterior</button>}
                         {nextChapter && <button onClick={() => navigate(`/read/${storyId}/${nextChapter.id}`)} className="toon-button bg-primary text-xl px-10">Siguiente</button>}
                     </div>
+                </div>
+
+                <div className="w-full bg-[#111] py-8" onClick={(e) => e.stopPropagation()}>
+                    <CommentSection chapterId={chapterId} />
                 </div>
 
                 <div className="pb-32"></div>
