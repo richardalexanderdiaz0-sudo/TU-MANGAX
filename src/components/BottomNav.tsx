@@ -10,15 +10,15 @@ export default function BottomNav() {
     // Las rutas donde no queremos que aparezca ya están manejadas en App.tsx (ej. /read)
     
     const navItems = [
-        { path: '/', label: 'Inicio', icon: Home },
-        { path: '/directory', label: 'Descubre', icon: Compass },
-        { path: '/donate', label: 'Donar', icon: Heart },
-        { path: '/library', label: 'Biblioteca', icon: Library },
-        { path: '/profile', label: 'Perfil', icon: User },
+        { path: '/', label: 'INICIO', icon: Home },
+        { path: '/directory', label: 'DESCUBRE', icon: Compass },
+        { path: '/donate', label: 'DONANTE', icon: Heart },
+        { path: '/library', label: 'BIBLIOTECA', icon: Library },
+        { path: '/profile', label: 'PERFIL', icon: User },
     ];
 
     if (userProfile?.role === 'admin') {
-        navItems.push({ path: '/admin', label: 'Estudio', icon: PlusSquare });
+        navItems.push({ path: '/admin', label: 'ESTUDIO', icon: PlusSquare });
     }
 
     return (

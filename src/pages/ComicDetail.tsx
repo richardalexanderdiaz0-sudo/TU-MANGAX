@@ -183,8 +183,19 @@ export default function ComicDetail() {
                 </div>
 
                 {story.genres && story.genres.length > 0 && (
-                    <div className="mb-8 flex flex-wrap gap-2">
-                        {story.genres.map((g: string) => <span key={g} className="px-3 py-1 bg-slate-900/80 rounded-lg text-xs font-medium text-slate-300 border border-slate-700/50 shadow-inner">{g}</span>)}
+                    <div className="mb-10">
+                        <p className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Etiquetas / Tramas</p>
+                        <div className="flex flex-wrap gap-2">
+                            {story.genres.map((g: string) => (
+                                <Link 
+                                    key={g} 
+                                    to={`/directory?genre=${encodeURIComponent(g)}`} 
+                                    className="px-4 py-2 bg-[#3f4553] text-white hover:bg-primary-dark transition-all rounded-xl font-bold border-2 border-black hover:scale-105 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-xs tracking-tight uppercase"
+                                >
+                                    {g}
+                                </Link>
+                            ))}
+                        </div>
                     </div>
                 )}
 

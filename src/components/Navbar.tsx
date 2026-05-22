@@ -35,52 +35,60 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Link to="/android-announcement" className="relative p-2 text-slate-600 hover:text-primary transition-colors" title="Novedades">
-                <Bell className="h-6 w-6" />
+            <Link to="/android-announcement" className="relative p-2 text-slate-800 hover:text-primary transition-all hover:scale-105" title="Novedades">
+                <Bell className="h-6 w-6 stroke-[2.5px]" />
                 {!hasReadNews && (
                     <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
                 )}
             </Link>
 
-            <Link to="/directory" className="hidden md:block text-sm font-bold hover:text-primary transition-colors">
-              Explorar
+            <Link to="/directory" className="hidden md:block text-sm font-black uppercase text-slate-800 hover:text-primary transition-colors tracking-tighter">
+              DESCUBRE
             </Link>
             
-            {user ? (
-              <>
-                <Link to="/library" className="hidden md:flex items-center gap-2 hover:text-primary transition-colors text-sm font-bold">
-                  <Library className="h-4 w-4" />
-                  <span className="hidden sm:inline">Biblioteca</span>
-                </Link>
+            <Link to="/library" className="hidden md:flex items-center gap-2 hover:text-primary transition-colors text-sm font-black uppercase tracking-tighter">
+              <Library className="h-4 w-4" />
+              <span className="hidden sm:inline">BIBLIOTECA</span>
+            </Link>
 
-                {userProfile?.role === 'admin' && (
-                  <Link to="/admin" className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                    <UploadCloud className="h-4 w-4" />
-                    <span className="hidden sm:inline">Estudio</span>
-                  </Link>
-                )}
-
-                <div className="flex items-center gap-3 ml-2">
-                  <div className="h-10 w-10 border-2 border-black rounded-full bg-slate-100 flex items-center justify-center overflow-hidden">
-                    {user.avatar || user.photoURL ? (
-                      <img src={user.photoURL || getImageUrl(user.avatar)} alt="Avatar" className="h-full w-full object-cover" />
-                    ) : (
-                      <UserIcon className="h-5 w-5 text-slate-400" />
-                    )}
-                  </div>
-                  <button onClick={() => logout()} className="text-slate-400 hover:text-primary-dark transition-colors" title="Cerrar sesión">
-                    <LogOut className="h-5 w-5" />
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button
-                onClick={() => setShowLogin(true)}
-                className="bg-primary text-white hover:bg-primary-dark px-6 py-2 rounded-xl text-sm font-bold transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
-              >
-                Ingresar
-              </button>
+            {user && userProfile?.role === 'admin' && (
+              <Link to="/admin" className="hidden md:flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                <UploadCloud className="h-4 w-4" />
+                <span className="hidden sm:inline">Estudio</span>
+              </Link>
             )}
+
+            <div className="flex items-center gap-3 ml-2">
+              <Link 
+                to="/profile" 
+                className="h-10 w-10 border-4 border-black rounded-full bg-slate-50 flex items-center justify-center overflow-hidden hover:scale-105 transition-all shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px]" 
+                title="Mi Perfil"
+              >
+                {user && (user.avatar || user.photoURL) ? (
+                  <img src={user.photoURL || getImageUrl(user.avatar)} alt="Avatar" className="h-full w-full object-cover" />
+                ) : (
+                  <UserIcon className="h-5 w-5 text-slate-800 stroke-[2.5px]" />
+                )}
+              </Link>
+              
+              {user ? (
+                <button 
+                  onClick={() => logout()} 
+                  className="text-slate-800 hover:text-red-500 transition-colors p-1" 
+                  title="Cerrar sesión"
+                >
+                  <LogOut className="h-5 w-5 stroke-[2.5px]" />
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowLogin(true)} 
+                  className="text-slate-800 hover:text-primary transition-colors p-1" 
+                  title="Ingresar"
+                >
+                  <LogOut className="h-5 w-5 stroke-[2.5px] rotate-180" />
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>

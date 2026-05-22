@@ -3,6 +3,28 @@ import { api, getImageUrl } from '../services/api';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
+const GENRES = [
+    'TODO', 
+    'ROMANCE', 
+    'FANTASÍA', 
+    'YAOI', 
+    'DRAMA', 
+    'AVENTURA', 
+    'SUSPENSO', 
+    'COMEDIA', 
+    '+18', 
+    'ACCIÓN', 
+    'MISTERIO', 
+    'GL', 
+    'MANHWA', 
+    'WEBTOON', 
+    'TRAGEDIA', 
+    'PSICOLÓGICO', 
+    'OMEGAVERSO',
+    'SISTEMA',
+    'SUPERVIVENCIA'
+];
+
 export default function Directory() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [stories, setStories] = useState<any[]>([]);
@@ -10,6 +32,7 @@ export default function Directory() {
     const [loading, setLoading] = useState(true);
 
     const statusFilter = searchParams.get('status') || '';
+    const activeGenre = searchParams.get('genre') || 'TODO';
 
     useEffect(() => {
         fetchDirectory();
@@ -27,15 +50,25 @@ export default function Directory() {
         setLoading(false);
     };
 
-    const filteredStories = stories.filter(s => 
-        s.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredStories = stories.filter(s => {
+        const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        if (activeGenre === 'TODO') {
+            return matchesSearch;
+        }
+        
+        const storyGenresArray = s.genres || [];
+        const matchesGenre = storyGenresArray.some((g: string) => 
+            g.toUpperCase() === activeGenre.toUpperCase()
+        );
+        return matchesSearch && matchesGenre;
+    });
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-            <h1 className="text-3xl font-black mb-8 text-primary-dark font-display uppercase italic tracking-tighter">Directorio</h1>
+            <h1 className="text-3xl font-black mb-8 text-primary-dark font-display uppercase italic tracking-tighter">DIRECTORIO</h1>
             
-            <div className="flex flex-col md:flex-row gap-4 mb-8">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                     <input 
@@ -63,6 +96,33 @@ export default function Directory() {
                         <option value="SOON">Próximamente</option>
                     </select>
                 </div>
+            </div>
+
+            {/* Filtros de Géneros / Categorías */}
+            <div className="flex gap-2 overflow-x-auto pb-4 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide">
+                {GENRES.map((genre) => {
+                    const isSelected = activeGenre.toUpperCase() === genre.toUpperCase();
+                    return (
+                        <button
+                            key={genre}
+                            onClick={() => {
+                                if (genre === 'TODO') {
+                                    searchParams.delete('genre');
+                                } else {
+                                    searchParams.set('genre', genre);
+                                }
+                                setSearchParams(searchParams);
+                            }}
+                            className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-tight transition-all border-4 border-black shrink-0 ${
+                                isSelected 
+                                    ? 'bg-primary text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' 
+                                    : 'bg-white text-slate-800 hover:bg-slate-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                            }`}
+                        >
+                            {genre}
+                        </button>
+                    );
+                })}
             </div>
 
             {loading ? (
