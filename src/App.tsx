@@ -28,6 +28,7 @@ import FAQ from './pages/FAQ';
 import Donate from './pages/Donate';
 import Footer from './components/Footer';
 import SuspendedModal from './components/SuspendedModal';
+import JuanCarlosVIPModal from './components/JuanCarlosVIPModal';
 
 function Layout() {
   const location = useLocation();
@@ -58,6 +59,7 @@ function Layout() {
       {!isReadingView && <BottomNav />}
       
       <SuspendedModal />
+      <JuanCarlosVIPModal />
     </div>
   );
 }

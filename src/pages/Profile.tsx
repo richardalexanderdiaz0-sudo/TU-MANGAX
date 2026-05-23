@@ -119,8 +119,22 @@ export default function Profile() {
                 </div>
                 
                 <div className="text-center md:text-left flex-1">
-                    <h2 className="text-3xl font-black text-slate-800 mb-2 uppercase italic tracking-tighter">{userProfile?.display_name || userProfile?.displayName || user.email?.split('@')[0]}</h2>
-                    <p className="text-slate-400 font-bold mb-6 underline decoration-wavy decoration-primary-light underline-offset-4">{user.email}</p>
+                    <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
+                        <h2 className="text-3xl font-black text-slate-800 uppercase italic tracking-tighter break-all">
+                            {userProfile?.display_name || userProfile?.displayName || user.email?.split('@')[0]}
+                        </h2>
+                        {user.email === 'juancarloselizarparraquezada@gmail.com' && (
+                            <span className="bg-amber-400 text-black border-2 border-black px-3 py-1 rounded-full font-black uppercase text-[10px] tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-3 shrink-0">
+                                ⭐ VIP DONADOR
+                            </span>
+                        )}
+                        {userProfile?.is_donor && user.email !== 'juancarloselizarparraquezada@gmail.com' && (
+                            <span className="bg-primary text-white border-2 border-black px-3 py-1 rounded-full font-black uppercase text-[10px] tracking-widest shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] -rotate-3 shrink-0">
+                                💖 DONADOR
+                            </span>
+                        )}
+                    </div>
+                    <p className="text-slate-400 font-bold mb-6 underline decoration-wavy decoration-primary-light underline-offset-4 break-all">{user.email}</p>
                     
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                         <span className={`inline-block px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${

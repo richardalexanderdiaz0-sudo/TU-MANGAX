@@ -21,7 +21,21 @@ export default function Donate() {
     const fetchDonors = async () => {
       try {
         const donors = await api.donations.getDonors();
-        setSupporters(donors.map(d => ({ name: d.display_name, amount: d.donation_amount || 'Variable' })));
+        let mapped = donors.map(d => ({ name: d.display_name, amount: d.donation_amount || 'Variable' }));
+        
+        // Ensure Juan Carlos is in the list
+        const juanIndex = mapped.findIndex(d => d.name.toLowerCase().includes('juan') && d.name.toLowerCase().includes('carlos'));
+        if (juanIndex === -1) {
+            mapped = [{ name: 'Juan Carlos Elizar Parra Quezada', amount: '25 USD', message: '¡Muchísimas gracias por tu increíble aporte para mantener los servidores activos! Eres un pilar para TU MANGAX 💖' }, ...mapped];
+        } else {
+            mapped[juanIndex].message = '¡Muchísimas gracias por tu increíble aporte para mantener los servidores activos! Eres un pilar para TU MANGAX 💖';
+            mapped[juanIndex].name = 'Juan Carlos Elizar Parra Quezada';
+            mapped[juanIndex].amount = '25 USD';
+            const juan = mapped.splice(juanIndex, 1)[0];
+            mapped.unshift(juan);
+        }
+
+        setSupporters(mapped);
       } catch (err) {
         console.error("Error fetching donors", err);
       }
@@ -40,7 +54,7 @@ export default function Donate() {
 
     const message = `Hola, soy ${userName} y quiero donar voluntariamente ${amount} pesos dominicanos para la app TU MANGAX.`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/18293165263?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/18494021508?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   };
@@ -183,19 +197,26 @@ export default function Donate() {
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-fadeIn">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fadeIn">
                 {supporters.map((sup: any, idx: number) => (
-                  <div key={idx} className="bg-amber-50 hover:bg-amber-100/70 border-2 border-black p-4 rounded-2xl flex items-center gap-3 transition-all hover:scale-[1.03] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Sparkles className="h-4 w-4 text-amber-500" />
+                  <div key={idx} className="bg-amber-50 hover:bg-amber-100/70 border-2 border-black p-4 rounded-2xl flex flex-col gap-3 transition-all hover:scale-[1.02] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-2 opacity-100 transition-opacity">
+                      <Sparkles className="h-5 w-5 text-amber-500" />
                     </div>
-                    <div className="h-10 w-10 border-2 border-black rounded-full bg-primary/15 flex items-center justify-center overflow-hidden shrink-0 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                      <Users className="h-5 w-5 text-primary" />
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 border-2 border-black rounded-full bg-primary/15 flex items-center justify-center overflow-hidden shrink-0 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
+                        <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="min-w-0 pr-6">
+                        <p className="font-extrabold text-slate-800 uppercase tracking-tight text-xs leading-none break-words mb-1">{sup.name}</p>
+                        <p className="text-[10px] font-black text-primary uppercase leading-none tracking-wider italic">{sup.amount} {String(sup.amount).includes('USD') ? '' : 'DOP'}</p>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-extrabold text-slate-800 uppercase tracking-tight text-xs leading-none truncate mb-1">{sup.name}</p>
-                      <p className="text-[10px] font-black text-primary uppercase leading-none tracking-wider italic">${sup.amount} DOP</p>
-                    </div>
+                    {sup.message && (
+                        <p className="text-xs font-bold text-slate-600 bg-white p-3 rounded-xl border-2 border-black/10 italic leading-snug">
+                            "{sup.message}"
+                        </p>
+                    )}
                   </div>
                 ))}
               </div>
