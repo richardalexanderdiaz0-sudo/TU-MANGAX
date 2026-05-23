@@ -21,7 +21,7 @@ export default function Donate() {
     const fetchDonors = async () => {
       try {
         const donors = await api.donations.getDonors();
-        let mapped = donors.map(d => ({ name: d.display_name, amount: d.donation_amount || 'Variable' }));
+        let mapped: Array<{name: string, amount: string, message?: string}> = donors.map(d => ({ name: d.display_name, amount: d.donation_amount || 'Variable' }));
         
         // Ensure Juan Carlos is in the list
         const juanIndex = mapped.findIndex(d => d.name.toLowerCase().includes('juan') && d.name.toLowerCase().includes('carlos'));

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
-import { loginWithEmail, registerWithEmail } from '../services/firebase';
+import { loginWithEmail, registerWithEmail, resetPassword } from '../services/firebase';
 import { X, Mail, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -17,6 +17,30 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resetMessage, setResetMessage] = useState('');
+
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Por favor, ingresa tu correo para recuperar la contraseña.');
+      return;
+    }
+    setLoading(true);
+    setError('');
+    setResetMessage('');
+    try {
+      await resetPassword(email);
+      setResetMessage('¡Checkea tu correo! Te enviamos un link.');
+    } catch (err: any) {
+      let errorMsg = 'Error al enviar correo';
+      if (err.code === 'auth/user-not-found') {
+        errorMsg = 'No hay usuario con este correo.';
+      } else {
+         errorMsg = err.message || errorMsg;
+      }
+      setError(errorMsg);
+    }
+    setLoading(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -64,6 +88,7 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
           </h2>
           
           {error && <p className="text-red-500 text-xs mb-6 bg-red-100 border-2 border-black p-3 rounded-xl font-black uppercase italic tracking-tighter shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">{error}</p>}
+          {resetMessage && <p className="text-emerald-600 text-xs mb-6 bg-emerald-100 border-2 border-black p-3 rounded-xl font-black uppercase italic tracking-tighter shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">{resetMessage}</p>}
           
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             {!isLogin && (
@@ -106,6 +131,13 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
                   minLength={6}
                 />
               </div>
+              {isLogin && (
+                <div className="flex justify-end mt-2">
+                  <button type="button" onClick={handleResetPassword} className="text-[10px] font-black text-slate-400 hover:text-primary uppercase tracking-widest transition-colors cursor-pointer select-none">
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </div>
+              )}
             </div>
 
             {!isLogin && (

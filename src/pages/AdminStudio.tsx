@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
-import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash } from 'lucide-react';
+import { supabase } from '../services/supabase';
+import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash, Award } from 'lucide-react';
 
 const formatError = (err: any, defaultMsg: string) => {
     const msg = String(err?.message || err?.error || '').toLowerCase();
@@ -302,6 +303,8 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_donor boolean DEFAULT false;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS donation_amount text;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT false;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country text;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
       `;
       alert("Si ves errores, ejecuta este código SQL en tu consola de Supabase:\n\n" + sql);
     };
@@ -328,6 +331,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT f
                                 <th className="p-4 border-r-2 border-black">Usuario</th>
                                 <th className="p-4 border-r-2 border-black">Correo</th>
                                 <th className="p-4 border-r-2 border-black">Fecha de Unión</th>
+                                <th className="p-4 border-r-2 border-black">País</th>
                                 <th className="p-4 border-r-2 border-black text-center">Donante</th>
                                 <th className="p-4 border-r-2 border-black text-center">Monto</th>
                                 <th className="p-4 text-center">Acciones</th>
@@ -343,6 +347,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT f
                                     </td>
                                     <td className="p-4 border-r-2 border-black font-medium text-sm text-slate-600">{u.email}</td>
                                     <td className="p-4 border-r-2 border-black font-bold text-sm text-slate-600">{u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}</td>
+                                    <td className="p-4 border-r-2 border-black font-bold text-sm text-slate-600">{u.country || 'Desconocido'}</td>
                                     <td className="p-4 border-r-2 border-black text-center">
                                         {u.is_donor ? (
                                             <span className="text-amber-500 font-black flex items-center justify-center gap-1"><Award className="h-4 w-4"/> Sí</span>

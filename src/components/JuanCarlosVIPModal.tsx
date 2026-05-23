@@ -8,7 +8,7 @@ export default function JuanCarlosVIPModal() {
 
   useEffect(() => {
     if (user?.email === 'juancarloselizarparraquezada@gmail.com') {
-      const hasSeen = localStorage.getItem('seen_vip_thank_you');
+      const hasSeen = sessionStorage.getItem('seen_vip_thank_you');
       if (!hasSeen) {
         setShow(true);
       }
@@ -18,7 +18,7 @@ export default function JuanCarlosVIPModal() {
   if (!show) return null;
 
   const handleClose = () => {
-    localStorage.setItem('seen_vip_thank_you', 'true');
+    sessionStorage.setItem('seen_vip_thank_you', 'true');
     setShow(false);
   };
 

@@ -29,6 +29,7 @@ import Donate from './pages/Donate';
 import Footer from './components/Footer';
 import SuspendedModal from './components/SuspendedModal';
 import JuanCarlosVIPModal from './components/JuanCarlosVIPModal';
+import PreferencesModal from './components/PreferencesModal';
 
 function Layout() {
   const location = useLocation();
@@ -60,6 +61,7 @@ function Layout() {
       
       <SuspendedModal />
       <JuanCarlosVIPModal />
+      <PreferencesModal />
     </div>
   );
 }

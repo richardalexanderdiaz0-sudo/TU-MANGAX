@@ -16,6 +16,7 @@ interface StoryInfo {
     isRecentlyUpdated?: boolean;
     author?: string;
     isAnnouncement?: boolean;
+    link?: string;
 }
 
 // ... HeroSlider stays same ...
@@ -127,11 +128,13 @@ export default function Home() {
     const [completed, setCompleted] = useState<StoryInfo[]>([]);
     const [comingSoon, setComingSoon] = useState<StoryInfo[]>([]);
     const [dailyUpdates, setDailyUpdates] = useState<StoryInfo[]>([]);
+    const [recommended, setRecommended] = useState<StoryInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<StoryInfo[]>([]);
     const [notifStatus, setNotifStatus] = useState<string>(
         ('Notification' in window) ? Notification.permission : 'denied'
     );
+    const { userProfile } = useStore();
 
     const handleEnableNotifs = async () => {
         const granted = await requestNotificationPermission();
@@ -201,6 +204,26 @@ export default function Home() {
 
         fetchStories();
     }, []);
+
+    useEffect(() => {
+        if (!allComics || allComics.length === 0) return;
+        
+        let recommends: StoryInfo[] = [];
+        if (userProfile?.preferences && userProfile.preferences.length > 0) {
+             recommends = allComics.filter(s => {
+                 let storyCats: string[] = [];
+                 if (s.categories) {
+                     try { 
+                         storyCats = typeof s.categories === 'string' ? JSON.parse(s.categories) : (Array.isArray(s.categories) ? s.categories : []); 
+                     } catch(e) {}
+                 }
+                 return userProfile.preferences.some((pref: string) => storyCats.includes(pref));
+             }).sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
+             setRecommended(recommends.slice(0, 15));
+        } else {
+             setRecommended([]);
+        }
+    }, [allComics, userProfile?.preferences]);
 
     useEffect(() => {
         if (searchQuery.trim() === '') {
@@ -294,6 +317,7 @@ export default function Home() {
                 renderSection(`RESULTADOS PARA "${searchQuery.toUpperCase()}"`, searchResults)
             ) : (
                 <>
+                    {recommended.length > 0 && renderSection("RECOMENDADOS PARA TI 👑", recommended)}
                     {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
                     {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
                     {renderSection("PRÓXIMAMENTE", comingSoon)}

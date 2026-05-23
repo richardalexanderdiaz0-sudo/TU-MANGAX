@@ -81,6 +81,10 @@ export const api = {
       const { data, error } = await supabase.from('users').select('*').eq('id', uid).single();
       if (error) return null;
       return data;
+    },
+    updatePreferences: async (uid: string, preferences: string[]) => {
+       const { error } = await supabase.from('users').update({ preferences }).eq('id', uid);
+       if (error) throw error;
     }
   },
 
