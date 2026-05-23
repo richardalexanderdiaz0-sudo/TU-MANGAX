@@ -50,7 +50,14 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
               <div className="bg-primary p-1 rounded-2xl border-2 border-black rotate-[-3deg] group-hover:rotate-0 transition-transform overflow-hidden w-12 h-12 flex items-center justify-center bg-white">
-                <img src={`${import.meta.env.BASE_URL}logo.svg`} className="w-full h-full object-contain" alt="Logo" />
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-contain" viewBox="0 0 512 512">
+                  <rect width="512" height="512" rx="128" fill="#FF2D85"/>
+                  <path d="M128 160C128 142.3 142.3 128 160 128H352C369.7 128 384 142.3 384 160V352C384 369.7 369.7 384 352 384H160C142.3 384 128 369.7 128 352V160Z" fill="white" stroke="black" strokeWidth="20"/>
+                  <path d="M180 180H332V332H180V180Z" fill="#FFFBFF" stroke="black" strokeWidth="12"/>
+                  <path d="M256 180V332" stroke="black" strokeWidth="8"/>
+                  <circle cx="210" cy="220" r="10" fill="black"/>
+                  <circle cx="302" cy="220" r="10" fill="black"/>
+                </svg>
               </div>
               <span className="font-display font-bold text-2xl tracking-tight text-primary-dark">TU MANGAX</span>
             </Link>

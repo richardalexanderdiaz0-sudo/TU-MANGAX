@@ -279,13 +279,43 @@ export default function Profile() {
                         </div>
 
                         {submitError && (
-                            <div className="bg-red-50 text-red-600 border-2 border-red-505 p-4 rounded-xl text-xs font-bold animate-pulse">
-                                ⚠ Error: {submitError}
+                            <div className="bg-red-50 text-red-600 border-4 border-black p-6 rounded-3xl text-sm font-black uppercase italic tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)] mb-6 text-left leading-normal">
+                                <p className="mb-3 text-red-700">⚠️ Error al publicar: {submitError}</p>
+                                <p className="text-slate-500 font-bold uppercase tracking-wide text-[10px] my-3 leading-relaxed">
+                                    Si la tabla no existe en tu base de datos de Supabase o le faltan accesos, crea la tabla corriendo este código SQL en tu Editor de Supabase:
+                                </p>
+                                <div className="p-4 bg-slate-900 text-slate-300 font-mono text-xs rounded-xl overflow-x-auto border-2 border-black uppercase-none">
+                                    <p className="text-amber-400 font-bold mb-2">-- COPIA Y CORRE ESTE SQL EN TU EDITORES DE SUPABASE --</p>
+                                    <pre className="text-[11px] font-sans antialiased font-semibold select-all whitespace-pre leading-5 text-slate-100">
+{`CREATE TABLE IF NOT EXISTS public.announcements (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title text NOT NULL,
+  content text NOT NULL,
+  media_urls text[] DEFAULT ARRAY[]::text[],
+  video_url text,
+  link_url text,
+  created_at timestamptz DEFAULT now()
+);
+
+-- Habilitar RLS de seguridad
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de lectura y escritura
+CREATE POLICY "Lectura publica de noticias"
+ON public.announcements FOR SELECT TO public USING (true);
+
+CREATE POLICY "Insertar noticias"
+ON public.announcements FOR INSERT TO authenticated WITH CHECK (true);
+
+CREATE POLICY "Borrar noticias"
+ON public.announcements FOR DELETE TO authenticated USING (true);`}
+                                    </pre>
+                                </div>
                             </div>
                         )}
 
                         {submitSuccess && (
-                            <div className="bg-emerald-50 text-emerald-600 border-2 border-emerald-500 p-4 rounded-xl text-xs font-black uppercase tracking-tight">
+                            <div className="bg-emerald-50 text-emerald-600 border-4 border-black p-6 rounded-3xl text-xs font-black uppercase tracking-tight shadow-[4px_4px_0px_0px_rgba(0,0,0,0.15)]">
                                 🎉 ¡Noticia global publicada y enviada a todas las campanas!
                             </div>
                         )}

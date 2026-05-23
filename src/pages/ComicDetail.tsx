@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
-import { Share2, MoreVertical, ThumbsUp, Eye, BookMarked, Flag } from 'lucide-react';
+import { Share2, MoreVertical, ThumbsUp, Eye, BookMarked, Flag, X } from 'lucide-react';
+import LoginModal from '../components/LoginModal';
 
 export default function ComicDetail() {
     const { id } = useParams();
@@ -15,6 +16,12 @@ export default function ComicDetail() {
     const [isSaved, setIsSaved] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [showReport, setShowReport] = useState(false);
+    
+    // Auth Wall modal states
+    const [showAuthWall, setShowAuthWall] = useState(false);
+    const [authRequestedStory, setAuthRequestedStory] = useState('');
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [loginInitialMode, setLoginInitialMode] = useState<'login' | 'register'>('login');
     
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
@@ -119,15 +126,15 @@ export default function ComicDetail() {
     const coverUrl = story.cover ? getImageUrl(story.cover) : (story.cover_url || '');
 
     return (
-        <div className="pb-16 relative">
+        <div className="pb-16 relative font-sans">
             <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh]">
                 <div className="absolute inset-0">
-                    <img src={coverUrl} className="w-full h-full object-cover blur-3xl opacity-60 mix-blend-multiply" alt="" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/90 to-transparent"></div>
+                    <img src={coverUrl} className="w-full h-full object-cover blur-[6px] opacity-30" alt="" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent"></div>
                 </div>
                 
                 <div className="absolute bottom-0 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 translate-y-1/3 md:translate-y-1/4 flex gap-6 items-end">
-                    <div className="w-32 md:w-48 xl:w-56 shrink-0 rounded-[2.5rem] overflow-hidden shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black aspect-[2/3] bg-white hidden sm:block">
+                    <div className="w-28 sm:w-32 md:w-48 xl:w-56 shrink-0 rounded-3xl sm:rounded-[2.5rem] overflow-hidden shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] border-4 border-black aspect-[2/3] bg-white block">
                          <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
                     </div>
                 </div>
@@ -219,7 +226,19 @@ export default function ComicDetail() {
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                         {displayedChapters.map(chap => (
-                            <Link to={`/read/${id}/${chap.id}`} key={chap.id} className="group relative rounded-3xl overflow-hidden bg-white aspect-[3/4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all">
+                            <Link 
+                                to={`/read/${id}/${chap.id}`} 
+                                onClick={(e) => {
+                                    if (!user) {
+                                        e.preventDefault();
+                                        setAuthRequestedStory(story.title);
+                                        setLoginInitialMode('login');
+                                        setShowAuthWall(true);
+                                    }
+                                }}
+                                key={chap.id} 
+                                className="group relative rounded-3xl overflow-hidden bg-white aspect-[3/4] border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all"
+                            >
                                 <img src={coverUrl} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 grayscale-[10%] group-hover:grayscale-0" alt="" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent flex flex-col items-center justify-end p-4 pb-6 transition-all">
                                     <span className="font-black text-4xl text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)] italic">#{chap.chapter_number}</span>
@@ -259,6 +278,65 @@ export default function ComicDetail() {
                     </div>
                 )}
             </div>
+
+            {/* Custom Auth Wall Modal */}
+            {showAuthWall && (
+                <div className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white border-4 border-black w-full max-w-md rounded-[2.5rem] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden relative p-8 text-center animate-fade-in">
+                        <button 
+                            onClick={() => setShowAuthWall(false)} 
+                            className="toon-button bg-white p-1 min-w-0 absolute top-4 right-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                        >
+                            <X className="h-5 w-5 text-black" />
+                        </button>
+
+                        <div className="bg-primary text-white p-4 rounded-3xl border-4 border-black rotate-[-3deg] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-fit mx-auto mb-6 mt-4">
+                            <svg className="w-8 h-8 font-black shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        
+                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 leading-[1.2] tracking-tight uppercase italic mb-4">
+                            ¿Te interesa esta obra verdad?
+                        </h3>
+                        
+                        <p className="text-sm font-bold text-slate-500 mb-8 leading-relaxed max-w-sm mx-auto">
+                            Pues <span className="text-primary-dark font-black">regístrate</span> o <span className="text-primary-dark font-black">inicia sesión</span> para leer <span className="text-primary font-black underline decoration-2">{authRequestedStory}</span> y disfrutar de todos nuestros mejores mangas y manhwas de inmediato.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row gap-4 justify-center sm:px-4">
+                            <button 
+                                onClick={() => {
+                                    setShowAuthWall(false);
+                                    setLoginInitialMode('login');
+                                    setShowLoginModal(true);
+                                }}
+                                className="px-6 py-4 bg-white hover:bg-slate-50 text-slate-800 font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                            >
+                                Iniciar Sesión
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setShowAuthWall(false);
+                                    setLoginInitialMode('register');
+                                    setShowLoginModal(true);
+                                }}
+                                className="px-6 py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                            >
+                                Registrarse Gratis
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Standard Login / Register Modal */}
+            {showLoginModal && (
+                <LoginModal 
+                    initialMode={loginInitialMode} 
+                    onClose={() => setShowLoginModal(false)} 
+                />
+            )}
         </div>
     );
 }

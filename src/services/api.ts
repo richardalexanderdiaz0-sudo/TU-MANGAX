@@ -505,7 +505,8 @@ export const api = {
           throw error;
         }
         return data || [];
-      } catch (err) {
+      } catch (err: any) {
+        console.error("Error al obtener noticias de Supabase:", err);
         // Fallback robusto a localStorage (para desarrollo o si no existe la tabla)
         const local = localStorage.getItem('nexus_announcements');
         if (local) {
@@ -568,20 +569,12 @@ export const api = {
           throw error;
         }
         return data;
-      } catch (err) {
-        // Guardar en localStorage como fallback
-        let current: any[] = [];
-        const local = localStorage.getItem('nexus_announcements');
-        if (local) {
-          try { current = JSON.parse(local); } catch (e) {}
-        }
-        const createdObj = {
-          id: `local-${Date.now()}`,
-          ...newAnnouncement
-        };
-        current.unshift(createdObj);
-        localStorage.setItem('nexus_announcements', JSON.stringify(current));
-        return createdObj;
+      } catch (err: any) {
+        console.error("ERROR CRÍTICO AL PUBLICAR NOTICIA EN SUPABASE:", err);
+        throw new Error(
+          err.message || 
+          "Error al guardar noticia en Supabase. Asegúrate de que las políticas RLS y la tabla 'announcements' existan."
+        );
       }
     },
 
@@ -593,15 +586,9 @@ export const api = {
           .eq('id', id);
         
         if (error) throw error;
-      } catch (e) {
-        // Borrar de localStorage
-        let current: any[] = [];
-        const local = localStorage.getItem('nexus_announcements');
-        if (local) {
-          try { current = JSON.parse(local); } catch (err) {}
-        }
-        current = current.filter(item => item.id !== id);
-        localStorage.setItem('nexus_announcements', JSON.stringify(current));
+      } catch (e: any) {
+        console.error("ERROR CRÍTICO AL ELIMINAR NOTICIA EN SUPABASE:", e);
+        throw new Error(e.message || "Error al eliminar noticia de Supabase.");
       }
       return { success: true };
     }

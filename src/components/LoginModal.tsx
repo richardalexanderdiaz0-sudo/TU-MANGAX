@@ -5,10 +5,11 @@ import { X, Mail, Lock } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
+  initialMode?: 'login' | 'register';
 }
 
-export default function LoginModal({ onClose }: Props) {
-  const [isLogin, setIsLogin] = useState(true);
+export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
+  const [isLogin, setIsLogin] = useState(initialMode === 'login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
