@@ -97,72 +97,104 @@ export const showNotification = async (title: string, body: string, iconUrl?: st
 
 // Inicializar canales de Supabase Realtime para notificaciones en tiempo real
 export const initializeRealtimeNotifications = () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return null;
-
     // Registrar Service worker preventivamente
     registerServiceWorker();
 
-    // Suscribirse a inserciones de nuevos capítulos (INSERT es el evento cuando se añade un capítulo)
-    const channel = supabase
-        .channel('realtime_chapters_notifications')
+    // 1. Suscribirse a inserciones de nuevas noticias / anuncios (público)
+    const announcementsChannel = supabase
+        .channel('realtime_announcements_notifications')
         .on(
             'postgres_changes',
-            { event: 'INSERT', schema: 'public', table: 'chapters' },
-            async (payload) => {
-                const newChapter = payload.new;
-                if (!newChapter) return;
+            { event: 'INSERT', schema: 'public', table: 'announcements' },
+            (payload) => {
+                const newAnnouncement = payload.new;
+                if (!newAnnouncement) return;
 
-                try {
-                    const storyId = newChapter.story_id;
-                    const chapterNum = newChapter.chapter_number;
-                    const chapterTitle = newChapter.title || `Capítulo ${chapterNum}`;
+                // Forzar re-fetch de noticias en el navbar / UI local
+                window.dispatchEvent(new Event('androidNewsRead'));
 
-                    // Verificar con Supabase si el usuario actual tiene esta obra guardada en su 'library'
-                    const { data: libraryEntry, error: libErr } = await supabase
-                        .from('library')
-                        .select('story_id')
-                        .eq('user_id', currentUser.uid)
-                        .eq('story_id', storyId)
-                        .maybeSingle();
-
-                    if (libErr) {
-                        console.error('Error al validar biblioteca del usuario:', libErr);
-                        return;
-                    }
-
-                    // Si está en su biblioteca, obtenemos la información del manga (nombre e imagen) para la notificación
-                    if (libraryEntry) {
-                        const { data: story, error: storyErr } = await supabase
-                            .from('stories')
-                            .select('title, cover_url')
-                            .eq('id', storyId)
-                            .single();
-
-                        if (storyErr || !story) {
-                            // Envió de notificación básica sin portada de fallback
-                            showNotification(
-                                '¡Nuevo Capítulo Disponible! 📖',
-                                `Se publicó el ${chapterTitle} de tu obra guardada.`,
-                                undefined,
-                                { url: `/comic/${storyId}` }
-                            );
-                        } else {
-                            // Envió de notificación enriquecida con título de obra y portada
-                            showNotification(
-                                `¡Nuevo Capítulo de ${story.title}! 📖✨`,
-                                `Ya puedes leer el ${chapterTitle}. ¡Vuela a verlo antes de que te lo cuenten!`,
-                                story.cover_url,
-                                { url: `/comic/${storyId}` }
-                            );
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error procesando realtime notification:', err);
-                }
+                // Enviar notificación nativa
+                showNotification(
+                    '¡Anuncio de TU MANGAX! 📢✨',
+                    newAnnouncement.title || 'Se ha publicado una nueva noticia importante.',
+                    newAnnouncement.media_urls?.[0] || undefined,
+                    { url: '/android-announcement' }
+                );
             }
         )
         .subscribe();
 
-    return channel;
+    // 2. Suscribirse a nuevos capítulos para el usuario logueado
+    let chaptersChannel: any = null;
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+        chaptersChannel = supabase
+            .channel('realtime_chapters_notifications')
+            .on(
+                'postgres_changes',
+                { event: 'INSERT', schema: 'public', table: 'chapters' },
+                async (payload) => {
+                    const newChapter = payload.new;
+                    if (!newChapter) return;
+
+                    try {
+                        const storyId = newChapter.story_id;
+                        const chapterNum = newChapter.chapter_number;
+                        const chapterTitle = newChapter.title || `Capítulo ${chapterNum}`;
+
+                        // Verificar con Supabase si el usuario actual tiene esta obra guardada en su 'library'
+                        const { data: libraryEntry, error: libErr } = await supabase
+                            .from('library')
+                            .select('story_id')
+                            .eq('user_id', currentUser.uid)
+                            .eq('story_id', storyId)
+                            .maybeSingle();
+
+                        if (libErr) {
+                            console.error('Error al validar biblioteca del usuario:', libErr);
+                            return;
+                        }
+
+                        // Si está en su biblioteca, obtenemos la información del manga
+                        if (libraryEntry) {
+                            const { data: story, error: storyErr } = await supabase
+                                .from('stories')
+                                .select('title, cover_url')
+                                .eq('id', storyId)
+                                .single();
+
+                            if (storyErr || !story) {
+                                showNotification(
+                                    '¡Nuevo Capítulo Disponible! 📖',
+                                    `Se publicó el ${chapterTitle} de tu obra guardada.`,
+                                    undefined,
+                                    { url: `/comic/${storyId}` }
+                                );
+                            } else {
+                                showNotification(
+                                    `¡Nuevo Capítulo de ${story.title}! 📖✨`,
+                                    `Ya puedes leer el ${chapterTitle}. ¡Vuela a verlo antes de que te lo cuenten!`,
+                                    story.cover_url,
+                                    { url: `/comic/${storyId}` }
+                                );
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error procesando realtime notification:', err);
+                    }
+                }
+            )
+            .subscribe();
+    }
+
+    return {
+        unsubscribe: () => {
+            if (announcementsChannel) {
+                announcementsChannel.unsubscribe();
+            }
+            if (chaptersChannel) {
+                chaptersChannel.unsubscribe();
+            }
+        }
+    };
 };

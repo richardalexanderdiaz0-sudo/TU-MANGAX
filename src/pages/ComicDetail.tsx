@@ -81,7 +81,7 @@ export default function ComicDetail() {
 
     const handleShare = async () => {
         if (!story) return;
-        const text = `¡NO DEJO DE LEER ${story.title} TE INVITO A LEER!`;
+        const text = `No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`;
         const url = window.location.href;
         if (navigator.share) {
             try {
@@ -282,7 +282,7 @@ export default function ComicDetail() {
             {/* Custom Auth Wall Modal */}
             {showAuthWall && (
                 <div className="fixed inset-0 bg-primary/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white border-4 border-black w-full max-w-md rounded-[2.5rem] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden relative p-8 text-center animate-fade-in">
+                    <div className="bg-white border-4 border-black w-full max-w-sm rounded-[2.5rem] shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] overflow-hidden relative p-8 text-center animate-fade-in">
                         <button 
                             onClick={() => setShowAuthWall(false)} 
                             className="toon-button bg-white p-1 min-w-0 absolute top-4 right-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
@@ -290,17 +290,20 @@ export default function ComicDetail() {
                             <X className="h-5 w-5 text-black" />
                         </button>
 
-                        <div className="bg-primary text-white p-4 rounded-3xl border-4 border-black rotate-[-3deg] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] w-fit mx-auto mb-6 mt-4">
-                            <svg className="w-8 h-8 font-black shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                            </svg>
+                        <div className="relative w-28 sm:w-32 aspect-[2/3] mx-auto rounded-3xl overflow-hidden border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] mb-4 rotate-[-2deg] mt-4">
+                            <img src={coverUrl} className="w-full h-full object-cover" alt="Cover" />
+                            <div className="absolute top-2 right-2 bg-primary text-white p-2 rounded-xl border-2 border-black rotate-[5deg] shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                <svg className="w-4 h-4 font-black shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </div>
                         </div>
                         
-                        <h3 className="text-2xl sm:text-3xl font-black text-slate-900 leading-[1.2] tracking-tight uppercase italic mb-4">
+                        <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-[1.2] tracking-tight uppercase italic mb-3">
                             ¿Te interesa esta obra verdad?
                         </h3>
                         
-                        <p className="text-sm font-bold text-slate-500 mb-8 leading-relaxed max-w-sm mx-auto">
+                        <p className="text-xs font-bold text-slate-500 mb-6 leading-relaxed max-w-xs mx-auto">
                             Pues <span className="text-primary-dark font-black">regístrate</span> o <span className="text-primary-dark font-black">inicia sesión</span> para leer <span className="text-primary font-black underline decoration-2">{authRequestedStory}</span> y disfrutar de todos nuestros mejores mangas y manhwas de inmediato.
                         </p>
 
@@ -311,7 +314,7 @@ export default function ComicDetail() {
                                     setLoginInitialMode('login');
                                     setShowLoginModal(true);
                                 }}
-                                className="px-6 py-4 bg-white hover:bg-slate-50 text-slate-800 font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                className="px-5 py-3 bg-white hover:bg-slate-50 text-slate-800 font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
                             >
                                 Iniciar Sesión
                             </button>
@@ -321,9 +324,9 @@ export default function ComicDetail() {
                                     setLoginInitialMode('register');
                                     setShowLoginModal(true);
                                 }}
-                                className="px-6 py-4 bg-primary hover:bg-primary-dark text-white font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                                className="px-5 py-3 bg-primary hover:bg-primary-dark text-white font-black uppercase text-xs tracking-widest rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
                             >
-                                Registrarse Gratis
+                                Registrarse
                             </button>
                         </div>
                     </div>

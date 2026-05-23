@@ -65,7 +65,7 @@ export default function ReadingView() {
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!story) return;
-        const text = `¡NO DEJO DE LEER ${story.title} TE INVITO A LEER!`;
+        const text = `No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`;
         const url = window.location.href;
         if (navigator.share) {
             try { await navigator.share({ title: story.title, text, url }); } catch (err) {}
