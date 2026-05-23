@@ -327,7 +327,15 @@ function CreationWizard() {
 
                     <div>
                         <label className="block text-sm font-black mb-2 uppercase text-slate-500">Portada</label>
-                        <label htmlFor="coverFile" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                        <label 
+                            htmlFor="coverFile" 
+                            className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group"
+                            onDragOver={e => e.preventDefault()}
+                            onDrop={e => {
+                                e.preventDefault();
+                                if (e.dataTransfer.files?.[0]) setCoverFile(e.dataTransfer.files[0]);
+                            }}
+                        >
                             <input 
                                 id="coverFile"
                                 type="file" 
@@ -405,7 +413,19 @@ function CreationWizard() {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-black mb-2 uppercase text-slate-400">Páginas/Paneles (Imágenes o PDF local)</label>
-                                    <label htmlFor={`chapterFile-${i}`} className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                                    <label 
+                                        htmlFor={`chapterFile-${i}`} 
+                                        className="flex flex-col items-center justify-center w-full min-h-[120px] rounded-2xl border-4 border-dashed border-slate-300 bg-white hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group"
+                                        onDragOver={e => e.preventDefault()}
+                                        onDrop={e => {
+                                            e.preventDefault();
+                                            if (e.dataTransfer.files) {
+                                                const newCh = [...chapters];
+                                                newCh[i].pages = Array.from(e.dataTransfer.files);
+                                                setChapters(newCh);
+                                            }
+                                        }}
+                                    >
                                         <input 
                                             id={`chapterFile-${i}`}
                                             type="file" 
@@ -794,7 +814,15 @@ function EditStory() {
 
                             <div>
                                 <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Sustituir Portada (Dejar vacío para no cambiar)</label>
-                                <label htmlFor="editCoverFile" className="flex flex-col items-center justify-center w-full min-h-[50px] rounded-xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer px-4 py-2 group">
+                                <label 
+                                    htmlFor="editCoverFile" 
+                                    className="flex flex-col items-center justify-center w-full min-h-[50px] rounded-xl border-4 border-dashed border-slate-300 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer px-4 py-2 group"
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        if (e.dataTransfer.files?.[0]) setEditCoverFile(e.dataTransfer.files[0]);
+                                    }}
+                                >
                                     <input 
                                         id="editCoverFile"
                                         type="file" 
@@ -881,7 +909,15 @@ function EditStory() {
 
                             <div>
                                 <label className="block text-xs font-black mb-2 uppercase text-amber-600">Reemplazar imágenes (Dejar vacío para conservar las actuales)</label>
-                                <label htmlFor="editChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-amber-300 bg-white hover:bg-amber-100/50 transition-all cursor-pointer p-6 group">
+                                <label 
+                                    htmlFor="editChapterFiles" 
+                                    className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-amber-300 bg-white hover:bg-amber-100/50 transition-all cursor-pointer p-6 group"
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        if (e.dataTransfer.files) setEditChapterPages(Array.from(e.dataTransfer.files));
+                                    }}
+                                >
                                     <input 
                                         id="editChapterFiles"
                                         type="file" 
@@ -930,7 +966,15 @@ function EditStory() {
                             </div>
                             <div>
                                 <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest text-center">Toca para cargar archivos</label>
-                                <label htmlFor="newChapterFiles" className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group">
+                                <label 
+                                    htmlFor="newChapterFiles" 
+                                    className="flex flex-col items-center justify-center w-full min-h-[140px] rounded-3xl border-4 border-dashed border-slate-200 bg-slate-50 hover:bg-primary-light/10 hover:border-primary transition-all cursor-pointer p-6 group"
+                                    onDragOver={e => e.preventDefault()}
+                                    onDrop={e => {
+                                        e.preventDefault();
+                                        if (e.dataTransfer.files) setPages(Array.from(e.dataTransfer.files));
+                                    }}
+                                >
                                     <input 
                                         id="newChapterFiles"
                                         type="file" 
