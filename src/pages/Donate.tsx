@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Coins, ShieldCheck, Zap, Star, MessageCircle, Info, Award, Users, Sparkles } from 'lucide-react';
 import { useStore } from '../store';
+import { api } from '../services/api';
 
 const AMOUNTS = [
   { val: 10, label: '10' },
@@ -14,10 +15,19 @@ export default function Donate() {
   const { userProfile } = useStore();
   const [customAmount, setCustomAmount] = useState('');
   const [selectedAmount, setSelectedAmount] = useState<number | 'custom' | null>(null);
-  const [supporters, setSupporters] = useState<any[]>(() => {
-    const saved = localStorage.getItem('nexus_supporters');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [supporters, setSupporters] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDonors = async () => {
+      try {
+        const donors = await api.donations.getDonors();
+        setSupporters(donors.map(d => ({ name: d.display_name, amount: d.donation_amount || 'Variable' })));
+      } catch (err) {
+        console.error("Error fetching donors", err);
+      }
+    };
+    fetchDonors();
+  }, []);
 
   const handleDonate = () => {
     const amount = selectedAmount === 'custom' ? customAmount : selectedAmount;
@@ -27,41 +37,12 @@ export default function Donate() {
     }
 
     const userName = userProfile?.display_name || 'Un Usuario';
-    
-    // Automatically add of active supporters list
-    const newSupport = {
-      name: userName,
-      amount: Number(amount),
-      date: new Date().toISOString()
-    };
-    
-    const updated = [newSupport, ...supporters];
-    localStorage.setItem('nexus_supporters', JSON.stringify(updated));
-    setSupporters(updated);
 
     const message = `Hola, soy ${userName} y quiero donar voluntariamente ${amount} pesos dominicanos para la app TU MANGAX.`;
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/18293165263?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
-  };
-
-  const simulateDonation = (amount: number) => {
-    const mockNames = ['Carlos_Manga', 'Alex22', 'RuiWorks', 'Ivan_Dev', 'Sofia_Manhwa', 'RichardD', 'LucasReader', 'OtakuRD', 'Elena_Toon'];
-    const randomName = mockNames[Math.floor(Math.random() * mockNames.length)] + `_${Math.floor(Math.random() * 900 + 100)}`;
-    const newSupport = {
-      name: randomName,
-      amount: amount,
-      date: new Date().toISOString()
-    };
-    const updated = [newSupport, ...supporters];
-    localStorage.setItem('nexus_supporters', JSON.stringify(updated));
-    setSupporters(updated);
-  };
-
-  const clearSupporters = () => {
-    localStorage.removeItem('nexus_supporters');
-    setSupporters([]);
   };
 
   return (
@@ -192,23 +173,6 @@ export default function Donate() {
                 <h3 className="font-display font-black text-2xl tracking-tight text-slate-800 uppercase italic">Apoyadores</h3>
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] leading-none">Nuestros Héroes y Leyendas</p>
               </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={() => simulateDonation(Math.floor(Math.random() * 90 + 10))}
-                className="bg-indigo-500 hover:bg-indigo-600 text-white font-black uppercase text-[9px] tracking-wider px-3 py-1.5 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-              >
-                ⚡ Simular Donación
-              </button>
-              {supporters.length > 0 && (
-                <button
-                  onClick={clearSupporters}
-                  className="bg-rose-500 hover:bg-rose-600 text-white font-black uppercase text-[9px] tracking-wider px-3 py-1.5 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-                >
-                  Vaciar
-                </button>
-              )}
             </div>
           </div>
 

@@ -98,9 +98,15 @@ export default function Footer() {
             <h4 className="font-black text-primary-dark uppercase italic tracking-tighter mb-6 border-b-4 border-black/10 inline-block">Redes</h4>
             <ul className="flex flex-col gap-3">
               <li>
-                <a href="https://instagram.com/Iam_ruichard" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-black text-slate-400 hover:text-pink-500 transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">
+                <a href="https://instagram.com/tu_mangax_oficial" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-black text-slate-400 hover:text-pink-500 transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">
                   <Instagram className="h-4 w-4" />
                   Instagram
+                </a>
+              </li>
+              <li>
+                <a href="https://t.me/+el3-Q0reWsoxNWMx" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm font-black text-slate-400 hover:text-blue-500 transition-colors underline decoration-2 decoration-black/5 underline-offset-4 uppercase tracking-tighter">
+                  <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current stroke-none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.1.02-1.62 1.03-4.57 3.03-.43.3-.82.45-1.17.44-.39-.01-1.14-.22-1.7-.4s-1.01-.28-1-.59c.01-.16.23-.33.68-.51 2.78-1.21 4.63-2.01 5.56-2.4 2.64-1.1 3.19-1.29 3.55-1.29.08 0 .25.02.36.11.09.08.12.19.13.27 0 .05.01.12 0 .19z" /></svg>
+                  Telegram
                 </a>
               </li>
             </ul>

@@ -21,11 +21,13 @@ import Library from './pages/Library';
 import Profile from './pages/Profile';
 import AuthorProfile from './pages/AuthorProfile';
 import AndroidAnnouncement from './pages/AndroidAnnouncement';
+import SocialsAnnouncement from './pages/SocialsAnnouncement';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import FAQ from './pages/FAQ';
 import Donate from './pages/Donate';
 import Footer from './components/Footer';
+import SuspendedModal from './components/SuspendedModal';
 
 function Layout() {
   const location = useLocation();
@@ -42,6 +44,7 @@ function Layout() {
           <Route path="/read/:storyId/:chapterId" element={<ReadingView />} />
           <Route path="/author/:name" element={<AuthorProfile />} />
           <Route path="/android-announcement" element={<AndroidAnnouncement />} />
+          <Route path="/socials" element={<SocialsAnnouncement />} />
           <Route path="/admin/*" element={<AdminStudio />} />
           <Route path="/library" element={<Library />} />
           <Route path="/profile" element={<Profile />} />
@@ -53,6 +56,8 @@ function Layout() {
       </main>
       {!isReadingView && <Footer />}
       {!isReadingView && <BottomNav />}
+      
+      <SuspendedModal />
     </div>
   );
 }
@@ -64,7 +69,7 @@ export default function App() {
     setAuthLoading(true);
     let channel: any = null;
 
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       // Unsubscribe existing registration on status switch
       if (channel) {
         channel.unsubscribe();
@@ -80,11 +85,24 @@ export default function App() {
           photoURL: firebaseUser.photoURL,
           avatar: firebaseUser.photoURL, // mapear para que user.avatar obtenga la foto de google
         };
+
+        let profileData = null;
+        try {
+          // Ensure they exist in supabase so we can get their roles and suspension status
+          await api.auth.me(); 
+          profileData = await api.auth.getUserProfile(firebaseUser.uid);
+        } catch (e) {
+          console.error("Error fetching user profile", e);
+        }
+
         const mappedProfile = {
-          display_name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuario',
+          ...profileData,
+          display_name: profileData?.display_name || firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'Usuario',
           displayName: firebaseUser.displayName,
-          role: firebaseUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : 'user',
+          role: firebaseUser.email === 'richardalexanderdiaz0@gmail.com' ? 'admin' : (profileData?.role || 'user'),
+          is_suspended: profileData?.is_suspended || false
         };
+
         setUser(mappedUser, mappedProfile);
 
         // Iniciar suscripción para notificaciones sobre nuevos capítulos

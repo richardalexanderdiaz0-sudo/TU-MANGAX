@@ -76,6 +76,11 @@ export const api = {
         photoURL: currentUser.photoURL,
         avatar: currentUser.photoURL,
       };
+    },
+    getUserProfile: async (uid: string) => {
+      const { data, error } = await supabase.from('users').select('*').eq('id', uid).single();
+      if (error) return null;
+      return data;
     }
   },
 
@@ -591,6 +596,35 @@ export const api = {
         throw new Error(e.message || "Error al eliminar noticia de Supabase.");
       }
       return { success: true };
+    }
+  },
+
+  admin: {
+    getAllUsers: async () => {
+      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false, nullsFirst: false });
+      if (error) throw new Error(error.message);
+      return data;
+    },
+    updateUserDonation: async (userId: string, isDonor: boolean, amount?: string) => {
+      const { error } = await supabase.from('users').update({
+        is_donor: isDonor,
+        donation_amount: amount
+      }).eq('id', userId);
+      if (error) throw new Error(error.message);
+    },
+    suspendUser: async (userId: string, isSuspended: boolean) => {
+      const { error } = await supabase.from('users').update({
+        is_suspended: isSuspended
+      }).eq('id', userId);
+      if (error) throw new Error(error.message);
+    }
+  },
+
+  donations: {
+    getDonors: async () => {
+      const { data, error } = await supabase.from('users').select('display_name, donation_amount').eq('is_donor', true);
+      if (error) throw new Error(error.message);
+      return data;
     }
   }
 };

@@ -5,6 +5,7 @@ import { useStore } from '../store';
 import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
 import PdfReader from '../components/PdfReader';
 import CommentSection from '../components/CommentSection';
+import ShareModal from '../components/ShareModal';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -17,6 +18,7 @@ export default function ReadingView() {
     const [uiVisible, setUiVisible] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [subscribed, setSubscribed] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     
     useEffect(() => {
         if (!storyId || !chapterId) return;
@@ -62,16 +64,10 @@ export default function ReadingView() {
         setUiVisible(!uiVisible);
     };
 
-    const handleShare = async (e: React.MouseEvent) => {
+    const handleShare = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!story) return;
-        const text = `No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`;
-        const url = window.location.href;
-        if (navigator.share) {
-            try { await navigator.share({ title: story.title, text, url }); } catch (err) {}
-        } else {
-            prompt("Copia este link para compartir:", `${text} ${url}`);
-        }
+        setShowShareModal(true);
     };
 
     const toggleSubscribed = (e: React.MouseEvent) => {
@@ -193,6 +189,15 @@ export default function ReadingView() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {showShareModal && story && (
+                <ShareModal
+                    title={story?.title}
+                    shareText={`No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`}
+                    shareUrl={window.location.href}
+                    onClose={() => setShowShareModal(false)}
+                />
             )}
         </div>
     );

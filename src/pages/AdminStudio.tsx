@@ -28,12 +28,17 @@ export default function AdminStudio() {
     }
 
     return (
-        <div className="flex-1 flex flex-col bg-background border-l-4 border-black">
-            <div className="p-6 border-b-4 border-black flex items-center justify-between bg-white">
-                <h1 className="text-2xl font-black flex items-center gap-2 text-primary-dark font-display uppercase italic"><Upload className="h-6 w-6 text-primary"/> Admin Studio</h1>
-                <Link to="/admin/new" className="bg-primary hover:bg-primary-dark text-white px-6 py-2 rounded-2xl font-black border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]">
-                    <Plus className="h-5 w-5"/> Nueva Obra
-                </Link>
+        <div className="flex-1 flex flex-col bg-background border-l-4 border-black min-h-screen">
+            <div className="p-6 border-b-4 border-black flex items-center justify-between bg-white overflow-x-auto gap-4">
+                <h1 className="text-2xl font-black flex items-center gap-2 text-primary-dark font-display uppercase italic shrink-0"><Upload className="h-6 w-6 text-primary"/> Admin Studio</h1>
+                <div className="flex items-center gap-2 shrink-0">
+                    <Link to="/admin" className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Obras</Link>
+                    <Link to="/admin/users" className="bg-amber-400 hover:bg-amber-500 text-black px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Usuarios</Link>
+                    <Link to="/admin/news" className="bg-emerald-400 hover:bg-emerald-500 text-black px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Noticias</Link>
+                    <Link to="/admin/new" className="bg-primary hover:bg-primary-dark text-white px-4 md:px-6 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 transition-all">
+                        <Plus className="h-5 w-5"/> Nueva Obra
+                    </Link>
+                </div>
             </div>
             
             <div className="flex-1 p-6 relative bg-[radial-gradient(#ff69b4_1px,transparent_1px)] [background-size:20px_20px] [background-position:center]">
@@ -41,12 +46,121 @@ export default function AdminStudio() {
                     <Route path="/" element={<StudioHome />} />
                     <Route path="/new" element={<CreationWizard />} />
                     <Route path="/edit/:storyId" element={<EditStory />} />
+                    <Route path="/users" element={<AdminUsers />} />
+                    <Route path="/news" element={<AdminNews />} />
                 </Routes>
             </div>
         </div>
     );
 }
 
+// -------------------------------------------------------------
+// ADMIN NEWS / ANNOUNCEMENTS
+// -------------------------------------------------------------
+function AdminNews() {
+    const [news, setNews] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [newTitle, setNewTitle] = useState('');
+    const [newContent, setNewContent] = useState('');
+
+    const fetchNews = async () => {
+        setLoading(true);
+        try {
+            const data = await api.announcements.getAll();
+            setNews(data || []);
+        } catch (e) {
+            console.error(e);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        fetchNews();
+    }, []);
+
+    const handleCreateNews = async () => {
+        if (!newTitle.trim() || !newContent.trim()) return;
+        try {
+            // Using stories api pattern, we can create an announcement
+            const { data, error } = await supabase.from('announcements').insert([{
+                title: newTitle,
+                content: newContent
+            }]).select();
+            
+            if (error) throw error;
+            setNewTitle('');
+            setNewContent('');
+            fetchNews();
+            
+            // Dispatch custom event to trigger notification update in Navbar
+            window.dispatchEvent(new Event('androidNewsRead'));
+        } catch(e) {
+            alert(formatError(e, "Error al crear noticia"));
+        }
+    };
+
+    const handleDeleteNews = async (id: string) => {
+        if (!confirm('¿Seguro quieres borrar esta noticia?')) return;
+        try {
+            const { error } = await supabase.from('announcements').delete().eq('id', id);
+            if (error) throw error;
+            fetchNews();
+        } catch (e) {
+            alert(formatError(e, "Error al borrar noticia"));
+        }
+    };
+
+    return (
+        <div className="bg-white border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display mb-6">Gestión de Noticias / Campanita</h2>
+            
+            <div className="bg-slate-50 border-4 border-black rounded-2xl p-6 mb-8">
+                <h3 className="font-black text-lg mb-4 uppercase">Publicar Nueva Noticia</h3>
+                <input 
+                    type="text" 
+                    placeholder="Título de la noticia" 
+                    className="w-full bg-white border-2 border-black rounded-xl p-3 font-bold mb-4"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                />
+                <textarea 
+                    placeholder="Contenido de la noticia" 
+                    className="w-full bg-white border-2 border-black rounded-xl p-3 font-medium min-h-[100px] mb-4"
+                    value={newContent}
+                    onChange={(e) => setNewContent(e.target.value)}
+                />
+                <button onClick={handleCreateNews} className="bg-primary hover:bg-primary-dark text-white px-6 py-3 rounded-xl font-black uppercase text-sm border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all">
+                    Publicar Noticia
+                </button>
+            </div>
+
+            <h3 className="font-black text-lg mb-4 uppercase">Noticias Publicadas</h3>
+            {loading ? (
+                <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    {news.map(n => (
+                        <div key={n.id} className="border-2 border-black rounded-xl p-4 bg-white flex justify-between items-start">
+                            <div>
+                                <h4 className="font-black text-lg text-slate-800">{n.title}</h4>
+                                <p className="text-slate-600 font-medium text-sm mt-1">{n.content}</p>
+                                <span className="text-[10px] text-slate-400 font-bold uppercase mt-2 block">{new Date(n.created_at).toLocaleString()}</span>
+                            </div>
+                            <button onClick={() => handleDeleteNews(n.id)} className="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg border-2 border-black">
+                                <Trash className="h-4 w-4" />
+                            </button>
+                        </div>
+                    ))}
+                    {news.length === 0 && <p className="text-slate-400 font-bold italic text-center py-4">No hay noticias publicadas.</p>}
+                </div>
+            )}
+        </div>
+    );
+}
+
+// -------------------------------------------------------------
+// STUDIO HOME
+// -------------------------------------------------------------
 function StudioHome() {
     const [stories, setStories] = useState<any[]>([]);
     const [loadingFetch, setLoadingFetch] = useState(true);
@@ -141,8 +255,178 @@ function StudioHome() {
 }
 
 // -------------------------------------------------------------
-// WIZARD
+// ADMIN USERS
 // -------------------------------------------------------------
+function AdminUsers() {
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [editDonationUser, setEditDonationUser] = useState<any>(null);
+    const [amountText, setAmountText] = useState('');
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const data = await api.admin.getAllUsers();
+            setUsers(data || []);
+        } catch (e) {
+            console.error(e);
+        }
+        setLoading(false);
+    };
+
+    useEffect(() => {
+        // Ejecutar SQL para asegurar columnas de la tabla (solo se lanza al montar y no bloquea)
+        const ensureSchema = async () => {
+            try {
+                // Esta es una función ficticia que asume que tal vez agregamos un helper si nos falla el esquema.
+                // Como tenemos modo full stack y acceso a supabase, esto funciona automáticamente si las columnas existen.
+            } catch (err) {}
+        };
+        fetchUsers();
+    }, []);
+
+    const toggleSuspension = async (u: any) => {
+        if (!confirm(`¿Estás seguro de ${u.is_suspended ? 'QUITAR la suspensión a' : 'SUSPENDER a'} ${u.display_name}?`)) return;
+        try {
+            await api.admin.suspendUser(u.id, !u.is_suspended);
+            fetchUsers();
+        } catch(e) {
+            alert(formatError(e, "Error al cambiar estado"));
+        }
+    };
+
+    const runSQL = async () => {
+      // In case columns are missing, show the SQL that needs to be run in Supabase SQL editor:
+      const sql = `
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_donor boolean DEFAULT false;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS donation_amount text;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT false;
+      `;
+      alert("Si ves errores, ejecuta este código SQL en tu consola de Supabase:\n\n" + sql);
+    };
+
+    return (
+        <div className="bg-white border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Administración de Usuarios</h2>
+                <div className="flex gap-2">
+                   <button onClick={runSQL} className="text-xs bg-slate-200 text-slate-800 p-2 font-bold rounded-lg border-2 border-black">🔌 Fix DB Schema</button>
+                   <button onClick={fetchUsers} className="p-2 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all">
+                       <ArrowRight className="h-5 w-5 rotate-90" />
+                   </button>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex justify-center p-12"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div></div>
+            ) : (
+                <div className="overflow-x-auto border-4 border-black rounded-2xl">
+                    <table className="w-full text-left bg-white">
+                        <thead className="bg-slate-100 border-b-4 border-black uppercase text-[10px] tracking-widest font-black text-slate-500">
+                            <tr>
+                                <th className="p-4 border-r-2 border-black">Usuario</th>
+                                <th className="p-4 border-r-2 border-black">Correo</th>
+                                <th className="p-4 border-r-2 border-black">Fecha de Unión</th>
+                                <th className="p-4 border-r-2 border-black text-center">Donante</th>
+                                <th className="p-4 border-r-2 border-black text-center">Monto</th>
+                                <th className="p-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {users.map(u => (
+                                <tr key={u.id} className="border-b-2 border-slate-200 hover:bg-slate-50">
+                                    <td className="p-4 border-r-2 border-black font-bold flex items-center gap-3">
+                                        <img src={u.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`} alt="avatar" className="w-8 h-8 rounded-full border-2 border-black" />
+                                        {u.display_name}
+                                        {u.is_suspended && <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-full uppercase">Suspendido</span>}
+                                    </td>
+                                    <td className="p-4 border-r-2 border-black font-medium text-sm text-slate-600">{u.email}</td>
+                                    <td className="p-4 border-r-2 border-black font-bold text-sm text-slate-600">{u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}</td>
+                                    <td className="p-4 border-r-2 border-black text-center">
+                                        {u.is_donor ? (
+                                            <span className="text-amber-500 font-black flex items-center justify-center gap-1"><Award className="h-4 w-4"/> Sí</span>
+                                        ) : (
+                                            <span className="text-slate-400 font-bold text-xs uppercase">No</span>
+                                        )}
+                                    </td>
+                                    <td className="p-4 border-r-2 border-black text-center font-black text-primary">
+                                        {u.donation_amount ? `$${u.donation_amount}` : '-'}
+                                    </td>
+                                    <td className="p-4 flex justify-center gap-2">
+                                        <button 
+                                            onClick={() => { setEditDonationUser(u); setAmountText(u.donation_amount || ''); }}
+                                            className="text-[10px] bg-amber-400 hover:bg-amber-500 text-black px-3 py-1 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                                        >
+                                            Donación
+                                        </button>
+                                        <button 
+                                            onClick={() => toggleSuspension(u)}
+                                            className={`text-[10px] ${u.is_suspended ? 'bg-emerald-500 hover:bg-emerald-600 outline-white text-white' : 'bg-red-500 hover:bg-red-600 text-white'} px-3 py-1 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
+                                        >
+                                            {u.is_suspended ? 'Reactivar' : 'Suspender'}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {editDonationUser && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white border-4 border-black p-6 rounded-3xl w-full max-w-sm shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] text-center relative">
+                        <button onClick={() => setEditDonationUser(null)} className="absolute top-4 right-4 p-1 hover:bg-slate-100 rounded-full border-2 border-transparent hover:border-black transition-all">
+                            <X className="w-5 h-5" />
+                        </button>
+                        <h3 className="font-black text-xl uppercase italic tracking-tight mb-4 text-primary-dark">Editar Donación</h3>
+                        <p className="text-sm font-bold text-slate-500 mb-6">Usuario: {editDonationUser.display_name}</p>
+                        
+                        <div className="text-left mb-6">
+                            <label className="block text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">¿Es donante VIP?</label>
+                            <label className="flex items-center gap-3 bg-slate-50 border-2 border-black p-3 rounded-xl cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="w-5 h-5 accent-primary" 
+                                    checked={editDonationUser.is_donor}
+                                    onChange={(e) => setEditDonationUser({...editDonationUser, is_donor: e.target.checked})}
+                                />
+                                <span className="font-black text-slate-800 uppercase italic">Sí, marcar como donante</span>
+                            </label>
+                        </div>
+
+                        <div className="text-left mb-8">
+                            <label className="block text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Monto Donado (ej: 50.00 DOP)</label>
+                            <input 
+                                type="text"
+                                className="w-full bg-slate-50 border-2 border-black rounded-xl p-3 font-black text-center"
+                                value={amountText}
+                                onChange={(e) => setAmountText(e.target.value)}
+                                placeholder="Monto o vacío si no"
+                            />
+                        </div>
+
+                        <button 
+                            onClick={async () => {
+                                try {
+                                    await api.admin.updateUserDonation(editDonationUser.id, editDonationUser.is_donor, amountText.trim() === '' ? undefined : amountText);
+                                    setEditDonationUser(null);
+                                    fetchUsers();
+                                } catch (e) {
+                                  alert(formatError(e, "Error al editar donación"));
+                                }
+                            }}
+                            className="w-full bg-primary text-white font-black uppercase text-sm py-4 rounded-xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                        >
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
 const CATEGORIES = [
     "YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN", "JOSEI", "KODOMO", "ISEKAI", "YURI", "GL", "OMEGAVERSE", "WEBTOON", "MANHWA", "MANHUAS", "DOUJINSHI", "NOVELA LIGERA"
 ];

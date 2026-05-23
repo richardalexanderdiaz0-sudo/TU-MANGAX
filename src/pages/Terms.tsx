@@ -29,25 +29,54 @@ export default function Terms() {
           <section className="mb-10">
             <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter mb-4 flex items-center gap-3">
               <span className="bg-slate-100 border-2 border-black w-8 h-8 flex items-center justify-center rounded-lg text-primary -rotate-3">2</span>
-              Uso del Contenido
+              Prohibición de Resubida y Piratería
             </h2>
-            <p className="text-slate-600 font-medium mb-4"> Todo el contenido visual (mangas, manhwas, cómics) es propiedad de sus respectivos autores y editoriales. <span className="text-primary-dark font-black underline decoration-black/10">TU MANGAX</span> actúa como un visualizador de contenido facilitado por la comunidad.</p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4 list-none p-0">
-              <li className="bg-white border-2 border-black p-4 rounded-xl flex items-center gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">
-                <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0" />
-                <span className="text-xs font-black uppercase text-slate-500">No distribuir sin permiso</span>
+            <div className="bg-red-50 border-2 border-red-500 rounded-2xl p-6 font-medium text-slate-600 leading-relaxed">
+              <strong className="text-red-700 block mb-2 uppercase">Queda ESTRICTAMENTE PROHIBIDO:</strong>
+              Descargar, capturar pantalla masivamente, desencriptar o extraer los capítulos publicados en <strong>TU MANGAX</strong> para <strong>resubirlos</strong> a otras aplicaciones, sitios web, redes sociales (incluyendo TikTok, Facebook, Instagram), grupos de WhatsApp o canales de Telegram.
+              <br/><br/>
+              Las traducciones, ediciones (typesetting) y limpieza de scans toman horas de esfuerzo por parte de nuestro equipo (RuiWorks & Ivan) y los scanlations asociados. Robar este trabajo y monetizarlo en otros lugares resultará en la <strong>CUENTA SUSPENDIDA PERMANENTEMENTE</strong>, bloqueo de IP y posibles medidas legales contra plataformas infractoras.
+            </div>
+          </section>
+
+          <section className="mb-10">
+            <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter mb-4 flex items-center gap-3">
+              <span className="bg-slate-100 border-2 border-black w-8 h-8 flex items-center justify-center rounded-lg text-primary rotate-6">3</span>
+              Comportamiento Comunitario y Cero Tolerancia al Odio
+            </h2>
+            <p className="text-slate-600 font-medium mb-4">
+              Nuestra comunidad es un espacio seguro para que los amantes del manga, manhwa y webtoon disfruten y compartan su pasión. Las siguientes conductas <strong>no serán toleradas bajo ninguna circunstancia</strong>:
+            </p>
+            <ul className="space-y-4 list-none p-0">
+              <li className="bg-white border-2 border-black p-4 rounded-xl flex items-start gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">
+                <ShieldCheck className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+                <div>
+                  <span className="text-sm font-black uppercase text-slate-800 block mb-1">Cero Odio y Discriminación</span>
+                  <p className="text-xs text-slate-500 font-bold mb-0 leading-tight">Está terminantemente prohibido el discurso de odio (hate speech), racismo, homofobia, transfobia, sexismo o cualquier forma de discriminación hacia personajes, autores, staff de traducción o miembros de la comunidad en los comentarios.</p>
+                </div>
               </li>
-              <li className="bg-white border-2 border-black p-4 rounded-xl flex items-center gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">
-                <Info className="h-5 w-5 text-blue-500 shrink-0" />
-                <span className="text-xs font-black uppercase text-slate-500">Respetar a los creadores</span>
+              <li className="bg-white border-2 border-black p-4 rounded-xl flex items-start gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">
+                <ShieldCheck className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+                <div>
+                  <span className="text-sm font-black uppercase text-slate-800 block mb-1">Acoso y Bullying (Cyberbullying)</span>
+                  <p className="text-xs text-slate-500 font-bold mb-0 leading-tight">El acoso, las burlas continuas, doxxing (revelar información personal), y ataques directos a otros usuarios están penados con suspensión inmediata de la cuenta. Discutir diferentes opiniones es válido, pero siempre con respeto.</p>
+                </div>
+              </li>
+              <li className="bg-white border-2 border-black p-4 rounded-xl flex items-start gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)]">
+                <ShieldCheck className="h-6 w-6 text-red-500 shrink-0 mt-1" />
+                <div>
+                  <span className="text-sm font-black uppercase text-slate-800 block mb-1">Spoilers Malintencionados</span>
+                  <p className="text-xs text-slate-500 font-bold mb-0 leading-tight">Revelar partes críticas de la trama futura en comentarios (procedente de novelas ligeras o raws avanzados) sin previo aviso claro se considerará comportamiento tóxico y puede incurrir en sanción.</p>
+                </div>
               </li>
             </ul>
           </section>
 
           <section>
             <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter mb-4 flex items-center gap-3">
-              <span className="bg-slate-100 border-2 border-black w-8 h-8 flex items-center justify-center rounded-lg text-primary rotate-6">3</span>
-              Responsabilidad
+              <span className="bg-slate-100 border-2 border-black w-8 h-8 flex items-center justify-center rounded-lg text-primary -rotate-6">4</span>
+              Responsabilidad y Cuenta del Administrador
+
             </h2>
             <p className="text-slate-600 font-medium italic">
               Nos esforzamos por mantener la mejor calidad, pero no garantizamos la disponibilidad ininterrumpida del servicio. ¡Estamos en constante mejora impulsada por <span className="text-primary font-bold">RUIWORKS</span>!

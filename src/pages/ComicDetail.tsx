@@ -4,6 +4,7 @@ import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
 import { Share2, MoreVertical, ThumbsUp, Eye, BookMarked, Flag, X } from 'lucide-react';
 import LoginModal from '../components/LoginModal';
+import ShareModal from '../components/ShareModal';
 
 export default function ComicDetail() {
     const { id } = useParams();
@@ -16,6 +17,7 @@ export default function ComicDetail() {
     const [isSaved, setIsSaved] = useState(false);
     const [isLiked, setIsLiked] = useState(false);
     const [showReport, setShowReport] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
     
     // Auth Wall modal states
     const [showAuthWall, setShowAuthWall] = useState(false);
@@ -79,19 +81,9 @@ export default function ComicDetail() {
         fetchDetail();
     }, [id, user]);
 
-    const handleShare = async () => {
+    const handleShare = () => {
         if (!story) return;
-        const text = `No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`;
-        const url = window.location.href;
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: story.title, text, url });
-            } catch (err) {
-                console.error(err);
-            }
-        } else {
-            prompt("Copia este link para compartir:", `${text} ${url}`);
-        }
+        setShowShareModal(true);
     };
 
     const handleLike = async () => {
@@ -338,6 +330,15 @@ export default function ComicDetail() {
                 <LoginModal 
                     initialMode={loginInitialMode} 
                     onClose={() => setShowLoginModal(false)} 
+                />
+            )}
+
+            {showShareModal && story && (
+                <ShareModal
+                    title={story.title}
+                    shareText={`No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`}
+                    shareUrl={window.location.href}
+                    onClose={() => setShowShareModal(false)}
                 />
             )}
         </div>

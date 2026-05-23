@@ -23,14 +23,23 @@ function HeroSlider({ stories }: { stories: StoryInfo[] }) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const navigate = useNavigate();
 
-    // Adding Android Announcement as the first slide
+    // Adding Android Announcement and Socials Announcement as slides
     const slideItems = [
         {
             id: 'android-announcement',
             title: '¡PRÓXIMAMENTE APP PARA ANDROID!',
             cover_url: 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=1200&auto=format&fit=crop',
             status: 'NEWS',
-            isAnnouncement: true
+            isAnnouncement: true,
+            link: '/android-announcement'
+        },
+        {
+            id: 'socials-announcement',
+            title: '¡SÍGUENOS EN NUESTRAS REDES!',
+            cover_url: 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=1200&auto=format&fit=crop',
+            status: 'NEWS',
+            isAnnouncement: true,
+            link: '/socials'
         },
         ...stories
     ];
@@ -80,7 +89,7 @@ function HeroSlider({ stories }: { stories: StoryInfo[] }) {
                 <div className="flex items-center gap-4 mt-4">
                     {currentItem.isAnnouncement ? (
                         <button 
-                            onClick={() => navigate('/android-announcement')}
+                            onClick={() => navigate(currentItem.link || '/android-announcement')}
                             className="flex items-center gap-2 bg-primary text-white font-black uppercase text-lg sm:text-xl px-8 py-4 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-white hover:text-black transition-all active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                         >
                             Leer Noticia Completa
