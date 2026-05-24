@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
-import { Share2, MoreVertical, ThumbsUp, Eye, BookMarked, Flag, X } from 'lucide-react';
+import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X } from 'lucide-react';
+import { supabase } from '../services/supabase';
 import LoginModal from '../components/LoginModal';
 import ShareModal from '../components/ShareModal';
 
@@ -33,6 +34,14 @@ export default function ComicDetail() {
             try {
                 const sData = await api.stories.getOne(id);
                 if (sData) {
+                    // Increment views in Supabase in real-time
+                    try {
+                        const newViewsCount = (sData.views_count || 0) + 1;
+                        await supabase.from('stories').update({ views_count: newViewsCount }).eq('id', id);
+                        sData.views_count = newViewsCount;
+                    } catch (err) {
+                        console.error('Error updating views count', err);
+                    }
                     setStory(sData);
                 }
 
@@ -67,11 +76,8 @@ export default function ComicDetail() {
                 setSimilarStories(related);
 
                 if (user) {
-                    // Logic to check library/likes will depend on Ivan's endpoints
-                    // For now, initializing state from story data if Ivan includes it
-                    // Or placeholders
+                    // Logic to check library will depend on Ivan's endpoints
                     setIsSaved(false);
-                    setIsLiked(false);
                 }
             } catch(e) {
                 console.error(e);
@@ -84,17 +90,6 @@ export default function ComicDetail() {
     const handleShare = () => {
         if (!story) return;
         setShowShareModal(true);
-    };
-
-    const handleLike = async () => {
-        if (!user || !id || !story) return;
-        try {
-            await api.interactions.toggleLike(id);
-            setIsLiked(!isLiked);
-            // Counter update logic would ideally come from refreshing story data
-        } catch(e) {
-            console.error(e);
-        }
     };
 
     const handleLibrary = async () => {
@@ -167,17 +162,14 @@ export default function ComicDetail() {
                     <span className={`px-3 py-1 rounded-full font-bold uppercase tracking-wide text-xs border ${story.status === 'COMPLETED' ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/20' : 'bg-blue-950/40 text-blue-400 border-blue-500/20'}`}>
                         {story.status === 'COMPLETED' ? 'Finalizado' : 'En Emisión'}
                     </span>
-                    <span className="px-3 py-1 rounded-full bg-slate-800/60 text-slate-300 font-medium border border-slate-700/50 flex items-center gap-1.5 shadow-sm">
-                        <ThumbsUp className="h-3.5 w-3.5" /> {story.likes_count || 0}
+                    <span className="px-3 py-1 rounded-full bg-slate-800/60 text-amber-400 font-extrabold border border-indigo-500/20 flex items-center gap-1.5 shadow-sm">
+                        <Flame className="h-3.5 w-3.5 text-amber-500 fill-current animate-pulse" /> {story.views_count || 0} vistas
                     </span>
                 </div>
 
                 <div className="flex gap-3 mb-10">
-                    <button onClick={handleLike} className={`px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${isLiked ? 'bg-primary text-white' : 'bg-white text-slate-800 hover:bg-primary-light'}`}>
-                        <ThumbsUp className="h-5 w-5" /> {isLiked ? 'Te Gusta' : 'Dar Like'}
-                    </button>
-                    <button onClick={handleLibrary} className={`px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${isSaved ? 'bg-emerald-500 text-white' : 'bg-white text-slate-800 hover:bg-emerald-100'}`}>
-                        <BookMarked className="h-5 w-5" /> {isSaved ? 'Guardado' : 'Guardar'}
+                    <button onClick={handleLibrary} className={`px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:scale-[1.02] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${isSaved ? 'bg-emerald-500 text-white' : 'bg-white text-slate-800 hover:bg-emerald-100'}`}>
+                        <BookMarked className="h-5 w-5" /> {isSaved ? 'Guardado en Biblioteca' : 'Agregar a Biblioteca'}
                     </button>
                 </div>
 

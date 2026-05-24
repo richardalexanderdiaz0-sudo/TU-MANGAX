@@ -87,7 +87,7 @@ export default function Footer() {
               </li>
               <li>
                 <div className="flex items-center gap-2 group cursor-help">
-                  <span className="text-[10px] font-black bg-slate-100 border-2 border-black px-2 py-0.5 rounded-lg text-slate-500 grayscale group-hover:grayscale-0 transition-all">v2.0.26 Beta</span>
+                  <span className="text-[10px] font-black bg-slate-100 border-2 border-black px-2 py-0.5 rounded-lg text-slate-500 grayscale group-hover:grayscale-0 transition-all">v2.0.26 Oficial</span>
                 </div>
               </li>
             </ul>

@@ -291,6 +291,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS donation_amount text;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT false;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country text;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS views_count integer DEFAULT 0;
       `;
       alert("Si ves errores, ejecuta este código SQL en tu consola de Supabase:\n\n" + sql);
     };

@@ -314,18 +314,22 @@ export default function Profile() {
 -- Habilitar RLS de seguridad
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
--- Políticas de lectura y escritura
+-- Políticas de lectura, inserción, actualización y borrado totales (con soporte universal para Supabase)
 DROP POLICY IF EXISTS "Lectura publica de noticias" ON public.announcements;
 CREATE POLICY "Lectura publica de noticias"
-ON public.announcements FOR SELECT TO public USING (true);
+ON public.announcements FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Insertar noticias" ON public.announcements;
 CREATE POLICY "Insertar noticias"
-ON public.announcements FOR INSERT TO public WITH CHECK (true);
+ON public.announcements FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Actualizar noticias" ON public.announcements;
+CREATE POLICY "Actualizar noticias"
+ON public.announcements FOR UPDATE USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Borrar noticias" ON public.announcements;
 CREATE POLICY "Borrar noticias"
-ON public.announcements FOR DELETE TO public USING (true);`}
+ON public.announcements FOR DELETE USING (true);`}
                                     </pre>
                                 </div>
                             </div>

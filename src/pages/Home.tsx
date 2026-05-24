@@ -11,6 +11,7 @@ interface StoryInfo {
     cover_url: string;
     status: string;
     likes_count: number;
+    views_count?: number;
     created_at: string;
     updated_at?: string;
     isRecentlyUpdated?: boolean;
@@ -175,7 +176,7 @@ export default function Home() {
                 });
 
                 const sortedByRecency = [...allStories].sort((a: any, b: any) => new Date(b.created || b.created_at).getTime() - new Date(a.created || a.created_at).getTime());
-                const sortedByLikes = [...allStories].sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
+                const sortedByViews = [...allStories].sort((a: any, b: any) => (b.views_count||0) - (a.views_count||0));
 
                 const addedRecently = sortedByRecency.filter((s: any) => {
                     const createdDate = new Date(s.created || s.created_at).getTime();
@@ -191,7 +192,7 @@ export default function Home() {
                     .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
                 setRecentlyAdded(addedRecently);
-                setTrending(sortedByLikes.slice(0, 15));
+                setTrending(sortedByViews.slice(0, 15));
                 setAllComics(sortedByRecency);
                 
                 setCompleted(allStories.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
@@ -220,7 +221,7 @@ export default function Home() {
                  }
                  if (!Array.isArray(storyCats)) storyCats = [];
                  return userProfile.preferences.some((pref: string) => storyCats.includes(pref));
-             }).sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
+             }).sort((a: any, b: any) => (b.views_count||0) - (a.views_count||0));
              setRecommended(recommends.slice(0, 15));
         } else {
              setRecommended([]);
@@ -336,7 +337,7 @@ function StoryCard({ story }: { story: StoryInfo, key?: React.Key }) {
     return (
         <Link 
             to={`/comic/${story.id}`} 
-            className="flex flex-col gap-3 min-w-[150px] max-w-[150px] sm:min-w-[180px] sm:max-w-[180px] snap-start group"
+            className="flex flex-col gap-3 min-w-[150px] max-w-[150px] sm:min-w-[180px] sm:max-w-[180px] snap-start group relative"
         >
             <div className="relative aspect-[2/3] rounded-3xl overflow-hidden bg-white border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] group-hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all group-active:translate-x-[2px] group-active:translate-y-[2px] group-active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <img 
@@ -349,6 +350,11 @@ function StoryCard({ story }: { story: StoryInfo, key?: React.Key }) {
                     {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
                     {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
                     {story.status === 'SOON' && <span className="bg-primary text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
+                </div>
+                {/* Micro fire overlay chip indicating views count */}
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/85 font-black text-[10.5px] text-amber-400 px-2 py-0.5 rounded-lg border-2 border-black select-none z-10 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                    <span>🔥</span>
+                    <span>{story.views_count || 0}</span>
                 </div>
             </div>
             <h3 className="font-bold text-sm line-clamp-2 leading-tight group-hover:text-primary transition-colors px-1">{story.title}</h3>
