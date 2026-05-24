@@ -29,6 +29,7 @@ import Donate from './pages/Donate';
 import Footer from './components/Footer';
 import JuanCarlosVIPModal from './components/JuanCarlosVIPModal';
 import PreferencesModal from './components/PreferencesModal';
+import DailySuggestionModal from './components/DailySuggestionModal';
 import { supabase } from './services/supabase';
 
 function Layout() {
@@ -74,6 +75,7 @@ function Layout() {
       
       <JuanCarlosVIPModal />
       <PreferencesModal />
+      <DailySuggestionModal />
     </div>
   );
 }
