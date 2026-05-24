@@ -19,9 +19,11 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
   const [loading, setLoading] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
 
-  const handleResetPassword = async () => {
+  const handleResetPassword = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!email) {
-      setError('Por favor, ingresa tu correo para recuperar la contraseña.');
+      setError('Por favor, ingresa tu correo antes de solicitar cambio de clave.');
       return;
     }
     setLoading(true);
@@ -29,11 +31,13 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
     setResetMessage('');
     try {
       await resetPassword(email);
-      setResetMessage('¡Checkea tu correo! Te enviamos un link.');
+      setResetMessage('¡Link enviado! Revisa tu bandeja de entrada y la carpeta de SPAM (no deseado).');
     } catch (err: any) {
-      let errorMsg = 'Error al enviar correo';
+      let errorMsg = 'Error al enviar correo (¿pusiste tu correo bien?)';
       if (err.code === 'auth/user-not-found') {
-        errorMsg = 'No hay usuario con este correo.';
+        errorMsg = 'No hay usuario registrado con este correo.';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMsg = 'Formato de correo inválido.';
       } else {
          errorMsg = err.message || errorMsg;
       }

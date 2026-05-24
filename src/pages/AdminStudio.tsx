@@ -276,28 +276,26 @@ function AdminUsers() {
     };
 
     useEffect(() => {
-        // Ejecutar SQL para asegurar columnas de la tabla (solo se lanza al montar y no bloquea)
         const ensureSchema = async () => {
             try {
-                // Esta es una función ficticia que asume que tal vez agregamos un helper si nos falla el esquema.
-                // Como tenemos modo full stack y acceso a supabase, esto funciona automáticamente si las columnas existen.
             } catch (err) {}
         };
         fetchUsers();
     }, []);
 
-    const toggleSuspension = async (u: any) => {
-        if (!confirm(`¿Estás seguro de ${u.is_suspended ? 'QUITAR la suspensión a' : 'SUSPENDER a'} ${u.display_name}?`)) return;
+    const reactivateAllSuspended = async () => {
+        if (!confirm('¿Seguro que quieres reactivar TODAS las cuentas suspendidas? Esto quitará la suspensión a cualquier usuario suspendido.')) return;
         try {
-            await api.admin.suspendUser(u.id, !u.is_suspended);
+            const { error } = await supabase.from('users').update({ is_suspended: false }).eq('is_suspended', true);
+            if (error) throw error;
             fetchUsers();
+            alert("¡Todas las cuentas han sido reactivadas con éxito!");
         } catch(e) {
-            alert(formatError(e, "Error al cambiar estado"));
+            alert(formatError(e, "Error al reactivar cuentas"));
         }
     };
 
     const runSQL = async () => {
-      // In case columns are missing, show the SQL that needs to be run in Supabase SQL editor:
       const sql = `
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_donor boolean DEFAULT false;
@@ -314,6 +312,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Administración de Usuarios</h2>
                 <div className="flex gap-2">
+                   <button onClick={reactivateAllSuspended} className="text-[10px] bg-emerald-400 text-black px-3 py-2 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">🔓 Reactivar Todos</button>
                    <button onClick={runSQL} className="text-xs bg-slate-200 text-slate-800 p-2 font-bold rounded-lg border-2 border-black">🔌 Fix DB Schema</button>
                    <button onClick={fetchUsers} className="p-2 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all">
                        <ArrowRight className="h-5 w-5 rotate-90" />
@@ -343,7 +342,6 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
                                     <td className="p-4 border-r-2 border-black font-bold flex items-center gap-3">
                                         <img src={u.photo_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.id}`} alt="avatar" className="w-8 h-8 rounded-full border-2 border-black" />
                                         {u.display_name}
-                                        {u.is_suspended && <span className="text-[10px] bg-red-500 text-white px-2 py-0.5 rounded-full uppercase">Suspendido</span>}
                                     </td>
                                     <td className="p-4 border-r-2 border-black font-medium text-sm text-slate-600">{u.email}</td>
                                     <td className="p-4 border-r-2 border-black font-bold text-sm text-slate-600">{u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}</td>
@@ -364,12 +362,6 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
                                             className="text-[10px] bg-amber-400 hover:bg-amber-500 text-black px-3 py-1 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                                         >
                                             Donación
-                                        </button>
-                                        <button 
-                                            onClick={() => toggleSuspension(u)}
-                                            className={`text-[10px] ${u.is_suspended ? 'bg-emerald-500 hover:bg-emerald-600 outline-white text-white' : 'bg-red-500 hover:bg-red-600 text-white'} px-3 py-1 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none`}
-                                        >
-                                            {u.is_suspended ? 'Reactivar' : 'Suspender'}
                                         </button>
                                     </td>
                                 </tr>
