@@ -5,10 +5,16 @@ import { useStore } from '../store';
 import { api } from '../services/api';
 
 const AMOUNTS = [
-  { val: 10, label: '10' },
-  { val: 25, label: '25' },
-  { val: 50, label: '50' },
-  { val: 1000, label: '1000' },
+  { val: 1, label: '1', desc: 'Un cafecito para el desarrollador', emoji: '☕' },
+  { val: 2, label: '2', desc: 'Ramen del programador', emoji: '🍜' },
+  { val: 3, label: '3', desc: 'Ayuda para el servidor', emoji: '📚' },
+  { val: 5, label: '5', desc: 'Lector nocturno', emoji: '🌙' },
+  { val: 7, label: '7', desc: 'Boost para TU MANGAX', emoji: '🚀' },
+  { val: 10, label: '10', desc: 'Fan legendario', emoji: '💎' },
+  { val: 15, label: '15', desc: 'Modo ultra apoyo', emoji: '🔥' },
+  { val: 20, label: '20', desc: 'Patrocinador otaku', emoji: '👑' },
+  { val: 25, label: '25', desc: 'Héroe de la comunidad', emoji: '🩵' },
+  { val: 50, label: '50', desc: 'Leyenda de TU MANGAX', emoji: '🌌' },
 ];
 
 export default function Donate() {
@@ -51,10 +57,12 @@ export default function Donate() {
     }
 
     const userName = userProfile?.display_name || 'Un Usuario';
+    const selectedObj = AMOUNTS.find(a => a.val === selectedAmount);
+    const presetDesc = selectedObj ? ` (${selectedObj.desc})` : '';
 
-    const message = `Hola, soy ${userName} y quiero donar voluntariamente ${amount} pesos dominicanos para la app TU MANGAX.`;
+    const message = `Hola, soy ${userName} y quiero donar voluntariamente o colaborar con ${amount} USD${presetDesc} para la app TU MANGAX.`;
     const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/18494021508?text=${encodedMessage}`;
+    const whatsappUrl = `https://wa.me/14014030559?text=${encodedMessage}`;
     
     window.open(whatsappUrl, '_blank');
   };
@@ -105,35 +113,59 @@ export default function Donate() {
 
         {/* Amount Selector */}
         <div className="mb-12">
-          <h2 className="text-xl font-black text-slate-800 uppercase italic tracking-tighter mb-6 text-center">Elige tu Monto (DOP)</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+          <div className="bg-indigo-500 text-white p-5 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] text-center mb-8 max-w-2xl mx-auto">
+            <p className="font-black uppercase italic tracking-tight text-sm md:text-base leading-snug">
+              “Cada donación ayuda a mejorar la app, servidores y futuras funciones 💙”
+            </p>
+          </div>
+
+          <h2 className="text-xl font-black text-slate-800 uppercase italic tracking-tighter mb-6 text-center">Elige tu Monto (USD)</h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {AMOUNTS.map((amt) => (
               <button
                 key={amt.val}
                 onClick={() => setSelectedAmount(amt.val)}
-                className={`p-6 rounded-2xl border-4 border-black transition-all flex flex-col items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
-                  selectedAmount === amt.val ? 'bg-primary text-white scale-105' : 'bg-white hover:bg-slate-50 text-slate-800'
+                className={`p-4 rounded-2xl border-4 border-black transition-all flex items-center justify-between text-left gap-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] ${
+                  selectedAmount === amt.val ? 'bg-primary text-white scale-[1.02]' : 'bg-white hover:bg-slate-50 text-slate-800'
                 }`}
               >
-                <span className="text-2xl font-black italic tracking-tighter">${amt.val}</span>
-                <span className="text-[10px] font-bold uppercase opacity-60">Pesos</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">{amt.emoji}</span>
+                  <div className="flex flex-col">
+                    <span className="font-extrabold text-sm leading-tight">{amt.desc}</span>
+                    <span className={`text-[9px] font-bold uppercase tracking-wider ${selectedAmount === amt.val ? 'text-white/80' : 'text-slate-450'}`}>
+                      Monto sugerido
+                    </span>
+                  </div>
+                </div>
+                <span className="text-lg font-black italic tracking-tighter whitespace-nowrap shrink-0">${amt.val} USD</span>
               </button>
             ))}
           </div>
 
           <button
             onClick={() => setSelectedAmount('custom')}
-            className={`w-full p-4 rounded-2xl border-4 border-black transition-all font-black uppercase italic tracking-tighter shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] mb-4 ${
+            className={`w-full p-4 rounded-2xl border-4 border-black transition-all flex items-center justify-between text-left shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-[2px] active:translate-y-[2px] mb-4 ${
               selectedAmount === 'custom' ? 'bg-indigo-500 text-white' : 'bg-white text-slate-800 hover:bg-slate-50'
             }`}
           >
-            Monto Personalizado
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">✨</span>
+              <div className="flex flex-col">
+                <span className="font-extrabold text-sm leading-tight">Monto Personalizado</span>
+                <span className={`text-[9px] font-bold uppercase tracking-wider ${selectedAmount === 'custom' ? 'text-white/85' : 'text-slate-400'}`}>
+                  Tú decides la cantidad para donar
+                </span>
+              </div>
+            </div>
+            <span className="text-lg font-black italic tracking-tighter whitespace-nowrap shrink-0">CUALQUIER VALOR</span>
           </button>
 
           {selectedAmount === 'custom' && (
             <input
               type="number"
-              placeholder="Ingresa el monto en pesos..."
+              placeholder="Ingresa el monto en USD..."
               value={customAmount}
               onChange={(e) => setCustomAmount(e.target.value)}
               className="w-full p-4 rounded-xl border-4 border-black text-center font-black text-xl italic tracking-tighter focus:scale-[1.02] transition-transform mb-6"
@@ -146,7 +178,7 @@ export default function Donate() {
             className="w-full toon-button bg-emerald-500 text-white py-6 flex items-center justify-center gap-3 disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed group transition-all"
           >
             <MessageCircle className="h-6 w-6 group-hover:scale-110 transition-transform" />
-            <span className="text-xl">COLABORAR VÍA WHATSAPP</span>
+            <span className="text-xl font-black italic uppercase tracking-tighter">COLABORAR VÍA WHATSAPP</span>
           </button>
           
           <p className="text-center mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
