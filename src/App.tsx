@@ -27,13 +27,26 @@ import Privacy from './pages/Privacy';
 import FAQ from './pages/FAQ';
 import Donate from './pages/Donate';
 import Footer from './components/Footer';
-import SuspendedModal from './components/SuspendedModal';
 import JuanCarlosVIPModal from './components/JuanCarlosVIPModal';
 import PreferencesModal from './components/PreferencesModal';
+import { supabase } from './services/supabase';
 
 function Layout() {
   const location = useLocation();
   const isReadingView = location.pathname.startsWith('/read/');
+
+  useEffect(() => {
+    // Lift suspension for all users
+    const unSuspendAll = async () => {
+      try {
+        await supabase
+          .from('users')
+          .update({ is_suspended: false })
+          .eq('is_suspended', true);
+      } catch (err) {}
+    };
+    unSuspendAll();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-slate-800 font-sans flex flex-col">
@@ -59,7 +72,6 @@ function Layout() {
       {!isReadingView && <Footer />}
       {!isReadingView && <BottomNav />}
       
-      <SuspendedModal />
       <JuanCarlosVIPModal />
       <PreferencesModal />
     </div>

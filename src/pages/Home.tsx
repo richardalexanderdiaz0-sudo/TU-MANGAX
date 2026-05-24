@@ -214,9 +214,11 @@ export default function Home() {
                  let storyCats: string[] = [];
                  if (s.categories) {
                      try { 
-                         storyCats = typeof s.categories === 'string' ? JSON.parse(s.categories) : (Array.isArray(s.categories) ? s.categories : []); 
+                         let parsed = typeof s.categories === 'string' ? JSON.parse(s.categories) : s.categories;
+                         if (Array.isArray(parsed)) storyCats = parsed;
                      } catch(e) {}
                  }
+                 if (!Array.isArray(storyCats)) storyCats = [];
                  return userProfile.preferences.some((pref: string) => storyCats.includes(pref));
              }).sort((a: any, b: any) => (b.likes_count||0) - (a.likes_count||0));
              setRecommended(recommends.slice(0, 15));

@@ -283,18 +283,6 @@ function AdminUsers() {
         fetchUsers();
     }, []);
 
-    const reactivateAllSuspended = async () => {
-        if (!confirm('¿Seguro que quieres reactivar TODAS las cuentas suspendidas? Esto quitará la suspensión a cualquier usuario suspendido.')) return;
-        try {
-            const { error } = await supabase.from('users').update({ is_suspended: false }).eq('is_suspended', true);
-            if (error) throw error;
-            fetchUsers();
-            alert("¡Todas las cuentas han sido reactivadas con éxito!");
-        } catch(e) {
-            alert(formatError(e, "Error al reactivar cuentas"));
-        }
-    };
-
     const runSQL = async () => {
       const sql = `
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT now();
@@ -312,7 +300,6 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Administración de Usuarios</h2>
                 <div className="flex gap-2">
-                   <button onClick={reactivateAllSuspended} className="text-[10px] bg-emerald-400 text-black px-3 py-2 font-black uppercase rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none">🔓 Reactivar Todos</button>
                    <button onClick={runSQL} className="text-xs bg-slate-200 text-slate-800 p-2 font-bold rounded-lg border-2 border-black">🔌 Fix DB Schema</button>
                    <button onClick={fetchUsers} className="p-2 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all">
                        <ArrowRight className="h-5 w-5 rotate-90" />
