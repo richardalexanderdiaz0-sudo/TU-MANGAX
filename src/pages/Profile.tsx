@@ -315,14 +315,17 @@ export default function Profile() {
 ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
 
 -- Políticas de lectura y escritura
+DROP POLICY IF EXISTS "Lectura publica de noticias" ON public.announcements;
 CREATE POLICY "Lectura publica de noticias"
 ON public.announcements FOR SELECT TO public USING (true);
 
+DROP POLICY IF EXISTS "Insertar noticias" ON public.announcements;
 CREATE POLICY "Insertar noticias"
-ON public.announcements FOR INSERT TO authenticated WITH CHECK (true);
+ON public.announcements FOR INSERT TO public WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Borrar noticias" ON public.announcements;
 CREATE POLICY "Borrar noticias"
-ON public.announcements FOR DELETE TO authenticated USING (true);`}
+ON public.announcements FOR DELETE TO public USING (true);`}
                                     </pre>
                                 </div>
                             </div>
