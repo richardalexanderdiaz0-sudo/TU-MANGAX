@@ -30,6 +30,7 @@ import Footer from './components/Footer';
 import JuanCarlosVIPModal from './components/JuanCarlosVIPModal';
 import PreferencesModal from './components/PreferencesModal';
 import DailySuggestionModal from './components/DailySuggestionModal';
+import DonationReminderModal from './components/DonationReminderModal';
 import { supabase } from './services/supabase';
 
 function Layout() {
@@ -76,6 +77,7 @@ function Layout() {
       <JuanCarlosVIPModal />
       <PreferencesModal />
       <DailySuggestionModal />
+      <DonationReminderModal />
     </div>
   );
 }
