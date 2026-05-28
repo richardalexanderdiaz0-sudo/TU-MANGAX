@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
 import { logout } from '../services/firebase';
-import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library, Bell, Compass, FileText } from 'lucide-react';
+import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library, Bell, Compass, FileText, Heart } from 'lucide-react';
 import LoginModal from './LoginModal';
 
 export default function Navbar() {
@@ -111,6 +111,17 @@ export default function Navbar() {
                 <FileText className="h-3.5 w-3.5" />
                 Novelas
               </Link>
+              <Link
+                to="/donate"
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
+                  isActive('/donate') 
+                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
+                    : 'text-slate-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
+                Donante
+              </Link>
               {user && userProfile?.role === 'admin' && (
                 <Link
                   to="/admin"
@@ -124,6 +135,18 @@ export default function Navbar() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link 
+              to="/donate" 
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all border ${
+                isActive('/donate')
+                  ? 'bg-rose-500/25 text-rose-400 border-rose-500/30'
+                  : 'bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-600 hover:text-white hover:border-transparent'
+              }`}
+            >
+              <Heart className="h-3.5 w-3.5 fill-rose-500 animate-pulse" />
+              <span>Dona 💖</span>
+            </Link>
+
             <Link to="/android-announcement" className="relative p-2 text-slate-300 hover:text-rose-400 transition-all hover:scale-105" title="Novedades">
                 <Bell className="h-5 w-5 stroke-[2.5px]" />
                 {!hasReadNews && (
