@@ -50,7 +50,7 @@ function Layout() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-slate-800 font-sans flex flex-col">
+    <div className="min-h-screen bg-background text-slate-100 font-sans flex flex-col">
       {!isReadingView && <Navbar />}
       <main className={`flex-1 flex flex-col ${!isReadingView ? 'pb-16 md:pb-0' : ''}`}>
         <Routes>

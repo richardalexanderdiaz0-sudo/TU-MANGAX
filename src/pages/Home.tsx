@@ -59,32 +59,32 @@ function HeroSlider({ stories }: { stories: StoryInfo[] }) {
     const currentItem = slideItems[currentIndex];
 
     return (
-        <div className="w-full relative h-[60vh] sm:h-[70vh] lg:h-[80vh] min-h-[400px] mb-12 overflow-hidden bg-slate-900 mx-auto max-w-7xl sm:rounded-b-[3rem] shadow-[0_20px_0_0_rgba(0,0,0,1)] border-b-8 border-black">
+        <div className="w-full relative h-[60vh] sm:h-[70vh] lg:h-[80vh] min-h-[400px] mb-12 overflow-hidden bg-[#06070d] mx-auto max-w-7xl sm:rounded-b-[3rem] border-b border-white/5 shadow-2xl">
             {slideItems.map((item, index) => (
                 <div 
                     key={item.id}
                     className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
                 >
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/80 to-transparent z-10"></div>
-                    <div className="absolute inset-0 bg-black/30 z-10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#05060b] via-slate-950/70 to-transparent z-10"></div>
+                    <div className="absolute inset-0 bg-black/20 z-10"></div>
                     <img 
                         src={item.cover_url} 
                         alt={item.title} 
-                        className="w-full h-full object-cover opacity-80 scale-105"
+                        className="w-full h-full object-cover opacity-80 transition-transform duration-[8000ms] scale-102"
                     />
                 </div>
             ))}
             
             <div className="absolute bottom-0 left-0 right-0 z-20 p-8 sm:p-12 lg:p-20 flex flex-col items-start max-w-4xl">
                 <div className="flex gap-2 mb-4">
-                    {currentItem.isAnnouncement && <span className="bg-red-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">Noticia Exclusiva</span>}
-                    {currentItem.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
-                    {currentItem.status === 'ONGOING' && <span className="bg-blue-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
-                    {currentItem.status === 'SOON' && <span className="bg-primary text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
-                    {!currentItem.isAnnouncement && <span className="bg-pink-500 text-white text-xs uppercase font-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Tendencia</span>}
+                    {currentItem.isAnnouncement && <span className="bg-rose-600 text-white text-xs uppercase font-sub-heading tracking-wider font-extrabold px-3.5 py-1 rounded-full shadow-lg shadow-rose-500/20 animate-pulse">Noticia Exclusiva</span>}
+                    {currentItem.status === 'COMPLETED' && <span className="bg-emerald-600 text-white text-xs uppercase font-sub-heading tracking-wider font-extrabold px-3.5 py-1 rounded-full shadow-lg shadow-emerald-500/20">Finalizado</span>}
+                    {currentItem.status === 'ONGOING' && <span className="bg-blue-600 text-white text-xs uppercase font-sub-heading tracking-wider font-extrabold px-3.5 py-1 rounded-full shadow-lg shadow-blue-500/20">Emisión</span>}
+                    {currentItem.status === 'SOON' && <span className="bg-rose-500 text-white text-xs uppercase font-sub-heading tracking-wider font-extrabold px-3.5 py-1 rounded-full shadow-lg shadow-rose-400/20">Pronto</span>}
+                    {!currentItem.isAnnouncement && <span className="bg-amber-500 text-slate-950 text-[11px] uppercase tracking-wider font-black px-3.5 py-1 rounded-full shadow-lg shadow-amber-500/20">🔥 Tendencia</span>}
                 </div>
                 
-                <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black text-white uppercase italic tracking-tighter mb-4 drop-shadow-[4px_4px_0px_rgba(0,0,0,1)] line-clamp-2">
+                <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white uppercase italic tracking-tighter mb-4 line-clamp-2 leading-none">
                     {currentItem.title}
                 </h1>
                 
@@ -92,18 +92,26 @@ function HeroSlider({ stories }: { stories: StoryInfo[] }) {
                     {currentItem.isAnnouncement ? (
                         <button 
                             onClick={() => navigate(currentItem.link || '/android-announcement')}
-                            className="flex items-center gap-2 bg-primary text-white font-black uppercase text-lg sm:text-xl px-8 py-4 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-white hover:text-black transition-all active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                            className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase text-xs sm:text-sm tracking-wider px-6 py-3 rounded-2xl transition-all shadow-lg hover:scale-102 border border-rose-500/20"
                         >
                             Leer Noticia Completa
                         </button>
                     ) : (
-                        <button 
-                            onClick={() => navigate(`/comic/${currentItem.id}`)}
-                            className="flex items-center gap-2 bg-white text-black font-black uppercase text-lg sm:text-xl px-8 py-4 rounded-2xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-primary hover:text-white transition-all active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                        >
-                            <Play className="w-6 h-6 fill-current" />
-                            Leer Ahora
-                        </button>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={() => navigate(`/comic/${currentItem.id}`)}
+                                className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-black uppercase text-xs sm:text-sm tracking-wider px-6 py-3 rounded-2xl transition-all shadow-lg hover:scale-102 border border-rose-500/10"
+                            >
+                                <Play className="w-4 h-4 fill-current" />
+                                Leer Ahora
+                            </button>
+                            <button 
+                                onClick={() => navigate('/directory')}
+                                className="flex items-center gap-2 bg-[#12131d]/90 hover:bg-[#1a1c2b] text-slate-200 font-extrabold uppercase text-xs sm:text-sm tracking-wider px-6 py-3 rounded-2xl transition-all hover:scale-102 border border-white/5 shadow-md"
+                            >
+                                Explorar Catálogo General
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -114,7 +122,7 @@ function HeroSlider({ stories }: { stories: StoryInfo[] }) {
                     <button
                         key={idx}
                         onClick={() => setCurrentIndex(idx)}
-                        className={`w-3 h-3 rounded-full border-2 border-black transition-all ${idx === currentIndex ? 'bg-primary w-8 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' : 'bg-white/50 hover:bg-white'}`}
+                        className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex ? 'bg-rose-500 w-6' : 'bg-white/30 hover:bg-white/50'}`}
                     />
                 ))}
             </div>

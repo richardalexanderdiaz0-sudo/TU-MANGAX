@@ -22,7 +22,7 @@ export default function BottomNav() {
     }
 
     return (
-        <div className="fixed bottom-0 inset-x-0 bg-white border-t-4 border-black z-50 flex justify-around items-center h-20 pb-safe text-slate-500">
+        <div className="fixed bottom-0 inset-x-0 bg-[#06070d]/95 backdrop-blur-xl border-t border-white/5 z-40 flex justify-around items-center h-20 pb-safe text-slate-400 md:hidden">
             {navItems.map(item => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path || (item.path === '/admin' && location.pathname.startsWith('/admin'));
@@ -31,12 +31,12 @@ export default function BottomNav() {
                     <Link 
                         key={item.path} 
                         to={item.path} 
-                        className={`flex flex-col items-center justify-center w-full h-full transition-all ${isActive ? 'text-primary scale-110' : 'hover:text-primary-dark hover:scale-105'}`}
+                        className={`flex flex-col items-center justify-center w-full h-full transition-all ${isActive ? 'text-rose-500 scale-110' : 'hover:text-slate-200 hover:scale-105'}`}
                     >
-                        <div className={`p-1 rounded-xl transition-colors ${isActive ? 'bg-primary-light/30' : ''}`}>
-                            <Icon className={`h-6 w-6 mb-0.5 ${isActive ? 'stroke-[3px]' : 'stroke-[2px]'}`} />
+                        <div className={`p-1.5 rounded-xl transition-colors ${isActive ? 'bg-rose-500/10' : ''}`}>
+                            <Icon className={`h-5 w-5 ${isActive ? 'stroke-[3px]' : 'stroke-[2px]'}`} />
                         </div>
-                        <span className={`text-[10px] font-black uppercase tracking-tighter ${isActive ? 'text-primary' : ''}`}>{item.label}</span>
+                        <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${isActive ? 'text-rose-500' : ''}`}>{item.label}</span>
                     </Link>
                 );
             })}

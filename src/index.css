@@ -5,28 +5,159 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Chakra Petch", sans-serif;
   
-  --color-primary: #ff69b4; /* Hot Pink */
-  --color-primary-dark: #ff1493;
-  --color-primary-light: #ffb6c1;
-  --color-background: #fffafa; /* Snow White */
+  --color-primary: #f43f5e; /* Rose 500 */
+  --color-primary-dark: #e11d48; /* Rose 600 */
+  --color-primary-light: #fda4af; /* Rose 300 */
+  --color-background: #05060b; /* Deep outer space bg */
 }
 
 @layer base {
   body {
-    @apply bg-[var(--color-background)] text-slate-800 font-sans;
+    @apply bg-[#05060b] text-[#f8fafc] font-sans overflow-x-hidden;
+    background-color: #05060b !important;
+    color: #f1f5f9 !important;
+  }
+
+  /* Make sure links are elegant and transitions are buttery smooth */
+  a, button {
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Neutralize text-slate-800, text-black to be light for dark mode */
+  .text-slate-800 {
+    color: #cbd5e1 !important;
+  }
+  .text-slate-700 {
+    color: #94a3b8 !important;
+  }
+  .text-slate-900 {
+    color: #f8fafc !important;
+  }
+  .text-black {
+    color: #ffffff !important;
+  }
+  .text-slate-500 {
+    color: #64748b !important;
+  }
+  
+  /* Select inputs and forms adapt to deep mode */
+  input, select, textarea {
+    background-color: #0d0f17 !important;
+    color: #f8fafc !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  input::placeholder {
+    color: #475569 !important;
+  }
+
+  /* Neutralize white background divs and make them elegant dark cards */
+  .bg-white, .bg-slate-50, .bg-slate-100 {
+    background-color: #0c0e15 !important;
+  }
+  
+  /* Nested details support */
+  .bg-slate-100\/50, .bg-slate-50\/50, .bg-white\/50 {
+    background-color: rgba(12, 14, 21, 0.4) !important;
+  }
+  
+  .bg-slate-500\/5, .bg-black\/5 {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+  }
+
+  /* Convert all black neobrutalist borders to high-fidelity dark-grey panel borders */
+  .border-black, 
+  *[class*="border-black"],
+  .border-slate-200,
+  .border-slate-300,
+  .border-slate-100,
+  .border,
+  .border-2,
+  .border-4,
+  .border-8 {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+  
+  .border-dashed {
+    border-style: dashed !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  /* Reduce neobrutalist border widths */
+  .border-4 {
+    border-width: 1px !important;
+  }
+  .border-8 {
+    border-width: 1px !important;
+  }
+  .border-b-8 {
+    border-bottom-width: 1px !important;
+  }
+  .border-t-8 {
+    border-top-width: 1px !important;
+  }
+
+  /* Replace raw solid shadows with sleek cinematic drop shadows and dark glows */
+  *[class*="shadow-["],
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-md {
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(255, 255, 255, 0.04) !important;
+  }
+
+  /* Soft red-rose shadows for specific accent components */
+  *[class*="shadow-pink-500"],
+  *[class*="shadow-[4px_4px_0px_0px_rgba(255,45,133,1)]"] {
+    box-shadow: 0 8px 24px rgba(244, 63, 94, 0.2) !important;
+  }
+
+  /* Smooth scaled transitions on hover, completely stripping rigid neobrutalist jumpy transitions */
+  *[class*="group-hover:shadow-["] {
+    box-shadow: 0 15px 35px -8px rgba(0, 0, 0, 0.9) !important;
+  }
+  
+  /* Clear neobrutalist transform active translations */
+  *[class*="active:translate-x-"], 
+  *[class*="active:translate-y-"],
+  *[class*="group-active:translate-x-"],
+  *[class*="group-active:translate-y-"] {
+    transform: none !important;
+  }
+
+  /* Add smooth premium scale-up hover to cards and interactive items */
+  .group:hover {
+    transform: translateY(-2px) scale(1.01);
   }
 }
 
 @layer components {
+  /* Toon card adaptions to dark mode */
   .toon-card {
-    @apply bg-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)];
+    @apply bg-[#0c0e15] border border-white/10 rounded-2xl shadow-xl transition-all;
+    background-color: #0c0e15 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7) !important;
   }
   
+  /* Toon button adaptions to elegant rose pills */
   .toon-button {
-    @apply bg-[var(--color-primary)] text-white border-2 border-black px-6 py-2 rounded-2xl font-bold shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:bg-[var(--color-primary-dark)] transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-rose-600 text-white px-6 py-2 rounded-2xl font-bold shadow-lg transition-all;
+    background-color: #e11d48 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3) !important;
+  }
+  
+  .toon-button:hover {
+    background-color: #be123c !important;
+    transform: translateY(-1px) scale(1.02);
+    box-shadow: 0 6px 18px rgba(225, 29, 72, 0.4) !important;
   }
 
+  /* Toon input adaptions */
   .toon-input {
-    @apply bg-white border-2 border-black rounded-xl px-4 py-2 outline-none focus:border-[var(--color-primary)] transition-colors;
+    @apply bg-[#0d0f17] border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-rose-500 transition-colors text-white;
+    background-color: #0d0f17 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
   }
 }

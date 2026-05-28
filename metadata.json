@@ -2,5 +2,5 @@
   "name": "TU MANGAX",
   "description": "Una aplicación premium para leer MANGAS, MANHWAs y cómics con una experiencia inmersiva y panel de administración.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
