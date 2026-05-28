@@ -28,6 +28,7 @@ CREATE TABLE stories (
     synopsis TEXT,
     cover_url TEXT,
     author TEXT DEFAULT 'Desconocido',
+    writer TEXT DEFAULT 'Desconocido',
     genres TEXT[] DEFAULT '{}',
     status TEXT DEFAULT 'ONGOING',
     likes_count INTEGER DEFAULT 0,

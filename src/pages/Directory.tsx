@@ -22,7 +22,12 @@ const GENRES = [
     'PSICOLÓGICO', 
     'OMEGAVERSO',
     'SISTEMA',
-    'SUPERVIVENCIA'
+    'SUPERVIVENCIA',
+    'AMISTAD',
+    'AMOR-ODIO',
+    'OBSESIÓN',
+    'SECUESTRO',
+    'NOVELA LIGERA'
 ];
 
 export default function Directory() {
@@ -58,9 +63,17 @@ export default function Directory() {
         }
         
         const storyGenresArray = s.genres || [];
-        const matchesGenre = storyGenresArray.some((g: string) => 
-            g.toUpperCase() === activeGenre.toUpperCase()
-        );
+        const normalizeStr = (str: string) => 
+            str.toLowerCase()
+               .normalize("NFD")
+               .replace(/[\u0300-\u036f]/g, "")
+               .replace(/[^a-z0-9]/g, "");
+
+        const normalizedActive = normalizeStr(activeGenre);
+        const matchesGenre = storyGenresArray.some((g: string) => {
+            const normalizedG = normalizeStr(g);
+            return normalizedG.includes(normalizedActive) || normalizedActive.includes(normalizedG);
+        });
         return matchesSearch && matchesGenre;
     });
 

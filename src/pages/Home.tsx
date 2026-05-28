@@ -243,7 +243,8 @@ export default function Home() {
             const query = searchQuery.toLowerCase();
             const results = allComics.filter(c => 
                 c.title.toLowerCase().includes(query) || 
-                (c.author && c.author.toLowerCase().includes(query))
+                (c.author && c.author.toLowerCase().includes(query)) ||
+                (c.writer && c.writer.toLowerCase().includes(query))
             );
             setSearchResults(results);
         }

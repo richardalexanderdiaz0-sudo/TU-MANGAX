@@ -1,8 +1,90 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="128" fill="#FF2D85"/>
-  <path d="M128 160C128 142.3 142.3 128 160 128H352C369.7 128 384 142.3 384 160V352C384 369.7 369.7 384 352 384H160C142.3 384 128 369.7 128 352V160Z" fill="white" stroke="black" stroke-width="20"/>
-  <path d="M180 180H332V332H180V180Z" fill="#FFFBFF" stroke="black" stroke-width="12"/>
-  <path d="M256 180V332" stroke="black" stroke-width="8"/>
-  <circle cx="210" cy="220" r="10" fill="black"/>
-  <circle cx="302" cy="220" r="10" fill="black"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Definitions for gradients/glows -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f43f5e" />
+      <stop offset="100%" stop-color="#9f1239" />
+    </linearGradient>
+    <linearGradient id="bookGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f1f5f9" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Base with rounded corner -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)" />
+  
+  <!-- Subtle manga speedlines / action bursts in background -->
+  <g opacity="0.12">
+    <line x1="256" y1="256" x2="50" y2="50" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="462" y2="50" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="50" y2="462" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="462" y2="462" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="256" y2="20" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="256" y2="492" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="20" y2="256" stroke="#ffffff" stroke-width="8" />
+    <line x1="256" y1="256" x2="492" y2="256" stroke="#ffffff" stroke-width="8" />
+  </g>
+
+  <!-- High-fidelity Stylized "X" element behind the book -->
+  <path d="M120 120 L392 392 M392 120 L120 392" stroke="#ffffff" stroke-width="40" stroke-linecap="round" opacity="0.12" />
+
+  <!-- Gorgeous Open Manga Book Structure -->
+  <!-- Back/Cover page thickness (dark rose border) -->
+  <path d="M100 340 C100 340, 180 320, 256 350 C332 320, 412 340, 412 340 L420 170 C420 170, 332 150, 256 180 C180 150, 100 170, 100 170 Z" fill="#4c0519" />
+  
+  <!-- Main white pages of the book -->
+  <!-- Left Page -->
+  <path d="M110 330 C110 330, 180 310, 256 340 L256 170 C180 140, 110 160, 110 160 Z" fill="url(#bookGrad)" stroke="#111827" stroke-width="12" stroke-linejoin="round" />
+  <!-- Right Page -->
+  <path d="M402 330 C402 330, 332 310, 256 340 L256 170 C332 140, 402 160, 402 160 Z" fill="url(#bookGrad)" stroke="#111827" stroke-width="12" stroke-linejoin="round" />
+
+  <!-- Manga-style Expressive eyes drawn inside the book pages -->
+  <!-- Left Page Cute Manga Eye -->
+  <g class="manga-eye-left">
+    <!-- Eye outline (curved wing) -->
+    <path d="M140 235 C150 220, 190 215, 210 235" fill="none" stroke="#111827" stroke-width="12" stroke-linecap="round" />
+    <!-- Pupils / Iris -->
+    <ellipse cx="180" cy="242" rx="14" ry="20" fill="#111827" />
+    <!-- Highlights -->
+    <circle cx="174" cy="236" r="6" fill="#ffffff" />
+    <circle cx="185" cy="248" r="3" fill="#ffffff" />
+    <!-- Manga Blush lines of cute excitement -->
+    <line x1="160" y1="265" x2="168" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+    <line x1="172" y1="265" x2="180" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+    <line x1="184" y1="265" x2="192" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <!-- Right Page Cute Manga Eye -->
+  <g class="manga-eye-right">
+    <!-- Eye outline (curved wing) -->
+    <path d="M302 235 C322 215, 362 220, 372 235" fill="none" stroke="#111827" stroke-width="12" stroke-linecap="round" />
+    <!-- Pupils / Iris -->
+    <ellipse cx="332" cy="242" rx="14" ry="20" fill="#111827" />
+    <!-- Highlights -->
+    <circle cx="326" cy="236" r="6" fill="#ffffff" />
+    <circle cx="337" cy="248" r="3" fill="#ffffff" />
+    <!-- Manga Blush lines of cute excitement -->
+    <line x1="320" y1="265" x2="328" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+    <line x1="332" y1="265" x2="340" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+    <line x1="344" y1="265" x2="352" y2="275" stroke="#f43f5e" stroke-width="4" stroke-linecap="round" />
+  </g>
+
+  <!-- Dynamic Center fold shadow spine -->
+  <path d="M256 170 L256 340" stroke="#111827" stroke-width="8" stroke-linecap="round" />
+  
+  <!-- Sparkles / Star highlight above the book to signify "Otaku magic / premium quality" -->
+  <!-- Dynamic 4-point star on left-top of the book -->
+  <path d="M150 110 Q150 130 130 130 Q150 130 150 150 Q150 130 170 130 Q150 130 150 110 Z" fill="#ffffff" filter="url(#glow)" />
+  <!-- Dynamic smaller 4-point star on right-bottom of the book -->
+  <path d="M360 330 Q360 340 350 340 Q360 340 360 350 Q360 340 370 340 Q360 340 360 330 Z" fill="#fde047" />
+
+  <!-- Action lines on top (floating excitement lines) -->
+  <path d="M236 120 L242 105" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+  <path d="M256 115 L256 98" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+  <path d="M276 120 L270 105" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
 </svg>

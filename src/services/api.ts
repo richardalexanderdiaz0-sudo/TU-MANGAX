@@ -131,6 +131,7 @@ export const api = {
       const synopsis = formData.get('synopsis') as string || '';
       const status = (formData.get('status') as string) || 'ONGOING';
       const author = (formData.get('author') as string) || 'Desconocido';
+      const writer = (formData.get('writer') as string) || 'Desconocido';
       
       const coverFile = formData.get('cover');
       let cover_url = 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600';
@@ -146,6 +147,7 @@ export const api = {
           synopsis,
           status,
           author,
+          writer,
           cover_url,
           likes_count: 0
         })
@@ -175,6 +177,7 @@ export const api = {
         const synopsis = data.get('synopsis');
         const status = data.get('status');
         const author = data.get('author');
+        const writer = data.get('writer');
         const genres = data.get('genres');
         const coverFile = data.get('cover');
 
@@ -182,6 +185,7 @@ export const api = {
         if (synopsis !== null) updateData.synopsis = synopsis as string;
         if (status !== null) updateData.status = status as string;
         if (author !== null) updateData.author = author as string;
+        if (writer !== null) updateData.writer = writer as string;
         if (genres !== null) {
           try {
             updateData.genres = JSON.parse(genres as string);

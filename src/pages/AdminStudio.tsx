@@ -413,15 +413,10 @@ ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS views_count integer DEFAULT 
     );
 }
 const CATEGORIES = [
-    "YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN", "JOSEI", "KODOMO", "ISEKAI", "YURI", "GL", "OMEGAVERSE", "WEBTOON", "MANHWA", "MANHUAS", "DOUJINSHI", "NOVELA LIGERA"
+    "YAOI", "BL", "+18", "SHOUJO", "SHOUNEN", "SEINEN", "JOSEI", "KODOMO", "ISEKAI", "YURI", "GL", "OMEGAVERSE", "WEBTOON", "MANHWA", "MANHUAS", "DOUJINSHI", "NOVELA LIGERA", "SHONEN-AI", "SHOUJO-AI", "SMUT", "ECCHI", "SLICES OF LIFE"
 ];
 const TAGS = [
-    "Acción", "Adulto", "Apocalíptico", "Artes Marciales", "Aventura", "Boys Love", "Ciencia Ficción", "Comedia", 
-    "Cosas de la vida", "Crimen", "Demonios", "Deporte", "Detective", "Diferencia de edad", "Doujinshi", "Drama", 
-    "Ecchi", "Familia", "Fantasía", "Girls Love", "Guerra", "Harem", "Historia", "Horror", "Magia", "Misterio", 
-    "Murim", "Música", "Niños", "Oficina", "Omegaverse", "One shot", "Policiaco", "Psicológico", "Realidad", 
-    "Realidad virtual", "Recuentos de la vida", "Reencarnación", "Regresión", "Romance", "Sistema", "Sobrenatural", 
-    "Superpoderes", "Supervivencia", "Thriller", "Tragedia", "Vampiros", "Vida Escolar", "Yaoi", "Yuri"
+    "Acción", "Adulto", "Amistad", "Amor-Odio (Enemies to Lovers)", "Amor de Infancia", "Amor de Oficina", "Amor No Correspondido", "Amor Prohibido", "Amor Tóxico", "Amnesia / Pérdida de memoria", "Angst (Sufrimiento)", "Apocalíptico", "Apocalipsis Zombie", "Artes Marciales (Murim)", "Aventura", "BDSM / Sumisión", "Boys Love", "Cambiantes (Shifters)", "Celos", "Ciencia Ficción", "Cliché", "Comedia", "Comedia Romántica", "Contrato d'Amor", "Contrato de Amor", "Cosas de la vida", "Crimen", "Cultivación", "Demonios", "Demonios & Dioses", "Deporte", "Deportes & Clubes", "Detective", "Detective & Misterio", "Diferencia de edad", "Diabólico", "Dioses", "Doujinshi", "Dragones", "Drama", "Drama Familiar", "Ecchi", "Elfos", "Embarazo Inesperado", "Embarazo Masculino (Mpreg)", "Emperador", "Enemigos a Amantes", "Espíritus / Almas", "Familia", "Familia & Crianza de Hijos", "Fantasía", "Fantasmas y Espíritus", "Falso romance", "Fast Burn", "Fluff (Tierno / Dulce)", "Gamer & Realidad Virtual", "Gender Bender", "Girls Love", "Gladiadores", "Gore (Mutilación Suave)", "Guerra", "Guerra & Estrategia", "Harem", "Harem Inverso", "Héroes y Villanos", "Historia", "Hombres Lobo", "Horror", "Idols", "Incesto (Ficticio)", "Infidelidad", "Isekai / Viaje a Otro Mundo", "Jefe y Empleado", "Magia", "Magia y Hechicería", "Mafia", "Matrimonio Arreglado", "Matrimonio por Conveniencia", "Melodrama", "Mentiras", "Misterio", "Mitología", "Murim", "Música", "Música & Idols", "Neko / Orejas de gato", "Niños", "Nobleza", "Novel", "Obsesión", "Obsesivo", "Oficina", "Omegaverse (Alfa/Beta/Omega)", "One shot", "Parodia", "Policiaco", "Posesivo", "Psicológico", "Realidad", "Realidad virtual", "Recuentos de la vida", "Reencarnación", "Regresión", "Regresión en el Tiempo", "Reino / Realeza", "Romance", "Sádico", "Sátira", "Sátira & Parodia", "Secuestro", "Seme Sádico", "Separación", "Sistema", "Sistema / Elementos de Juego", "Slow Burn", "Sobrenatural", "Superpoderes", "Supervivencia", "Suspenso", "Terror Psicológico", "Thriller", "Tragedia", "Tragedia & Melancolía", "Traición", "Transmigración", "Triángulo Amoroso", "Uke Rebelde", "Vampiros", "Vampiros y Hombres Lobo", "Venganza", "Vida Escolar", "Vida Escolar / Instituto", "Villana / Reencarnada", "Yaoi", "Yuri"
 ];
 
 function CreationWizard() {
@@ -434,6 +429,7 @@ function CreationWizard() {
     const [type, setType] = useState('MANHWA');
     const [title, setTitle] = useState('');
     const [authorNameInput, setAuthorNameInput] = useState(userProfile?.display_name || '');
+    const [writerNameInput, setWriterNameInput] = useState('');
     const [synopsis, setSynopsis] = useState('');
     const [status, setStatus] = useState('COMPLETED');
     const [coverFile, setCoverFile] = useState<File|null>(null);
@@ -473,14 +469,14 @@ function CreationWizard() {
         
         const timeout = setTimeout(() => {
             const draftData = {
-                type, title, authorNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate,
+                type, title, authorNameInput, writerNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate,
                 updatedAt: new Date().toLocaleString()
             };
             localStorage.setItem('story_draft', JSON.stringify(draftData));
         }, 1000);
         
         return () => clearTimeout(timeout);
-    }, [type, title, authorNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate]);
+    }, [type, title, authorNameInput, writerNameInput, synopsis, status, chapterCount, selectedCats, selectedTags, publishMode, publishDate]);
 
     const restoreDraft = () => {
         if (draftFound) {
@@ -488,6 +484,7 @@ function CreationWizard() {
             setType(d.type || 'MANHWA');
             setTitle(d.title || '');
             setAuthorNameInput(d.authorNameInput || '');
+            setWriterNameInput(d.writerNameInput || '');
             setSynopsis(d.synopsis || '');
             setStatus(d.status || 'COMPLETED');
             setChapterCount(d.chapterCount || 1);
@@ -526,6 +523,7 @@ function CreationWizard() {
             formData.append('title', title);
             formData.append('synopsis', synopsis);
             formData.append('author', authorNameInput || userProfile?.display_name || 'Administrador');
+            formData.append('writer', writerNameInput || 'Desconocido');
             formData.append('status', (status === 'ONGOING' && publishMode === 'SOON') ? 'SOON' : status);
             formData.append('genres', JSON.stringify(allGenres));
             if (coverFile) {
@@ -625,9 +623,15 @@ function CreationWizard() {
                         <input type="text" value={title} onChange={e=>setTitle(e.target.value)} className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-black mb-2 uppercase text-slate-500">Nombre del Autor</label>
-                        <input type="text" value={authorNameInput} onChange={e=>setAuthorNameInput(e.target.value)} placeholder="Ej: Richard Alexander" className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-black mb-2 uppercase text-slate-500">Artista / Ilustrador (Dibujante)</label>
+                            <input type="text" value={authorNameInput} onChange={e=>setAuthorNameInput(e.target.value)} placeholder="Ej: Richard Alexander" className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-black mb-2 uppercase text-slate-500">Escritor / Guionista (Historia)</label>
+                            <input type="text" value={writerNameInput} onChange={e=>setWriterNameInput(e.target.value)} placeholder="Ej: Ivan Ruiz" className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
+                        </div>
                     </div>
 
                     <div>
@@ -795,8 +799,9 @@ function CreationWizard() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
                                 <div><p className="text-[10px] uppercase font-black text-slate-400">Título</p><p className="font-black text-slate-800 leading-none">{title}</p></div>
                                 <div><p className="text-[10px] uppercase font-black text-slate-400">Estado</p><p className="font-black text-slate-800 leading-none">{status === 'COMPLETED' ? 'Finalizado' : 'En Emisión'}</p></div>
-                                <div><p className="text-[10px] uppercase font-black text-slate-400">Capítulos</p><p className="font-black text-slate-800 leading-none">{chapterCount}</p></div>
-                                <div><p className="text-[10px] uppercase font-black text-slate-400">Autor</p><p className="font-black text-primary underline decoration-black underline-offset-2">{authorNameInput}</p></div>
+                                <div><p className="text-[10px] uppercase font-black text-slate-400">Total Capítulos</p><p className="font-black text-slate-800 leading-none">{chapterCount}</p></div>
+                                <div><p className="text-[10px] uppercase font-black text-slate-400">Artista / Ilustrador</p><p className="font-black text-primary underline decoration-black underline-offset-2">{authorNameInput || 'Ninguno'}</p></div>
+                                <div><p className="text-[10px] uppercase font-black text-slate-400">Escritor / Guionista</p><p className="font-black text-primary underline decoration-black underline-offset-2">{writerNameInput || 'Ninguno'}</p></div>
                             </div>
                         </div>
                     </div>
@@ -832,6 +837,7 @@ function EditStory() {
     const [editSynopsis, setEditSynopsis] = useState('');
     const [editStatus, setEditStatus] = useState('');
     const [editAuthor, setEditAuthor] = useState('');
+    const [editWriter, setEditWriter] = useState('');
     const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
     const [editSelectedCats, setEditSelectedCats] = useState<string[]>([]);
     const [editSelectedTags, setEditSelectedTags] = useState<string[]>([]);
@@ -864,6 +870,7 @@ function EditStory() {
                 setEditSynopsis(sData.synopsis || '');
                 setEditStatus(sData.status || '');
                 setEditAuthor(sData.author || '');
+                setEditWriter(sData.writer || '');
                 
                 // Mapear genres
                 let genresList: string[] = [];
@@ -903,6 +910,7 @@ function EditStory() {
             formData.append('synopsis', editSynopsis);
             formData.append('status', editStatus);
             formData.append('author', editAuthor);
+            formData.append('writer', editWriter);
 
             const allGenres = [...editSelectedCats, ...editSelectedTags];
             if (story?.type && !allGenres.includes(story.type)) {
@@ -1027,7 +1035,11 @@ function EditStory() {
                 </div>
                 <div className="text-center sm:text-left flex-1">
                     <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tighter mb-1 font-display">{story.title}</h2>
-                    <p className="text-xs text-slate-500 font-bold mb-2">Autor: <span className="text-primary italic">{story.author || 'Desconocido'}</span></p>
+                    <p className="text-xs text-slate-500 font-bold mb-2">
+                        Artista: <span className="text-primary italic mr-3">{story.author || 'Desconocido'}</span>
+                        <span className="text-slate-300 mr-3">|</span>
+                        Escritor: <span className="text-primary italic">{story.writer || 'Desconocido'}</span>
+                    </p>
                     <div className="flex items-center gap-2 justify-center sm:justify-start">
                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border-2 border-black ${
                             story.status === 'COMPLETED' ? 'bg-emerald-400' : story.status === 'SOON' ? 'bg-primary text-white' : 'bg-blue-400'
@@ -1054,15 +1066,20 @@ function EditStory() {
                 <div className="toon-card bg-white p-8 animate-in fade-in slide-in-from-top-4">
                     <h3 className="font-black text-primary-dark border-b-4 border-black/10 pb-4 mb-6 uppercase italic">Editar Información y Portada</h3>
                     <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="md:col-span-1">
                                 <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Título</label>
                                 <input value={editTitle} onChange={e=>setEditTitle(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
                             </div>
                             
-                            <div>
-                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Nombre del Autor</label>
+                            <div className="md:col-span-1">
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Artista / Ilustrador</label>
                                 <input value={editAuthor} onChange={e=>setEditAuthor(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
+                            </div>
+
+                            <div className="md:col-span-1">
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Escritor / Guionista</label>
+                                <input value={editWriter} onChange={e=>setEditWriter(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary" />
                             </div>
                         </div>
 

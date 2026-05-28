@@ -16,7 +16,8 @@ export default function AuthorProfile() {
                 // Supabase permits better querying but using getAll() works too
                 const allStories = await api.stories.getAll();
                 const filtered = allStories.filter(s => 
-                    s.author && s.author.toLowerCase().includes(name.toLowerCase())
+                    (s.author && s.author.toLowerCase().includes(name.toLowerCase())) ||
+                    (s.writer && s.writer.toLowerCase().includes(name.toLowerCase()))
                 );
                 setStories(filtered);
             } catch (err) {
