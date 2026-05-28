@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Copyright, Wrench, Heart, Star, HelpCircle, Instagram } from 'lucide-react';
+import { Copyright, Wrench, Heart, Star, HelpCircle, Instagram, BookOpen } from 'lucide-react';
 import ErrorReportModal from './ErrorReportModal';
 
 export default function Footer() {
@@ -18,18 +18,12 @@ export default function Footer() {
           {/* Logo and Credit */}
           <div className="col-span-1">
             <div className="flex items-center gap-3 mb-6">
-              <div className="bg-rose-600 p-2 rounded-xl border border-white/10 overflow-hidden w-10 h-10 flex items-center justify-center shadow-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full object-contain" viewBox="0 0 512 512">
-                  <path d="M128 160C128 142.3 142.3 128 160 128H352C369.7 128 384 142.3 384 160V352C384 369.7 369.7 384 352 384H160C142.3 384 128 369.7 128 352V160Z" fill="white" />
-                  <path d="M180 180H332V332H180V180Z" fill="#e11d48" />
-                  <path d="M256 180V332" stroke="white" strokeWidth="8"/>
-                  <circle cx="210" cy="220" r="10" fill="white"/>
-                  <circle cx="302" cy="220" r="10" fill="white"/>
-                </svg>
+              <div className="bg-rose-600 px-2.5 py-2.5 rounded-xl border border-white/10 w-11 h-11 flex items-center justify-center shadow-lg shadow-rose-600/30">
+                <BookOpen className="w-6 h-6 text-white stroke-[2.5]" />
               </div>
               <div className="flex flex-col select-none">
-                <span className="font-display font-extrabold text-base tracking-tight text-white leading-none">MangaVerse</span>
-                <span className="text-[8px] tracking-[0.14em] font-black uppercase text-rose-500 leading-none mt-1">STUDIO & READER</span>
+                <span className="font-display font-black text-lg tracking-tight text-white leading-none">TU MANGAX</span>
+                <span className="text-[8px] tracking-[0.14em] font-black uppercase text-rose-500 leading-none mt-1">LECTURA & COMUNIDAD</span>
               </div>
             </div>
             
@@ -132,7 +126,7 @@ export default function Footer() {
           <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider italic">
             <Copyright className="h-4 w-4 text-rose-500" />
             <span>2026</span>
-            <span className="text-white">MangaVerse</span>
+            <span className="text-white">TU MANGAX</span>
             <span>- Todos los derechos reservados</span>
           </div>
           
