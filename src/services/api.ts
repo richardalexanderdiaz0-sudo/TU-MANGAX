@@ -103,12 +103,24 @@ export const api = {
       const { data, error } = await query;
       if (error) throw new Error(error.message);
       
+      const nowTime = Date.now();
+
       return (data || []).map((story: any) => {
           const chapterDates = story.chapters?.map((c: any) => new Date(c.created_at).getTime()) || [];
           const lastUpdate = chapterDates.length > 0 ? new Date(Math.max(...chapterDates)).toISOString() : story.created_at;
           const { chapters, ...rest } = story; // Remove chapters from payload to keep it light
+          
+          let effectiveStatus = rest.status;
+          if (effectiveStatus === 'SOON' && rest.publish_date) {
+             const pubDate = new Date(rest.publish_date).getTime();
+             if (nowTime >= pubDate) {
+                 effectiveStatus = 'ONGOING'; // Automatically set to ONGOING locally if time passed
+             }
+          }
+          
           return {
               ...rest,
+              status: effectiveStatus,
               updated_at: lastUpdate
           };
       });
@@ -122,7 +134,15 @@ export const api = {
         .single();
         
       if (error) throw new Error(error.message);
-      return data;
+      
+      let effectiveStatus = data.status;
+      if (effectiveStatus === 'SOON' && data.publish_date) {
+          const pubDate = new Date(data.publish_date).getTime();
+          if (Date.now() >= pubDate) {
+              effectiveStatus = 'ONGOING';
+          }
+      }
+      return { ...data, status: effectiveStatus };
     },
 
     create: async (formData: FormData) => {
@@ -132,6 +152,7 @@ export const api = {
       const status = (formData.get('status') as string) || 'ONGOING';
       const author = (formData.get('author') as string) || 'Desconocido';
       const writer = (formData.get('writer') as string) || 'Desconocido';
+      const publishDate = formData.get('publish_date') as string | null;
       
       const coverFile = formData.get('cover');
       let cover_url = 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600';
@@ -149,6 +170,7 @@ export const api = {
           author,
           writer,
           cover_url,
+          publish_date: publishDate || null,
           likes_count: 0,
           views_count: 0
         })
@@ -179,6 +201,7 @@ export const api = {
         const status = data.get('status');
         const author = data.get('author');
         const writer = data.get('writer');
+        const publishDate = data.get('publish_date');
         const genres = data.get('genres');
         const coverFile = data.get('cover');
 
@@ -187,6 +210,7 @@ export const api = {
         if (status !== null) updateData.status = status as string;
         if (author !== null) updateData.author = author as string;
         if (writer !== null) updateData.writer = writer as string;
+        if (publishDate !== null) updateData.publish_date = publishDate as string;
         if (genres !== null) {
           try {
             updateData.genres = JSON.parse(genres as string);

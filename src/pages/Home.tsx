@@ -18,6 +18,7 @@ interface StoryInfo {
     author?: string;
     isAnnouncement?: boolean;
     link?: string;
+    publish_date?: string;
 }
 
 // ... HeroSlider stays same ...
@@ -199,24 +200,61 @@ export default function Home() {
                 const dailyUpdatesList = allStories.filter(s => s.isRecentlyUpdated)
                     .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-                setRecentlyAdded(addedRecently);
-                setTrending(sortedByViews.slice(0, 15));
                 setAllComics(sortedByRecency);
-                
-                setCompleted(allStories.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
-                setComingSoon(allStories.filter((s: any) => s.status === 'SOON').slice(0, 15));
-                setDailyUpdates(dailyUpdatesList);
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }
         };
 
         fetchStories();
+        
+        const interval = setInterval(() => {
+            setAllComics(prev => {
+                let changed = false;
+                const nowTime = Date.now();
+                const next = prev.map(s => {
+                    if (s.status === 'SOON' && s.publish_date) {
+                        const target = new Date(s.publish_date).getTime();
+                        if (nowTime >= target) {
+                            changed = true;
+                            // Assume it goes to ONGOING, let api.ts update on next refresh if needed
+                            return { ...s, status: 'ONGOING' };
+                        }
+                    }
+                    return s;
+                });
+                return changed ? next : prev;
+            });
+        }, 10000);
+        return () => clearInterval(interval);
     }, []);
 
     useEffect(() => {
         if (!allComics || allComics.length === 0) return;
         
+        const now = Date.now();
+        const sortedByViews = [...allComics].sort((a: any, b: any) => (b.views_count||0) - (a.views_count||0));
+        
+        const addedRecently = allComics.filter((s: any) => {
+            const createdDate = new Date(s.created || s.created_at).getTime();
+            const diffDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+            if (s.status === 'COMPLETED') {
+                return diffDays <= 1;
+            } else {
+                return diffDays <= 2;
+            }
+        });
+
+        const dailyUpdatesList = allComics.filter(s => s.isRecentlyUpdated)
+            .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+
+        setRecentlyAdded(addedRecently);
+        setTrending(sortedByViews.slice(0, 15));
+        setCompleted(allComics.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
+        setComingSoon(allComics.filter((s: any) => s.status === 'SOON').slice(0, 15));
+        setDailyUpdates(dailyUpdatesList);
+        
+        // Recommendations
         let recommends: StoryInfo[] = [];
         if (userProfile?.preferences && userProfile.preferences.length > 0) {
              recommends = allComics.filter(s => {

@@ -41,6 +41,24 @@ export default function Directory() {
 
     useEffect(() => {
         fetchDirectory();
+        const interval = setInterval(() => {
+            setStories(prev => {
+                let changed = false;
+                const nowTime = Date.now();
+                const next = prev.map((s: any) => {
+                    if (s.status === 'SOON' && s.publish_date) {
+                        const target = new Date(s.publish_date).getTime();
+                        if (nowTime >= target) {
+                            changed = true;
+                            return { ...s, status: 'ONGOING' };
+                        }
+                    }
+                    return s;
+                });
+                return changed ? next : prev;
+            });
+        }, 10000);
+        return () => clearInterval(interval);
     }, [statusFilter]);
 
     const fetchDirectory = async () => {

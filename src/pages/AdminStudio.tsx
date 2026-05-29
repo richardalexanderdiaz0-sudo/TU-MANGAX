@@ -292,6 +292,7 @@ ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_suspended boolean DEFAULT f
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS country text;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS preferences text[];
 ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS views_count integer DEFAULT 0;
+ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS publish_date TIMESTAMP WITH TIME ZONE;
       `;
       alert("Si ves errores, ejecuta este código SQL en tu consola de Supabase:\n\n" + sql);
     };
@@ -525,6 +526,9 @@ function CreationWizard() {
             formData.append('author', authorNameInput || userProfile?.display_name || 'Administrador');
             formData.append('writer', writerNameInput || 'Desconocido');
             formData.append('status', (status === 'ONGOING' && publishMode === 'SOON') ? 'SOON' : status);
+            if (status === 'ONGOING' && publishMode === 'SOON' && publishDate) {
+                formData.append('publish_date', new Date(publishDate).toISOString());
+            }
             formData.append('genres', JSON.stringify(allGenres));
             if (coverFile) {
                 formData.append('cover', coverFile);
@@ -836,6 +840,7 @@ function EditStory() {
     const [editTitle, setEditTitle] = useState('');
     const [editSynopsis, setEditSynopsis] = useState('');
     const [editStatus, setEditStatus] = useState('');
+    const [editPublishDate, setEditPublishDate] = useState('');
     const [editAuthor, setEditAuthor] = useState('');
     const [editWriter, setEditWriter] = useState('');
     const [editCoverFile, setEditCoverFile] = useState<File | null>(null);
@@ -869,6 +874,14 @@ function EditStory() {
                 setEditTitle(sData.title || '');
                 setEditSynopsis(sData.synopsis || '');
                 setEditStatus(sData.status || '');
+                if (sData.publish_date) {
+                    // Set to local datetime string format
+                    const dateObj = new Date(sData.publish_date);
+                    const localISOString = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+                    setEditPublishDate(localISOString);
+                } else {
+                    setEditPublishDate('');
+                }
                 setEditAuthor(sData.author || '');
                 setEditWriter(sData.writer || '');
                 
@@ -909,6 +922,11 @@ function EditStory() {
             formData.append('title', editTitle);
             formData.append('synopsis', editSynopsis);
             formData.append('status', editStatus);
+            if (editStatus === 'SOON' && editPublishDate) {
+                formData.append('publish_date', new Date(editPublishDate).toISOString());
+            } else if (editStatus === 'ONGOING') {
+               formData.append('publish_date', ''); // Clear if changed to ongoing
+            }
             formData.append('author', editAuthor);
             formData.append('writer', editWriter);
 
@@ -1097,6 +1115,12 @@ function EditStory() {
                                     <option value="SOON">Próximamente</option>
                                 </select>
                             </div>
+                            {editStatus === 'SOON' && (
+                            <div>
+                                <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Fecha de Estreno</label>
+                                <input type="datetime-local" value={editPublishDate} onChange={e=>setEditPublishDate(e.target.value)} className="w-full bg-slate-50 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary cursor-pointer" />
+                            </div>
+                            )}
 
                             <div>
                                 <label className="block text-[10px] font-black mb-2 uppercase text-slate-400 tracking-widest">Sustituir Portada (Dejar vacío para no cambiar)</label>

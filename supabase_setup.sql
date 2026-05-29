@@ -33,6 +33,7 @@ CREATE TABLE stories (
     status TEXT DEFAULT 'ONGOING',
     likes_count INTEGER DEFAULT 0,
     views_count INTEGER DEFAULT 0,
+    publish_date TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
