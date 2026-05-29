@@ -64,9 +64,24 @@ export default function ReadingView() {
         setUiVisible(!uiVisible);
     };
 
-    const handleShare = (e: React.MouseEvent) => {
+    const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!story) return;
+        const msg = `¡No puedo parar de leer ${story.title} en TU MANGAX!\n\nTienes que ver este capitulazo, ¡te va a encantar! Acompáñame a leerla aquí:`;
+        const url = window.location.href;
+        
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: story.title,
+                    text: msg,
+                    url: url
+                });
+                return;
+            } catch (err) {
+                console.log('Native share failed or dismissed, opening detailed modal as backup.');
+            }
+        }
         setShowShareModal(true);
     };
 
@@ -194,7 +209,7 @@ export default function ReadingView() {
             {showShareModal && story && (
                 <ShareModal
                     title={story?.title}
-                    shareText={`No dejo de leer ${story.title} en TU MANGAX, te invito a leerla aquí`}
+                    shareText={`¡No puedo parar de leer ${story.title} en TU MANGAX!\n\nTienes que ver este capitulazo, ¡te va a encantar! Acompáñame a leerla aquí:`}
                     shareUrl={window.location.href}
                     onClose={() => setShowShareModal(false)}
                 />

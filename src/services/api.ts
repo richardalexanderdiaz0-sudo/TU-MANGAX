@@ -149,7 +149,8 @@ export const api = {
           author,
           writer,
           cover_url,
-          likes_count: 0
+          likes_count: 0,
+          views_count: 0
         })
         .select()
         .single();

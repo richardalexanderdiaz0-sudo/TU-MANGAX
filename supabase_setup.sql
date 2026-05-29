@@ -32,6 +32,7 @@ CREATE TABLE stories (
     genres TEXT[] DEFAULT '{}',
     status TEXT DEFAULT 'ONGOING',
     likes_count INTEGER DEFAULT 0,
+    views_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
