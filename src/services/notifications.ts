@@ -11,9 +11,7 @@ export const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
         try {
             // Verificar si ya está registrado o registrar uno nuevo
-            const registration = await navigator.serviceWorker.register('/sw.js', {
-                scope: '/'
-            });
+            const registration = await navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js');
             console.log('Service Worker de TU MANGAX registrado con éxito:', registration.scope);
             return registration;
         } catch (error) {

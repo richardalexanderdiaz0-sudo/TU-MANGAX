@@ -131,9 +131,10 @@ export const api = {
         .from('stories')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
         
       if (error) throw new Error(error.message);
+      if (!data) return null;
       
       let effectiveStatus = data.status;
       if (effectiveStatus === 'SOON' && data.publish_date) {
@@ -262,6 +263,13 @@ export const api = {
         ...ch,
         pages: ch.pages_urls || []
       }));
+    },
+    count: async () => {
+      const { count, error } = await supabase
+        .from('chapters')
+        .select('*', { count: 'exact', head: true });
+      if (error) throw new Error(error.message);
+      return count || 0;
     },
 
     getOne: async (id: string) => {

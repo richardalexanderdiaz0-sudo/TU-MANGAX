@@ -90,8 +90,10 @@ export default function ComicDetail() {
     const handleShare = async () => {
         if (!story) return;
         const msg = `¡No puedo parar de leer ${story.title} en TU MANGAX!\n\nTienes que ver esta obra, ¡te va a encantar! Acompáñame a leerla aquí:`;
-        const url = window.location.href;
+        const url = `${window.location.origin}/comic/${id}`;
         
+        // Always show the share modal first if navigator native share fails or just for consistency for the user intent
+        // Using only native share if available as fallback
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -101,7 +103,7 @@ export default function ComicDetail() {
                 });
                 return;
             } catch (err) {
-                console.log('Native share dismissed, showing detailed modal as fallback.');
+                console.log('Native share failed naturally, falling back to modal');
             }
         }
         setShowShareModal(true);

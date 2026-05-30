@@ -1,10 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Copyright, Wrench, Heart, Star, HelpCircle, Instagram, BookOpen } from 'lucide-react';
 import ErrorReportModal from './ErrorReportModal';
+import { api } from '../services/api';
 
 export default function Footer() {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
+  const [stats, setStats] = useState({ stories: 0, chapters: 0, users: 0 });
+
+  useEffect(() => {
+    Promise.all([
+      api.stories.getAll(),
+      api.chapters.count(),
+      api.admin.getAllUsers()
+    ]).then(([stories, chapters, users]) => {
+      setStats({
+        stories: stories.length,
+        chapters: chapters,
+        users: users.length
+      });
+    });
+  }, []);
 
   return (
     <footer className="bg-[#05060c] border-t border-white/5 mt-auto pb-24 md:pb-8 pt-12 px-4 sm:px-6 lg:px-8 overflow-hidden relative text-slate-300">
@@ -14,6 +30,33 @@ export default function Footer() {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
+        
+        {/* Statistics Section */}
+        <div className="mb-12 p-6 bg-rose-950/20 border-2 border-rose-900/50 rounded-3xl">
+          <p className="text-center font-black text-rose-500 uppercase tracking-widest text-sm mb-6">
+            Esta plataforma cuenta con {stats.stories} obras, {stats.chapters} capítulos y {stats.users} usuarios.
+          </p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+            {[
+              { label: 'Obras', value: stats.stories, icon: '📚' },
+              { label: 'Capítulos', value: stats.chapters, icon: '📖' },
+              { label: 'Usuarios', value: stats.users, icon: '👥' },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
+                <div className="text-2xl mb-2">{stat.icon}</div>
+                <div className="text-white font-black text-xl">{stat.value}</div>
+                <div className="text-[10px] uppercase tracking-widest text-slate-400">{stat.label}</div>
+              </div>
+            ))}
+            <div className="bg-rose-600/20 p-4 rounded-xl border border-rose-500/30 text-center flex items-center justify-center">
+              <div className="text-[10px] font-bold text-rose-200 uppercase tracking-widest">
+                ⚡ Actualizaciones frecuentes.
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Logo and Credit */}
           <div className="col-span-1">
@@ -144,3 +187,4 @@ export default function Footer() {
     </footer>
   );
 }
+
