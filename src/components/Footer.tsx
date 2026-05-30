@@ -6,7 +6,9 @@ import { api } from '../services/api';
 
 export default function Footer() {
   const [isErrorModalOpen, setIsErrorModalOpen] = useState(false);
-  const [stats, setStats] = useState({ stories: 0, chapters: 0, users: 0 });
+  const [storiesCount, setStoriesCount] = useState(0);
+  const [chaptersCount, setChaptersCount] = useState(0);
+  const [usersCount, setUsersCount] = useState(0);
 
   useEffect(() => {
     Promise.all([
@@ -14,11 +16,9 @@ export default function Footer() {
       api.chapters.count(),
       api.admin.getAllUsers()
     ]).then(([stories, chapters, users]) => {
-      setStats({
-        stories: stories.length,
-        chapters: chapters,
-        users: users.length
-      });
+      setStoriesCount(stories.length);
+      setChaptersCount(chapters);
+      setUsersCount(users.length);
     });
   }, []);
 
@@ -34,14 +34,14 @@ export default function Footer() {
         {/* Statistics Section */}
         <div className="mb-12 p-6 bg-rose-950/20 border-2 border-rose-900/50 rounded-3xl">
           <p className="text-center font-black text-rose-500 uppercase tracking-widest text-sm mb-6">
-            Esta plataforma cuenta con {stats.stories} obras, {stats.chapters} capítulos y {stats.users} usuarios.
+            Esta plataforma cuenta con {storiesCount} obras, {chaptersCount} capítulos y {usersCount} usuarios.
           </p>
           
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Obras', value: stats.stories, icon: '📚' },
-              { label: 'Capítulos', value: stats.chapters, icon: '📖' },
-              { label: 'Usuarios', value: stats.users, icon: '👥' },
+              { label: 'Obras', value: storiesCount, icon: '📚' },
+              { label: 'Capítulos', value: chaptersCount, icon: '📖' },
+              { label: 'Usuarios', value: usersCount, icon: '👥' },
             ].map((stat) => (
               <div key={stat.label} className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
                 <div className="text-2xl mb-2">{stat.icon}</div>
