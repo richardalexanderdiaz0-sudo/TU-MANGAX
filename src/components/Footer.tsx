@@ -32,26 +32,27 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Statistics Section */}
-        <div className="mb-12 p-6 bg-rose-950/20 border-2 border-rose-900/50 rounded-3xl">
-          <p className="text-center font-black text-rose-500 uppercase tracking-widest text-sm mb-6">
-            Esta plataforma cuenta con {storiesCount} obras, {chaptersCount} capítulos y {usersCount} usuarios.
-          </p>
+        <div className="mb-12 py-8 border-t border-b border-white/10">
+          <div className="text-center mb-8">
+            <p className="text-sm text-slate-400 tracking-widest">
+              Esta plataforma cuenta con {storiesCount} obras, {chaptersCount} capítulos y {usersCount} usuarios.
+            </p>
+          </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div className="flex flex-wrap justify-center gap-8">
             {[
-              { label: 'Obras', value: storiesCount, icon: '📚' },
-              { label: 'Capítulos', value: chaptersCount, icon: '📖' },
-              { label: 'Usuarios', value: usersCount, icon: '👥' },
+              { label: 'Obras', value: storiesCount },
+              { label: 'Capítulos', value: chaptersCount },
+              { label: 'Usuarios', value: usersCount },
             ].map((stat) => (
-              <div key={stat.label} className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
-                <div className="text-2xl mb-2">{stat.icon}</div>
-                <div className="text-white font-black text-xl">{stat.value}</div>
-                <div className="text-[10px] uppercase tracking-widest text-slate-400">{stat.label}</div>
+              <div key={stat.label} className="text-center">
+                <div className="text-xl font-bold text-white">{stat.value}</div>
+                <div className="text-[10px] uppercase tracking-widest text-slate-500">{stat.label}</div>
               </div>
             ))}
-            <div className="bg-rose-600/20 p-4 rounded-xl border border-rose-500/30 text-center flex items-center justify-center">
-              <div className="text-[10px] font-bold text-rose-200 uppercase tracking-widest">
-                ⚡ Actualizaciones frecuentes.
+            <div className="text-center flex items-center justify-center">
+              <div className="text-[10px] uppercase tracking-widest text-slate-500">
+                ⚡ Actualizaciones frecuentes
               </div>
             </div>
           </div>
