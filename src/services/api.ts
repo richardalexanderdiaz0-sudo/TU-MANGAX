@@ -44,7 +44,7 @@ const ensureSupabaseUser = async () => {
     .from('users')
     .select('id')
     .eq('id', currentUser.uid)
-    .single();
+    .maybeSingle();
 
   if (!existingUser) {
     const email = currentUser.email || 'correo@nexus.com';
