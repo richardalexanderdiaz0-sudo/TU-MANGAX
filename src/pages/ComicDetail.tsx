@@ -160,6 +160,8 @@ export default function ComicDetail() {
                                     </span>
                                 </>
                             )}
+                            <span className="text-slate-300">/</span>
+                            <span>Agregado: {story.created_at ? new Date(story.created_at).toLocaleDateString() : 'N/A'}</span>
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -256,6 +258,7 @@ export default function ComicDetail() {
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent flex flex-col items-center justify-end p-4 pb-6 transition-all">
                                     <span className="font-black text-4xl text-white drop-shadow-[0_2px_2px_rgba(0,0,0,1)] italic">#{chap.chapter_number}</span>
                                     {chap.title && <span className="text-[10px] font-black text-white mt-1 line-clamp-1 uppercase tracking-tighter bg-primary px-2 py-0.5 rounded-lg border-2 border-black drop-shadow-sm">{chap.title}</span>}
+                                    <span className="text-[8px] font-bold text-white mt-1 uppercase tracking-tighter opacity-80">{chap.created_at ? new Date(chap.created_at).toLocaleDateString() : ''}</span>
                                 </div>
                             </Link>
                         ))}

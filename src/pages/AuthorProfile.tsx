@@ -63,6 +63,7 @@ export default function AuthorProfile() {
                                 </div>
                             </div>
                             <h3 className="font-bold text-sm text-slate-800 line-clamp-2 leading-snug group-hover:text-primary transition-colors px-1">{story.title}</h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase">{story.created_at ? new Date(story.created_at).toLocaleDateString() : ''}</p>
                         </Link>
                     ))}
                     {stories.length === 0 && (
