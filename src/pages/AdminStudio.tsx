@@ -212,6 +212,7 @@ function StudioHome() {
                                 <img src={st.cover ? getImageUrl(st.cover) : (st.cover_url || '')} className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition" alt=""/>
                                 <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
                                     <button 
+                                        type="button"
                                         onClick={(e) => { e.preventDefault(); handleDeleteStory(st.id, st.title); }}
                                         className="bg-red-500 text-white p-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:bg-red-600 transition-all flex items-center justify-center"
                                         title="Borrar Obra"
@@ -812,7 +813,7 @@ function CreationWizard() {
 
                     <div className="flex justify-between mt-4 items-center bg-white p-4 rounded-3xl border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                         <button onClick={()=>setStep(3)} className="text-slate-400 hover:text-black font-black uppercase text-sm tracking-tighter hover:underline decoration-2 transition-all">Aún no (Atrás)</button>
-                        <button onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black text-xl border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase italic transform -rotate-1">
+                        <button type="button" onClick={handlePublish} className="bg-emerald-500 hover:bg-emerald-600 text-white px-10 py-4 rounded-2xl font-black text-xl border-4 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] uppercase italic transform -rotate-1">
                             ¡LISTO, PUBLICAR!
                         </button>
                     </div>
@@ -1305,6 +1306,7 @@ function EditStory() {
                             </div>
 
                             <button 
+                                type="button"
                                 onClick={handleAddChapter} 
                                 disabled={pages.length === 0} 
                                 className="toon-button bg-primary w-full text-lg mt-4 disabled:bg-slate-200 disabled:border-slate-300 disabled:shadow-none"
