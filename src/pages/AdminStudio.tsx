@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SuccessModal from '../components/SuccessModal';
 import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
@@ -444,6 +445,7 @@ function CreationWizard() {
 
     const [publishMode, setPublishMode] = useState('NOW'); // NOW or SOON
     const [publishDate, setPublishDate] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const [draftFound, setDraftFound] = useState<{ date: string, type: string, action: string, data: any } | null>(null);
 
@@ -554,8 +556,7 @@ function CreationWizard() {
             }
 
             setLoading(false);
-            navigate('/admin');
-
+            setShowSuccess(true);
         } catch (err) {
             console.error(err);
             setLoading(false);
@@ -666,6 +667,9 @@ function CreationWizard() {
                     </div>
                 </div>
             )}
+
+            <SuccessModal isOpen={showSuccess} onClose={() => { setShowSuccess(false); navigate('/admin'); }} title={title} />
+
 
             {step === 2 && (
                 <div className="flex flex-col gap-6 text-slate-800">
@@ -836,6 +840,7 @@ function EditStory() {
     const [loading, setLoading] = useState(false);
     const [loadingView, setLoadingView] = useState(true);
     const [isEditingMetadata, setIsEditingMetadata] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     // Edit Metadata states
     const [editTitle, setEditTitle] = useState('');
@@ -976,7 +981,7 @@ function EditStory() {
             setNewChapterTitle('');
             await loadData();
             setLoading(false);
-            alert("¡Capítulo añadido con éxito!");
+            setShowSuccess(true);
         } catch (err) {
             console.error(err);
             setLoading(false);
@@ -1354,6 +1359,7 @@ function EditStory() {
                     </div>
                 </div>
             </div>
+            <SuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} title={`Capítulo ${newChapterTitle || 'nuevo'}`} />
         </div>
     );
 }
