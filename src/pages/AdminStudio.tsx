@@ -449,6 +449,7 @@ function CreationWizard() {
     
     const [selectedCats, setSelectedCats] = useState<string[]>([]);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [tagsSearch, setTagsSearch] = useState('');
 
     const [publishMode, setPublishMode] = useState('NOW'); // NOW or SOON
     const [publishDate, setPublishDate] = useState('');
@@ -763,8 +764,15 @@ function CreationWizard() {
 
                     <div className="mt-4">
                         <h3 className="font-black mb-4 uppercase text-slate-500 text-sm">Etiquetas (Multiselección)</h3>
+                        <input
+                            type="text"
+                            placeholder="Buscar etiquetas..."
+                            value={tagsSearch}
+                            onChange={e => setTagsSearch(e.target.value)}
+                            className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 mb-4 font-bold outline-none focus:border-primary transition-colors"
+                        />
                         <div className="flex flex-wrap gap-3">
-                            {TAGS.map(t => (
+                            {TAGS.filter(t => t.toLowerCase().includes(tagsSearch.toLowerCase())).map(t => (
                                 <button 
                                     key={t} onClick={() => setSelectedTags(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t])}
                                     className={`px-5 py-2 rounded-2xl border-4 border-black text-xs font-black transition-all transform active:scale-95 ${selectedTags.includes(t) ? 'bg-emerald-500 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] -translate-x-[2px] -translate-y-[2px]' : 'bg-white text-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}`}
