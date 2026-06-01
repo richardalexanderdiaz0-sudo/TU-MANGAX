@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SuccessModal from '../components/SuccessModal';
+import DeleteModal from '../components/DeleteModal';
 import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
@@ -166,6 +167,8 @@ function AdminNews() {
 function StudioHome() {
     const [stories, setStories] = useState<any[]>([]);
     const [loadingFetch, setLoadingFetch] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTitle, setDeleteTitle] = useState('');
 
     const fetchStories = async () => {
         setLoadingFetch(true);
@@ -187,6 +190,8 @@ function StudioHome() {
         
         try {
             await api.stories.delete(id);
+            setDeleteTitle(title);
+            setShowDeleteModal(true);
             fetchStories();
         } catch (err) {
             console.error(err);
@@ -196,6 +201,7 @@ function StudioHome() {
 
     return (
         <div>
+            <DeleteModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title={`Obra "${deleteTitle}"`} />
             <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Todas las Obras</h2>
                 <button onClick={fetchStories} className="p-2 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all">
@@ -230,6 +236,7 @@ function StudioHome() {
                             
                             <div className="flex-1 flex flex-col">
                                 <h3 className="font-black text-slate-800 line-clamp-1 mb-1">{st.title}</h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Creada: {st.created_at ? new Date(st.created_at).toLocaleDateString() : 'N/A'}</p>
                                 <div className="flex items-center gap-2 mb-3">
                                     <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-lg border-2 border-black ${
                                         st.status === 'COMPLETED' ? 'bg-emerald-400' : st.status === 'SOON' ? 'bg-primary text-white' : 'bg-blue-400'
@@ -1026,12 +1033,16 @@ function EditStory() {
         }
     };
 
-    const handleDeleteChapter = async (chapId: string, chapNum: number) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTitle, setDeleteTitle] = useState('');
+
+    const handleDeleteChapter = async (chapId: string, chapNum: number, title: string) => {
         if (!confirm(`¿Borrar Capítulo ${chapNum}?`)) return;
         try {
             await api.chapters.delete(chapId);
+            setDeleteTitle(`Capítulo ${chapNum}`);
+            setShowDeleteModal(true);
             await loadData();
-            alert("¡Capítulo eliminado!");
         } catch (err) {
             console.error(err);
             alert("Error al borrar el capítulo");
@@ -1331,7 +1342,7 @@ function EditStory() {
                             <div key={chap.id} className="flex items-center justify-between p-4 bg-slate-50 border-2 border-black rounded-2xl group transition-all">
                                 <div className="flex flex-col">
                                     <span className="font-black text-slate-800 italic uppercase">{chap.title || `Capítulo ${chap.chapter_number}`}</span>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cap. {chap.chapter_number} • {chap.pages_urls?.length || 0} páginas</span>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cap. {chap.chapter_number} • {chap.pages_urls?.length || 0} páginas • {chap.created_at ? new Date(chap.created_at).toLocaleDateString() : ''}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button 
@@ -1342,7 +1353,7 @@ function EditStory() {
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button 
-                                        onClick={() => handleDeleteChapter(chap.id, chap.chapter_number)}
+                                        onClick={() => handleDeleteChapter(chap.id, chap.chapter_number, chap.title)}
                                         className="p-2 border-2 border-black rounded-xl bg-white text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] active:shadow-none"
                                         title="Eliminar Capítulo"
                                     >
@@ -1360,6 +1371,7 @@ function EditStory() {
                 </div>
             </div>
             <SuccessModal isOpen={showSuccess} onClose={() => setShowSuccess(false)} title={`Capítulo ${newChapterTitle || 'nuevo'}`} />
+            <DeleteModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title={deleteTitle} />
         </div>
     );
 }
