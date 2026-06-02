@@ -3,11 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
 import { api, getImageUrl } from '../services/api';
 import { logout } from '../services/firebase';
+import { useTranslation } from '../hooks/useTranslation';
 import { LogOut, User as UserIcon, BookOpen, UploadCloud, Library, Bell, Compass, FileText, Heart } from 'lucide-react';
 import LoginModal from './LoginModal';
 
 export default function Navbar() {
   const { user, userProfile } = useStore();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogin, setShowLogin] = useState(false);
@@ -70,65 +72,65 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-1">
               <Link
                 to="/"
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 ${
                   isActive('/') 
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
-                Inicio
+                {t('nav.home', 'Inicio')}
               </Link>
               <Link
                 to="/directory"
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 flex items-center gap-1.5 ${
                   isActive('/directory') && !location.search.includes('NOVELA')
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Compass className="h-3.5 w-3.5" />
-                Explorar
+                {t('nav.directory', 'Explorar')}
               </Link>
               <Link
                 to="/library"
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 flex items-center gap-1.5 ${
                   isActive('/library') 
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Library className="h-3.5 w-3.5" />
-                Mi Biblioteca
+                {t('nav.library', 'Mi Biblioteca')}
               </Link>
               <Link
                 to="/directory?format=NOVELA LIGERA"
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 flex items-center gap-1.5 ${
                   location.search.includes('NOVELA')
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <FileText className="h-3.5 w-3.5" />
-                Novelas
+                {t('nav.directory', 'Novelas')}
               </Link>
               <Link
                 to="/donate"
-                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 flex items-center gap-1.5 ${
                   isActive('/donate') 
                     ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20' 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
-                Donante
+                {t('nav.donate', 'Donante')}
               </Link>
               {user && userProfile?.role === 'admin' && (
                 <Link
                   to="/admin"
-                  className={`px-3 py-1.5 bg-red-950/40 text-red-400 border border-red-500/20 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 hover:bg-red-950/60`}
+                  className={`px-3 py-1.5 bg-red-950/40 text-red-400 border border-red-500/20 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-350 flex items-center gap-1.5 hover:bg-red-950/60`}
                 >
                   <UploadCloud className="h-3.5 w-3.5" />
-                  Estudio Creador
+                  {t('nav.admin', 'Estudio Creador')}
                 </Link>
               )}
             </div>

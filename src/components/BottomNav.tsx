@@ -1,24 +1,26 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useStore } from '../store';
+import { useTranslation } from '../hooks/useTranslation';
 import { Home, Compass, Library, User, PlusSquare, Heart } from 'lucide-react';
 
 export default function BottomNav() {
     const { userProfile } = useStore();
+    const { t } = useTranslation();
     const location = useLocation();
 
     // Las rutas donde no queremos que aparezca ya están manejadas en App.tsx (ej. /read)
     
     const navItems = [
-        { path: '/', label: 'INICIO', icon: Home },
-        { path: '/directory', label: 'DESCUBRE', icon: Compass },
-        { path: '/donate', label: 'DONANTE', icon: Heart },
-        { path: '/library', label: 'BIBLIOTECA', icon: Library },
-        { path: '/profile', label: 'PERFIL', icon: User },
+        { path: '/', label: t('nav.home', 'INICIO'), icon: Home },
+        { path: '/directory', label: t('nav.directory', 'EXPLORAR'), icon: Compass },
+        { path: '/donate', label: t('nav.donate', 'DONAR'), icon: Heart },
+        { path: '/library', label: t('nav.library', 'BIBLIOTECA'), icon: Library },
+        { path: '/profile', label: t('nav.profile', 'PERFIL'), icon: User },
     ];
 
     if (userProfile?.role === 'admin') {
-        navItems.push({ path: '/admin', label: 'ESTUDIO', icon: PlusSquare });
+        navItems.push({ path: '/admin', label: t('nav.admin', 'ESTUDIO'), icon: PlusSquare });
     }
 
     return (

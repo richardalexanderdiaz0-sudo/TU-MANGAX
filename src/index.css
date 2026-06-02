@@ -13,9 +13,8 @@
 
 @layer base {
   body {
-    @apply bg-[#05060b] text-[#f8fafc] font-sans overflow-x-hidden;
-    background-color: #05060b !important;
-    color: #f1f5f9 !important;
+    @apply font-sans overflow-x-hidden;
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Make sure links are elegant and transitions are buttery smooth */
@@ -23,141 +22,219 @@
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
+  /* --- DARK THEME OVERRIDES --- */
+  html.dark body {
+    background-color: #05060b !important;
+    color: #f1f5f9 !important;
+  }
+
   /* Neutralize text-slate-800, text-black to be light for dark mode */
-  .text-slate-800 {
+  html.dark .text-slate-800 {
     color: #cbd5e1 !important;
   }
-  .text-slate-700 {
+  html.dark .text-slate-700 {
     color: #94a3b8 !important;
   }
-  .text-slate-900 {
+  html.dark .text-slate-900 {
     color: #f8fafc !important;
   }
-  .text-black {
+  html.dark .text-black {
     color: #ffffff !important;
   }
-  .text-slate-500 {
+  html.dark .text-slate-505, html.dark .text-slate-500 {
     color: #64748b !important;
   }
   
   /* Select inputs and forms adapt to deep mode */
-  input, select, textarea {
+  html.dark input, html.dark select, html.dark textarea {
     background-color: #0d0f17 !important;
     color: #f8fafc !important;
     border-color: rgba(255, 255, 255, 0.08) !important;
   }
   
-  input::placeholder {
+  html.dark input::placeholder {
     color: #475569 !important;
   }
 
   /* Neutralize white background divs and make them elegant dark cards */
-  .bg-white, .bg-slate-50, .bg-slate-100 {
+  html.dark .bg-white, html.dark .bg-slate-50, html.dark .bg-slate-100 {
     background-color: #0c0e15 !important;
   }
   
   /* Nested details support */
-  .bg-slate-100\/50, .bg-slate-50\/50, .bg-white\/50 {
+  html.dark .bg-slate-100\/50, html.dark .bg-slate-50\/50, html.dark .bg-white\/50 {
     background-color: rgba(12, 14, 21, 0.4) !important;
   }
   
-  .bg-slate-500\/5, .bg-black\/5 {
+  html.dark .bg-slate-500\/5, html.dark .bg-black\/5 {
     background-color: rgba(255, 255, 255, 0.03) !important;
   }
 
   /* Convert all black neobrutalist borders to high-fidelity dark-grey panel borders */
-  .border-black, 
-  *[class*="border-black"],
-  .border-slate-200,
-  .border-slate-300,
-  .border-slate-100,
-  .border,
-  .border-2,
-  .border-4,
-  .border-8 {
+  html.dark .border-black, 
+  html.dark *[class*="border-black"],
+  html.dark .border-slate-200,
+  html.dark .border-slate-300,
+  html.dark .border-slate-100,
+  html.dark .border,
+  html.dark .border-2,
+  html.dark .border-4,
+  html.dark .border-8 {
     border-color: rgba(255, 255, 255, 0.08) !important;
   }
   
-  .border-dashed {
+  html.dark .border-dashed {
     border-style: dashed !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
   }
 
   /* Reduce neobrutalist border widths */
-  .border-4 {
+  html.dark .border-4 {
     border-width: 1px !important;
   }
-  .border-8 {
+  html.dark .border-8 {
     border-width: 1px !important;
   }
-  .border-b-8 {
+  html.dark .border-b-8 {
     border-bottom-width: 1px !important;
   }
-  .border-t-8 {
+  html.dark .border-t-8 {
     border-top-width: 1px !important;
   }
 
   /* Replace raw solid shadows with sleek cinematic drop shadows and dark glows */
-  *[class*="shadow-["],
-  .shadow-xl,
-  .shadow-2xl,
-  .shadow-md {
+  html.dark *[class*="shadow-["],
+  html.dark .shadow-xl,
+  html.dark .shadow-2xl,
+  html.dark .shadow-md {
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(255, 255, 255, 0.04) !important;
   }
 
   /* Soft red-rose shadows for specific accent components */
-  *[class*="shadow-pink-500"],
-  *[class*="shadow-[4px_4px_0px_0px_rgba(255,45,133,1)]"] {
+  html.dark *[class*="shadow-pink-500"],
+  html.dark *[class*="shadow-[4px_4px_0px_0px_rgba(255,45,133,1)]"] {
     box-shadow: 0 8px 24px rgba(244, 63, 94, 0.2) !important;
   }
 
   /* Smooth scaled transitions on hover, completely stripping rigid neobrutalist jumpy transitions */
-  *[class*="group-hover:shadow-["] {
+  html.dark *[class*="group-hover:shadow-["] {
     box-shadow: 0 15px 35px -8px rgba(0, 0, 0, 0.9) !important;
   }
   
   /* Clear neobrutalist transform active translations */
-  *[class*="active:translate-x-"], 
-  *[class*="active:translate-y-"],
-  *[class*="group-active:translate-x-"],
-  *[class*="group-active:translate-y-"] {
+  html.dark *[class*="active:translate-x-"], 
+  html.dark *[class*="active:translate-y-"],
+  html.dark *[class*="group-active:translate-x-"],
+  html.dark *[class*="group-active:translate-y-"] {
     transform: none !important;
   }
 
   /* Add smooth premium scale-up hover to cards and interactive items */
-  .group:hover {
+  html.dark .group:hover {
     transform: translateY(-2px) scale(1.01);
+  }
+
+  /* --- LIGHT THEME COMIC STYLE (YES, RICH NEOBRUTALISM!) --- */
+  html.light body {
+    background-color: #faf8f4 !important;
+    color: #0f172a !important;
+  }
+
+  html.light .text-slate-800 {
+    color: #1e293b !important;
+  }
+  html.light .text-slate-700 {
+    color: #334155 !important;
+  }
+  html.light .text-slate-900 {
+    color: #0f172a !important;
+  }
+  html.light .text-black {
+    color: #000000 !important;
+  }
+  html.light .text-slate-500 {
+    color: #64748b !important;
+  }
+
+  html.light input, html.light select, html.light textarea {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #000000 !important;
+  }
+
+  html.light input::placeholder {
+    color: #94a3b8 !important;
+  }
+
+  html.light .bg-white {
+    background-color: #ffffff !important;
+  }
+  html.light .bg-slate-50 {
+    background-color: #f8fafc !important;
+  }
+  html.light .bg-slate-100 {
+    background-color: #f1f5f9 !important;
+  }
+
+  html.light .bg-slate-100\/50, html.light .bg-slate-50\/50, html.light .bg-white\/50 {
+    background-color: rgba(255, 255, 255, 0.8) !important;
   }
 }
 
 @layer components {
   /* Toon card adaptions to dark mode */
-  .toon-card {
+  html.dark .toon-card {
     @apply bg-[#0c0e15] border border-white/10 rounded-2xl shadow-xl transition-all;
     background-color: #0c0e15 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     box-shadow: 0 10px 30px -10px rgba(0,0,0,0.7) !important;
   }
+
+  html.light .toon-card {
+    @apply bg-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] transition-all;
+    background-color: #ffffff !important;
+    border: 4px solid #000000 !important;
+    box-shadow: 6px 6px 0px 0px rgba(0,0,0,1) !important;
+  }
   
   /* Toon button adaptions to elegant rose pills */
-  .toon-button {
+  html.dark .toon-button {
     @apply bg-rose-600 text-white px-6 py-2 rounded-2xl font-bold shadow-lg transition-all;
     background-color: #e11d48 !important;
     color: #ffffff !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow: 0 4px 14px rgba(225, 29, 72, 0.3) !important;
   }
+
+  html.light .toon-button {
+    @apply bg-rose-500 text-white px-6 py-2 rounded-2xl font-bold border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all;
+    background-color: #f43f5e !important;
+    color: #ffffff !important;
+    border: 4px solid #000000 !important;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,1) !important;
+  }
   
-  .toon-button:hover {
+  html.dark .toon-button:hover {
     background-color: #be123c !important;
     transform: translateY(-1px) scale(1.02);
     box-shadow: 0 6px 18px rgba(225, 29, 72, 0.4) !important;
   }
 
+  html.light .toon-button:hover {
+    background-color: #e11d48 !important;
+    transform: translateY(-1px) scale(1.02);
+  }
+
   /* Toon input adaptions */
-  .toon-input {
+  html.dark .toon-input {
     @apply bg-[#0d0f17] border border-white/10 rounded-xl px-4 py-2 outline-none focus:border-rose-500 transition-colors text-white;
     background-color: #0d0f17 !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  html.light .toon-input {
+    @apply bg-white border-4 border-black rounded-2xl px-4 py-2 outline-none focus:border-rose-500 transition-colors text-slate-900;
+    background-color: #ffffff !important;
+    border: 4px solid #000000 !important;
   }
 }
