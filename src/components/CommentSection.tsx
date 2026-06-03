@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../services/api';
 import { useStore } from '../store';
 import { MessageCircle, Send, Trash2, Reply, ChevronDown, ChevronUp, User } from 'lucide-react';
+import ActionSuccessModal from './ActionSuccessModal';
 
 interface Comment {
   id: string;
@@ -28,6 +29,8 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
 
   const fetchComments = useCallback(async () => {
     setLoading(true);
@@ -67,6 +70,8 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
       setNewComment('');
       setCustomReplyContent('');
       setReplyTo(null);
+      setModalMessage("¡Comentario publicado con éxito!");
+      setShowSuccessModal(true);
       fetchComments();
     } catch (err) {
       console.error("Error posting comment:", err);
@@ -80,6 +85,8 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
     if (!confirm("¿Borrar este comentario?")) return;
     try {
       await api.interactions.deleteComment(id);
+      setModalMessage("Comentario eliminado correctamente.");
+      setShowSuccessModal(true);
       fetchComments();
     } catch (err) {
       console.error(err);
@@ -190,6 +197,14 @@ export default function CommentSection({ chapterId }: CommentSectionProps) {
         <div className="flex flex-col">
           {topLevelComments.map(c => renderComment(c))}
         </div>
+      )}
+      
+      {showSuccessModal && (
+          <ActionSuccessModal
+              isOpen={showSuccessModal}
+              message={modalMessage}
+              onClose={() => setShowSuccessModal(false)}
+          />
       )}
     </div>
   );

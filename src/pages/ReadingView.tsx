@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
-import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'lucide-react';
+import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus, ArrowLeft } from 'lucide-react';
 import PdfReader from '../components/PdfReader';
 import CommentSection from '../components/CommentSection';
 import ShareModal from '../components/ShareModal';
-import SubscriptionSuccessModal from '../components/SubscriptionSuccessModal';
+import ActionSuccessModal from '../components/ActionSuccessModal';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -21,7 +21,7 @@ export default function ReadingView() {
     const [subscribed, setSubscribed] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
     const [showSubModal, setShowSubModal] = useState(false);
-    const [subModalType, setSubModalType] = useState<'subscribe' | 'unsubscribe'>('subscribe');
+    const [modalMessage, setModalMessage] = useState('');
     
     useEffect(() => {
         if (!storyId || !chapterId) return;
@@ -39,12 +39,14 @@ export default function ReadingView() {
                     setAllChapters(chSnap);
                 }
                 
-                // Auto add to library
+                // Check if already in library
                 if (user) {
                     try {
-                        await api.interactions.addToLibrary(storyId);
+                        const libraryStories = await api.interactions.getLibrary();
+                        const isInLibrary = libraryStories.some((s: any) => s.id === storyId);
+                        setSubscribed(isInLibrary);
                     } catch(e) {
-                         // Likely already in library or auth error
+                         console.error("Error fetching library:", e);
                     }
                 }
             } catch(e) {
@@ -88,16 +90,24 @@ export default function ReadingView() {
         setShowShareModal(true);
     };
 
-    const toggleSubscribed = (e: React.MouseEvent) => {
+    const toggleSubscribed = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!subscribed) {
-            setSubModalType('subscribe');
-            setShowSubModal(true);
-            setSubscribed(true);
-        } else {
-            setSubscribed(false);
-            setSubModalType('unsubscribe');
-            setShowSubModal(true);
+        if (!user || !storyId) return;
+
+        try {
+            if (!subscribed) {
+                await api.interactions.addToLibrary(storyId);
+                setModalMessage(`Entendido, recibirás una notificación en tu dispositivo cuando haya un nuevo capítulo de ${story?.title} 📌`);
+                setShowSubModal(true);
+                setSubscribed(true);
+            } else {
+                await api.interactions.removeFromLibrary(storyId);
+                setModalMessage(`Entendido! Ya no recibirás una notificación sobre futuros capítulos de ${story?.title}!`);
+                setShowSubModal(true);
+                setSubscribed(false);
+            }
+        } catch (e) {
+            console.error("Error toggling library:", e);
         }
     };
 
@@ -108,12 +118,20 @@ export default function ReadingView() {
             
             {/* Top UI */}
             <div className={`fixed top-0 inset-x-0 h-20 bg-white border-b-4 border-black flex items-center justify-between px-6 z-40 transition-transform duration-500 shadow-[0px_4px_0px_0px_rgba(0,0,0,1)] ${uiVisible ? 'translate-y-0' : '-translate-y-full'}`}>
-                <div 
-                    className="flex flex-col"
-                    onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`); }}
-                >
-                    <h2 className="font-black text-primary-dark line-clamp-1 uppercase italic tracking-tighter leading-none">{story?.title || 'Comic'}</h2>
-                    <p className="text-xs font-black text-slate-400 mt-1 uppercase tracking-widest">Capítulo {chapter.chapter_number}</p>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`, { state: { from: window.location.pathname } }); }}
+                        className="toon-button bg-white p-2 min-w-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                    >
+                        <ArrowLeft className="h-6 w-6 text-primary" />
+                    </button>
+                    <div 
+                        className="flex flex-col"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/comic/${storyId}`, { state: { from: window.location.pathname } }); }}
+                    >
+                        <h2 className="font-black text-primary-dark line-clamp-1 uppercase italic tracking-tighter leading-none">{story?.title || 'Comic'}</h2>
+                        <p className="text-xs font-black text-slate-400 mt-1 uppercase tracking-widest">Capítulo {chapter.chapter_number}</p>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -221,11 +239,10 @@ export default function ReadingView() {
                 />
             )}
 
-            {showSubModal && story && (
-                <SubscriptionSuccessModal
+            {showSubModal && (
+                <ActionSuccessModal
                     isOpen={showSubModal}
-                    type={subModalType}
-                    storyTitle={story.title}
+                    message={modalMessage}
                     onClose={() => setShowSubModal(false)}
                 />
             )}

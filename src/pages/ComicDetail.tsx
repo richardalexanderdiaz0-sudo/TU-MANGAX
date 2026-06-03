@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
-import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X } from 'lucide-react';
+import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import LoginModal from '../components/LoginModal';
 import ShareModal from '../components/ShareModal';
 
 export default function ComicDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useStore();
     const [story, setStory] = useState<any>(null);
     const [chapters, setChapters] = useState<any[]>([]);
@@ -131,6 +133,12 @@ export default function ComicDetail() {
 
     return (
         <div className="pb-16 relative font-sans">
+            <button 
+                onClick={() => navigate(location.state?.from || -1)}
+                className="fixed top-4 left-4 z-50 p-3 bg-white hover:bg-primary-light text-slate-800 rounded-full transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+            >
+                <ArrowLeft className="h-6 w-6" />
+            </button>
             <div className="relative w-full h-[50vh] md:h-[60vh] lg:h-[70vh]">
                 <div className="absolute inset-0">
                     <img src={coverUrl} className="w-full h-full object-cover blur-[6px] opacity-30" alt="" />
