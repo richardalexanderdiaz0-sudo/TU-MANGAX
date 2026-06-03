@@ -6,6 +6,7 @@ import { Heart, Info, Share2, ChevronLeft, ChevronRight, Menu, X, Plus } from 'l
 import PdfReader from '../components/PdfReader';
 import CommentSection from '../components/CommentSection';
 import ShareModal from '../components/ShareModal';
+import SubscriptionSuccessModal from '../components/SubscriptionSuccessModal';
 
 export default function ReadingView() {
     const { storyId, chapterId } = useParams();
@@ -19,6 +20,8 @@ export default function ReadingView() {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [subscribed, setSubscribed] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
+    const [showSubModal, setShowSubModal] = useState(false);
+    const [subModalType, setSubModalType] = useState<'subscribe' | 'unsubscribe'>('subscribe');
     
     useEffect(() => {
         if (!storyId || !chapterId) return;
@@ -88,10 +91,13 @@ export default function ReadingView() {
     const toggleSubscribed = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!subscribed) {
-            alert("ENTENDIDO, RECIBIRÁS UNA NOTIFICACIÓN DE TU CAMPANA CUANDO HAYA UNA NUEVA ACTUALIZACIÓN DE CAPÍTULO");
+            setSubModalType('subscribe');
+            setShowSubModal(true);
             setSubscribed(true);
         } else {
             setSubscribed(false);
+            setSubModalType('unsubscribe');
+            setShowSubModal(true);
         }
     };
 
@@ -212,6 +218,15 @@ export default function ReadingView() {
                     shareText={`¡No puedo parar de leer ${story.title} en TU MANGAX!\n\nTienes que ver este capitulazo, ¡te va a encantar! Acompáñame a leerla aquí:`}
                     shareUrl={window.location.href}
                     onClose={() => setShowShareModal(false)}
+                />
+            )}
+
+            {showSubModal && story && (
+                <SubscriptionSuccessModal
+                    isOpen={showSubModal}
+                    type={subModalType}
+                    storyTitle={story.title}
+                    onClose={() => setShowSubModal(false)}
                 />
             )}
         </div>
