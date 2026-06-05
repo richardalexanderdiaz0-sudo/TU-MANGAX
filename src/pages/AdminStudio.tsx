@@ -285,11 +285,10 @@ function AdminUsers() {
     };
 
     useEffect(() => {
-        const ensureSchema = async () => {
-            try {
-            } catch (err) {}
-        };
         fetchUsers();
+        // Poll every 5 seconds for real-time updates
+        const interval = setInterval(fetchUsers, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     const runSQL = async () => {

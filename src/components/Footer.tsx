@@ -11,15 +11,21 @@ export default function Footer() {
   const [usersCount, setUsersCount] = useState(0);
 
   useEffect(() => {
-    Promise.all([
-      api.stories.getAll(),
-      api.chapters.count(),
-      api.admin.getAllUsers()
-    ]).then(([stories, chapters, users]) => {
-      setStoriesCount(stories.length);
-      setChaptersCount(chapters);
-      setUsersCount(users.length);
-    });
+    const fetchStats = () => {
+      Promise.all([
+        api.stories.getAll(),
+        api.chapters.count(),
+        api.admin.getAllUsers()
+      ]).then(([stories, chapters, users]) => {
+        setStoriesCount(stories.length);
+        setChaptersCount(chapters);
+        setUsersCount(users.length);
+      });
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
