@@ -130,10 +130,12 @@ export const api = {
     getOne: async (id: string) => {
       const { data, error } = await supabase
         .from('stories')
-        .select('*')
+        .select('*, tags')
         .eq('id', id)
         .maybeSingle();
         
+      console.log('DEBUG: stories.getOne fetched data:', data);
+      
       if (error) throw new Error(error.message);
       if (!data) return null;
       
