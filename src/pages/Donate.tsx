@@ -123,7 +123,10 @@ export default function Donate() {
             </div>
           </div>
           
-          <p className="text-center text-zinc-500 text-sm italic font-semibold">"Los Planes Premium aún no están disponibles. Estamos trabajando para ofrecer una experiencia segura y confiable. Próximamente podrás suscribirte y disfrutar de beneficios exclusivos mientras apoyas el crecimiento de TU MANGAX."</p>
+          <p className="text-center text-amber-100 text-sm italic font-bold border-2 border-amber-600 bg-amber-900/40 p-4 rounded-xl">
+            ¡IMPORTANTE! Los Planes Premium aún no están disponibles para suscripción. 
+            Sin embargo, ¡las <strong>donaciones voluntarias sí están disponibles y activas</strong> para apoyar directamente el proyecto!
+          </p>
         </div>
 
         {/* Header Section */}
