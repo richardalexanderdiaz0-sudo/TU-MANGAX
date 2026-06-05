@@ -82,21 +82,6 @@ export default function Terms() {
               Nos esforzamos por mantener la mejor calidad, pero no garantizamos la disponibilidad ininterrumpida del servicio. ¡Estamos en constante mejora impulsada por <span className="text-primary font-bold">RUIWORKS</span>!
             </p>
           </section>
-
-          <section className="mb-10">
-            <h2 className="text-2xl font-black text-slate-800 uppercase italic tracking-tighter mb-4 flex items-center gap-3">
-              <span className="bg-slate-100 border-2 border-black w-8 h-8 flex items-center justify-center rounded-lg text-primary -rotate-6">5</span>
-              Términos de la Descarga
-            </h2>
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 text-slate-700 leading-relaxed font-bold space-y-2">
-                <p>• La descarga se entrega únicamente en formato PDF.</p>
-                <p>• El pago corresponde al acceso de descarga de esta obra específica.</p>
-                <p>• Las descargas son para uso personal.</p>
-                <p>• No se permite revender, redistribuir o comercializar los archivos descargados.</p>
-                <p>• Las descargas no son reembolsables una vez entregado el archivo.</p>
-                <p>• La disponibilidad de descarga puede variar según la obra.</p>
-            </div>
-          </section>
         </div>
       </div>
       

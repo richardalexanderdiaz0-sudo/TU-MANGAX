@@ -3,11 +3,10 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { api, getImageUrl } from '../services/api';
 import { useStore } from '../store';
-import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X, ArrowLeft, Download } from 'lucide-react';
+import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X, ArrowLeft } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import LoginModal from '../components/LoginModal';
 import ShareModal from '../components/ShareModal';
-import PremiumDownloadModal from '../components/PremiumDownloadModal';
 
 export default function ComicDetail() {
     const { id } = useParams();
@@ -23,7 +22,6 @@ export default function ComicDetail() {
     const [isLiked, setIsLiked] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
-    const [showPremiumModal, setShowPremiumModal] = useState(false);
     
     // Auth Wall modal states
     const [showAuthWall, setShowAuthWall] = useState(false);
@@ -213,12 +211,6 @@ export default function ComicDetail() {
                     <button onClick={handleLibrary} className={`px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:scale-[102%] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] ${isSaved ? 'bg-emerald-500 text-white' : 'bg-white text-slate-800 hover:bg-emerald-100'}`}>
                         <BookMarked className="h-5 w-5" /> {isSaved ? 'Guardado en Biblioteca' : 'Agregar a Biblioteca'}
                     </button>
-                    <button 
-                        onClick={() => setShowPremiumModal(true)}
-                        className="px-6 py-3 rounded-2xl font-black flex items-center gap-2 transition-all border-4 border-black bg-yellow-500 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:scale-[102%] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
-                    >
-                        <Download className="h-5 w-5" /> Descargar Obra
-                    </button>
                 </div>
 
                 {story.genres && story.genres.length > 0 && (
@@ -380,14 +372,6 @@ export default function ComicDetail() {
                     shareText={`¡No puedo parar de leer ${story.title} en TU MANGAX!\n\nTienes que ver esta obra, ¡te va a encantar! Acompáñame a leerla aquí:`}
                     shareUrl={window.location.href}
                     onClose={() => setShowShareModal(false)}
-                />
-            )}
-            
-            {showPremiumModal && story && (
-                <PremiumDownloadModal
-                    isOpen={showPremiumModal}
-                    storyTitle={story.title}
-                    onClose={() => setShowPremiumModal(false)}
                 />
             )}
         </div>
