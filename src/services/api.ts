@@ -77,6 +77,7 @@ export const api = {
         avatar: currentUser.photoURL,
       };
     },
+    syncUser: ensureSupabaseUser,
     getUserProfile: async (uid: string) => {
       const { data, error } = await supabase.from('users').select('*').eq('id', uid).single();
       if (error) return null;

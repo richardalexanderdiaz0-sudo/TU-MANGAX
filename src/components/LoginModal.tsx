@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store';
+import { api } from '../services/api';
 import { loginWithEmail, registerWithEmail, resetPassword, signInWithGoogle } from '../services/firebase';
 import { X, Mail, Lock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -26,6 +27,7 @@ export default function LoginModal({ onClose, initialMode = 'login' }: Props) {
     setLoading(true);
     try {
       await signInWithGoogle();
+      await api.auth.syncUser();
       onClose();
     } catch (err: any) {
       console.error(err);
