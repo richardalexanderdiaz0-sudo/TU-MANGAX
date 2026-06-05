@@ -7,7 +7,6 @@ import { Share2, MoreVertical, Flame, Eye, BookMarked, Flag, X, ArrowLeft, Downl
 import { supabase } from '../services/supabase';
 import LoginModal from '../components/LoginModal';
 import ShareModal from '../components/ShareModal';
-import SoonModal from '../components/SoonModal';
 import PremiumDownloadModal from '../components/PremiumDownloadModal';
 
 export default function ComicDetail() {
@@ -24,7 +23,6 @@ export default function ComicDetail() {
     const [isLiked, setIsLiked] = useState(false);
     const [showReport, setShowReport] = useState(false);
     const [showShareModal, setShowShareModal] = useState(false);
-    const [showSoonModal, setShowSoonModal] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     
     // Auth Wall modal states
@@ -138,27 +136,6 @@ export default function ComicDetail() {
 
     return (
         <div className="pb-16 relative font-sans">
-            {story.status === 'SOON' && (
-                <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center">
-                    <motion.div 
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute text-6xl opacity-70"
-                        style={{ top: '20%', left: '20%' }}
-                    >
-                        💉
-                    </motion.div>
-                    <motion.div 
-                        animate={{ rotate: -360 }}
-                        transition={{ duration: 0.5, repeat: Infinity, ease: "linear" }}
-                        className="absolute text-6xl opacity-70"
-                        style={{ bottom: '20%', right: '20%' }}
-                    >
-                        💉
-                    </motion.div>
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-[2px]"></div>
-                </div>
-            )}
             <button 
                 onClick={() => navigate(location.state?.from || -1)}
                 className="fixed top-4 left-4 z-50 p-3 bg-white hover:bg-primary-light text-slate-800 rounded-full transition-all border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
@@ -284,10 +261,7 @@ export default function ComicDetail() {
                             <Link 
                                 to={`/read/${id}/${chap.id}`} 
                                 onClick={(e) => {
-                                    if (story.status === 'SOON') {
-                                        e.preventDefault();
-                                        setShowSoonModal(true);
-                                    } else if (!user) {
+                                    if (!user) {
                                         e.preventDefault();
                                         setAuthRequestedStory(story.title);
                                         setLoginInitialMode('login');
@@ -409,13 +383,6 @@ export default function ComicDetail() {
                 />
             )}
             
-            {showSoonModal && story && (
-                <SoonModal
-                    isOpen={showSoonModal}
-                    story={story}
-                    onClose={() => setShowSoonModal(false)}
-                />
-            )}
             {showPremiumModal && story && (
                 <PremiumDownloadModal
                     isOpen={showPremiumModal}

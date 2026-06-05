@@ -136,7 +136,6 @@ export default function Home() {
     const [trending, setTrending] = useState<StoryInfo[]>([]);
     const [allComics, setAllComics] = useState<StoryInfo[]>([]);
     const [completed, setCompleted] = useState<StoryInfo[]>([]);
-    const [comingSoon, setComingSoon] = useState<StoryInfo[]>([]);
     const [dailyUpdates, setDailyUpdates] = useState<StoryInfo[]>([]);
     const [recommended, setRecommended] = useState<StoryInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -253,7 +252,6 @@ export default function Home() {
         setRecentlyAdded(addedRecently.filter(s => s.status !== 'SOON'));
         setTrending(sortedByViews.filter(s => s.status !== 'SOON').slice(0, 15));
         setCompleted(allComics.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
-        setComingSoon(allComics.filter((s: any) => s.status === 'SOON').slice(0, 15));
         setDailyUpdates(dailyUpdatesList.filter(s => s.status !== 'SOON'));
         
         // Recommendations
@@ -372,7 +370,6 @@ export default function Home() {
                     {recommended.length > 0 && renderSection("RECOMENDADOS PARA TI 👑", recommended)}
                     {renderSection("AÑADIDOS RECIENTEMENTE", recentlyAdded)}
                     {renderSection("ACTUALIZACIONES DIARIAS", dailyUpdates)}
-                    {renderSection("PRÓXIMAMENTE", comingSoon)}
                     {renderSection("TÍTULOS EN TENDENCIA", trending)}
                     {renderSection("TODAS LAS OBRAS", allComics.slice(0, 30), "/directory")}
                     {renderSection("TERMINADOS", completed)}
@@ -398,7 +395,6 @@ function StoryCard({ story }: { story: StoryInfo, key?: React.Key }) {
                     {story.isRecentlyUpdated && <span className="bg-red-600 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">¡ACTUALIZADO!</span>}
                     {story.status === 'COMPLETED' && <span className="bg-emerald-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Finalizado</span>}
                     {story.status === 'ONGOING' && <span className="bg-blue-500 text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Emisión</span>}
-                    {story.status === 'SOON' && <span className="bg-primary text-white text-[10px] uppercase font-black px-2 py-1 rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Pronto</span>}
                 </div>
                 {/* Micro fire overlay chip indicating views count */}
                 <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-black/85 font-black text-[10.5px] text-amber-400 px-2 py-0.5 rounded-lg border-2 border-black select-none z-10 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
