@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Heart, Coins, ShieldCheck, Zap, Star, Award, Users, Sparkles, CreditCard, ArrowRight, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Heart, Coins, ShieldCheck, Zap, Star, Award, Users, Sparkles, CreditCard, ArrowRight, ExternalLink, ShieldAlert, Gem } from 'lucide-react';
 import { useStore } from '../store';
 import { api } from '../services/api';
 
@@ -76,6 +76,56 @@ export default function Donate() {
         <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
         
+        {/* New Premium Plans Section */}
+        <div className="mb-16 relative z-10">
+          <h2 className="text-3xl font-black text-amber-500 uppercase italic tracking-tighter mb-8 text-center flex items-center justify-center gap-3">
+             <Gem className="w-8 h-8" /> 💎 Planes Premium
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {/* Plan 1: Basico */}
+            <div className="bg-zinc-900 border-2 border-zinc-700 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg transition-all hover:scale-[1.02]">
+                <h3 className="text-xl font-bold text-white mb-2">💎 Premium Básico</h3>
+                <div className="text-2xl font-black text-amber-400 mb-4">USD $1.99 <span className='text-sm font-normal text-zinc-500'>/ mes</span></div>
+                <ul className="text-left text-sm text-zinc-400 space-y-2 mb-6 w-full">
+                    <li>📥 Descargas de obras compatibles.</li>
+                    <li>❤️ Insignia Premium.</li>
+                    <li>⚡ Acceso prioritario a futuras funciones.</li>
+                    <li>🎁 Apoyo al mantenimiento de servidores.</li>
+                </ul>
+                <button className="w-full bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl cursor-not-allowed">🚧 Próximamente</button>
+            </div>
+            
+            {/* Plan 2: Plus */}
+            <div className="bg-zinc-900 border-2 border-zinc-700 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg transition-all hover:scale-[1.02]">
+                <h3 className="text-xl font-bold text-white mb-2">💎 Premium Plus</h3>
+                <div className="text-2xl font-black text-amber-400 mb-4">USD $3.99 <span className='text-sm font-normal text-zinc-500'>/ mes</span></div>
+                <ul className="text-left text-sm text-zinc-400 space-y-2 mb-6 w-full">
+                    <li>⭐ Personalización avanzada del perfil.</li>
+                    <li>🏆 Insignia Premium Plus.</li>
+                    <li>🚀 Acceso anticipado a nuevas funciones.</li>
+                    <li>📚 Biblioteca de descargas ampliada.</li>
+                </ul>
+                <button className="w-full bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl cursor-not-allowed">🚧 Próximamente</button>
+            </div>
+            
+            {/* Plan 3: Fundador */}
+            <div className="bg-zinc-900 border-2 border-zinc-700 rounded-3xl p-6 flex flex-col items-center text-center shadow-lg transition-all hover:scale-[1.02]">
+                <h3 className="text-xl font-bold text-white mb-2">👑 Fundador</h3>
+                <div className="text-2xl font-black text-amber-500 mb-4">USD $9.99 <span className='text-sm font-normal text-zinc-500'>/ mes</span></div>
+                <ul className="text-left text-sm text-zinc-400 space-y-2 mb-6 w-full">
+                    <li>💎 Todos los beneficios Premium Plus.</li>
+                    <li>👑 Insignia exclusiva de Fundador.</li>
+                    <li>🎖️ Reconocimiento opcional.</li>
+                    <li>🧪 Acceso temprano a funciones.</li>
+                </ul>
+                <button className="w-full bg-zinc-700 text-zinc-300 font-bold py-3 rounded-xl cursor-not-allowed">🚧 Próximamente</button>
+            </div>
+          </div>
+          
+          <p className="text-center text-zinc-500 text-sm italic font-semibold">"Los Planes Premium aún no están disponibles. Estamos trabajando para ofrecer una experiencia segura y confiable. Próximamente podrás suscribirte y disfrutar de beneficios exclusivos mientras apoyas el crecimiento de TU MANGAX."</p>
+        </div>
+
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-10 pb-8 border-b-4 border-slate-800 relative z-10 text-center sm:text-left">
           <div className="flex flex-col sm:flex-row items-center gap-4">
