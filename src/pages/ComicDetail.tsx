@@ -45,6 +45,7 @@ export default function ComicDetail() {
                     } catch (err) {
                         console.error('Error updating views count', err);
                     }
+                    console.log('Story Data:', sData); // Log para depuración
                     setStory(sData);
                 }
 
@@ -213,11 +214,11 @@ export default function ComicDetail() {
                     </button>
                 </div>
 
-                {story.genres && story.genres.length > 0 && (
+                {( (story.genres && story.genres.length > 0) || (story.tags && story.tags.length > 0) ) && (
                     <div className="mb-10">
                         <p className="text-[10px] uppercase font-black text-slate-400 mb-2 tracking-widest">Etiquetas / Tramas</p>
                         <div className="flex flex-wrap gap-2">
-                            {story.genres.map((g: string) => (
+                            {[...new Set([...(story.genres || []), ...(story.tags || [])])].map((g: string) => (
                                 <Link 
                                     key={g} 
                                     to={`/directory?genre=${encodeURIComponent(g)}`} 

@@ -155,6 +155,8 @@ export const api = {
       const author = (formData.get('author') as string) || 'Desconocido';
       const writer = (formData.get('writer') as string) || 'Desconocido';
       const publishDate = formData.get('publish_date') as string | null;
+      const genres = formData.get('genres') ? (typeof formData.get('genres') === 'string' ? JSON.parse(formData.get('genres') as string) : formData.get('genres')) : [];
+      const tags = formData.get('tags') ? (typeof formData.get('tags') === 'string' ? JSON.parse(formData.get('tags') as string) : formData.get('tags')) : [];
       
       const coverFile = formData.get('cover');
       let cover_url = 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600';
@@ -174,7 +176,9 @@ export const api = {
           cover_url,
           publish_date: publishDate || null,
           likes_count: 0,
-          views_count: 0
+          views_count: 0,
+          genres,
+          tags
         })
         .select()
         .single();
@@ -205,6 +209,7 @@ export const api = {
         const writer = data.get('writer');
         const publishDate = data.get('publish_date');
         const genres = data.get('genres');
+        const tags = data.get('tags');
         const coverFile = data.get('cover');
 
         if (title !== null) updateData.title = title as string;
@@ -218,6 +223,13 @@ export const api = {
             updateData.genres = JSON.parse(genres as string);
           } catch (e) {
             updateData.genres = genres;
+          }
+        }
+        if (tags !== null) {
+          try {
+            updateData.tags = JSON.parse(tags as string);
+          } catch (e) {
+            updateData.tags = tags;
           }
         }
 
