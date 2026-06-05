@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Heart, Coins, ShieldCheck, Zap, Star, Award, Users, Sparkles, CreditCard, ArrowRight, ExternalLink, ShieldAlert, Gem } from 'lucide-react';
 import { useStore } from '../store';
 import { api } from '../services/api';
+import { useUserLocation } from '../hooks/useUserLocation';
+
 
 const AMOUNTS = [
   { val: 1, label: '1', desc: 'Un cafecito para el desarrollador', emoji: '☕' },
@@ -19,6 +21,12 @@ const AMOUNTS = [
 
 export default function Donate() {
   const { userProfile } = useStore();
+  const location = useUserLocation();
+  const isRD = location?.country_code === 'DO';
+  const displayAmount = (usdAmount: number) => isRD ? (usdAmount * 60).toFixed(0) : usdAmount;
+  const displayCurrency = isRD ? 'DOP' : 'USD';
+  const currencySymbol = isRD ? 'RD$' : '$';
+  
   const [customAmount, setCustomAmount] = useState('');
   const [selectedAmount, setSelectedAmount] = useState<number | 'custom' | null>(null);
   const [supporters, setSupporters] = useState<any[]>([]);
@@ -126,6 +134,8 @@ export default function Donate() {
           <p className="text-center text-amber-100 text-sm italic font-bold border-2 border-amber-600 bg-amber-900/40 p-4 rounded-xl">
             ¡IMPORTANTE! Los Planes Premium aún no están disponibles para suscripción. 
             Sin embargo, ¡las <strong>donaciones voluntarias sí están disponibles y activas</strong> para apoyar directamente el proyecto!
+            <br/><br/>
+            <span className="text-xs">Nota: Los valores en pantalla son una aproximación basada en tu ubicación ({displayCurrency}). Todos los pagos se procesan en dólares estadounidenses (USD).</span>
           </p>
         </div>
 
@@ -219,8 +229,8 @@ export default function Donate() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 bg-black/40 border border-slate-700/50 px-2.5 py-1 rounded-xl">
-                  <span className="text-sm font-black italic tracking-tighter text-amber-400">${amt.val}</span>
-                  <span className="text-[8px] font-black uppercase text-slate-400">USD</span>
+                  <span className="text-sm font-black italic tracking-tighter text-amber-400">{currencySymbol}{displayAmount(amt.val)}</span>
+                  <span className="text-[8px] font-black uppercase text-slate-400">{displayCurrency}</span>
                 </div>
               </button>
             ))}
@@ -262,7 +272,7 @@ export default function Donate() {
                   onChange={(e) => setCustomAmount(e.target.value)}
                   className="w-full bg-black/50 border-4 border-black rounded-2xl pl-10 pr-16 py-4 text-center font-black text-2xl text-white outline-none focus:border-indigo-500 placeholder:text-slate-700"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-500 uppercase">USD</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-500 uppercase">{displayCurrency}</span>
               </div>
               
               <button
