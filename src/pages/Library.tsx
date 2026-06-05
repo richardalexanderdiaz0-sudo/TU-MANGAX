@@ -27,7 +27,7 @@ export default function Library() {
                 const libData = await api.interactions.getLibrary();
                 
                 if (libData && libData.length > 0) {
-                    setSavedStories(libData.filter((s: any) => s.status !== 'SOON'));
+                    setSavedStories(libData);
                 } else {
                     setSavedStories([]);
                 }
