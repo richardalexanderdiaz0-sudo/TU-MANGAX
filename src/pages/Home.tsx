@@ -192,15 +192,17 @@ export default function Home() {
                     const diffDays = (now - createdDate) / (1000 * 60 * 60 * 24);
                     if (s.status === 'COMPLETED') {
                         return diffDays <= 1;
+                    } else if (s.status === 'SOON') {
+                        return false;
                     } else {
                         return diffDays <= 2;
                     }
                 });
 
-                const dailyUpdatesList = allStories.filter(s => s.isRecentlyUpdated)
+                const dailyUpdatesList = allStories.filter(s => s.isRecentlyUpdated && s.status !== 'SOON')
                     .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-                setAllComics(sortedByRecency);
+                setAllComics(sortedByRecency.filter(s => s.status !== 'SOON'));
             } catch (err) {
                 console.error("Error fetching home data:", err);
             }
@@ -248,11 +250,11 @@ export default function Home() {
         const dailyUpdatesList = allComics.filter(s => s.isRecentlyUpdated)
             .sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
 
-        setRecentlyAdded(addedRecently);
-        setTrending(sortedByViews.slice(0, 15));
+        setRecentlyAdded(addedRecently.filter(s => s.status !== 'SOON'));
+        setTrending(sortedByViews.filter(s => s.status !== 'SOON').slice(0, 15));
         setCompleted(allComics.filter((s: any) => s.status === 'COMPLETED').slice(0, 15));
         setComingSoon(allComics.filter((s: any) => s.status === 'SOON').slice(0, 15));
-        setDailyUpdates(dailyUpdatesList);
+        setDailyUpdates(dailyUpdatesList.filter(s => s.status !== 'SOON'));
         
         // Recommendations
         let recommends: StoryInfo[] = [];
@@ -266,7 +268,7 @@ export default function Home() {
                      } catch(e) {}
                  }
                  if (!Array.isArray(storyCats)) storyCats = [];
-                 return userProfile.preferences.some((pref: string) => storyCats.includes(pref));
+                 return userProfile.preferences.some((pref: string) => storyCats.includes(pref)) && s.status !== 'SOON';
              }).sort((a: any, b: any) => (b.views_count||0) - (a.views_count||0));
              setRecommended(recommends.slice(0, 15));
         } else {

@@ -76,6 +76,11 @@ export default function Directory() {
     const filteredStories = stories.filter(s => {
         const matchesSearch = s.title.toLowerCase().includes(searchTerm.toLowerCase());
         
+        // Exclude SOON stories unless specifically filtered in query status param
+        if (statusFilter !== 'SOON' && s.status === 'SOON') {
+            return false;
+        }
+        
         if (activeGenre === 'TODO') {
             return matchesSearch;
         }
