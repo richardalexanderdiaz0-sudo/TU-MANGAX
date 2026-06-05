@@ -309,7 +309,7 @@ ALTER TABLE public.stories ADD COLUMN IF NOT EXISTS publish_date TIMESTAMP WITH 
     return (
         <div className="bg-white border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Administración de Usuarios</h2>
+                <h2 className="text-2xl font-black text-primary-dark uppercase italic tracking-tight font-display">Administración de Usuarios ({users.length})</h2>
                 <div className="flex gap-2">
                    <button onClick={runSQL} className="text-xs bg-slate-200 text-slate-800 p-2 font-bold rounded-lg border-2 border-black">🔌 Fix DB Schema</button>
                    <button onClick={fetchUsers} className="p-2 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none transition-all">
