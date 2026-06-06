@@ -325,7 +325,7 @@ export default function Home() {
         <div className="pb-8">
             <HeroSlider stories={trending.slice(0, 5)} />
             
-            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto">
+            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto sticky top-0 z-30 py-4 bg-[#05060b]">
                 <div className="relative group">
                     <input 
                         type="text"
