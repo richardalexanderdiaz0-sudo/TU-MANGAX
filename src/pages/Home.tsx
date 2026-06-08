@@ -322,8 +322,8 @@ export default function Home() {
     };
 
     return (
-        <div className="pb-8">
-            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto z-30 pt-4 bg-[#05060b]">
+        <div className="pb-8 flex flex-col">
+            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto w-full pt-4">
                 <div className="relative group">
                     <input 
                         type="text"
