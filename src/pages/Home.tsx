@@ -323,9 +323,7 @@ export default function Home() {
 
     return (
         <div className="pb-8">
-            <HeroSlider stories={trending.slice(0, 5)} />
-            
-            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto sticky top-0 z-30 py-4 bg-[#05060b]">
+            <div className="px-4 sm:px-6 lg:px-8 mb-8 max-w-7xl mx-auto z-30 pt-4 bg-[#05060b]">
                 <div className="relative group">
                     <input 
                         type="text"
@@ -337,6 +335,7 @@ export default function Home() {
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-hover:text-primary transition-colors" />
                 </div>
             </div>
+            <HeroSlider stories={trending.slice(0, 5)} />
 
             {/* Banner elegante para activar notificaciones push */}
             {notifStatus === 'default' && (
