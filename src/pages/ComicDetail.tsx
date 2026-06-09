@@ -80,7 +80,7 @@ export default function ComicDetail() {
                 setSimilarStories(related);
 
                 if (user) {
-                    // Logic to check library will depend on Ivan's endpoints
+                    // Logic to check library will depend on nuestros endpoints
                     setIsSaved(false);
                 }
             } catch(e) {

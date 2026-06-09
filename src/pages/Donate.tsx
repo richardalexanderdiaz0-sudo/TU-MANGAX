@@ -134,7 +134,7 @@ export default function Donate() {
             </div>
             <h3 className="font-black text-slate-200 uppercase text-xs mb-2 italic">Gana el Creador</h3>
             <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed">
-              Apoyas directamente el arduo trabajo de RUIWORKS & Ivan para dedicar su vida a este arte.
+              Apoyas directamente el arduo trabajo de RUIWORKS para dedicar su vida a este arte.
             </p>
           </div>
         </div>

@@ -81,11 +81,11 @@ export default function Footer() {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
                   <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest leading-none">HECHO POR</p>
-                  <p className="text-xs font-bold text-slate-200 uppercase tracking-wider">RIVA Technologies <Copyright className="inline h-3 w-3 -mt-1 text-rose-500" /></p>
+                  <p className="text-xs font-bold text-slate-200 uppercase tracking-wider">TU MANGAX Team <Copyright className="inline h-3 w-3 -mt-1 text-rose-500" /></p>
                 </div>
                 <div className="flex items-center gap-2">
                   <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest leading-none">FUNDADO POR</p>
-                  <p className="text-xs font-bold text-slate-200 uppercase tracking-wider">RUIWORKS & Ivan</p>
+                  <p className="text-xs font-bold text-slate-200 uppercase tracking-wider">RUIWORKS</p>
                 </div>
               </div>
               

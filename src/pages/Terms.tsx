@@ -35,7 +35,7 @@ export default function Terms() {
               <strong className="text-red-700 block mb-2 uppercase">Queda ESTRICTAMENTE PROHIBIDO:</strong>
               Descargar, capturar pantalla masivamente, desencriptar o extraer los capítulos publicados en <strong>TU MANGAX</strong> para <strong>resubirlos</strong> a otras aplicaciones, sitios web, redes sociales (incluyendo TikTok, Facebook, Instagram), grupos de WhatsApp o canales de Telegram.
               <br/><br/>
-              Las traducciones, ediciones (typesetting) y limpieza de scans toman horas de esfuerzo por parte de nuestro equipo (RuiWorks & Ivan) y los scanlations asociados. Robar este trabajo y monetizarlo en otros lugares resultará en la <strong>CUENTA SUSPENDIDA PERMANENTEMENTE</strong>, bloqueo de IP y posibles medidas legales contra plataformas infractoras.
+              Las traducciones, ediciones (typesetting) y limpieza de scans toman horas de esfuerzo por parte de nuestro equipo (RUIWORKS) y los scanlations asociados. Robar este trabajo y monetizarlo en otros lugares resultará en la <strong>CUENTA SUSPENDIDA PERMANENTEMENTE</strong>, bloqueo de IP y posibles medidas legales contra plataformas infractoras.
             </div>
           </section>
 

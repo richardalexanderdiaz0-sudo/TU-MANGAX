@@ -643,7 +643,7 @@ function CreationWizard() {
                         </div>
                         <div>
                             <label className="block text-sm font-black mb-2 uppercase text-slate-500">Escritor / Guionista (Historia)</label>
-                            <input type="text" value={writerNameInput} onChange={e=>setWriterNameInput(e.target.value)} placeholder="Ej: Ivan Ruiz" className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
+                            <input type="text" value={writerNameInput} onChange={e=>setWriterNameInput(e.target.value)} placeholder="Ej: [Nombre del Escritor]" className="w-full bg-slate-100 border-4 border-black rounded-2xl p-3 text-slate-800 font-bold outline-none focus:border-primary transition-colors" />
                         </div>
                     </div>
 
