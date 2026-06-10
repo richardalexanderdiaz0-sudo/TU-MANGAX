@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Copy, Check, MessageSquare } from 'lucide-react';
+import { X, Copy, Check, MessageSquare, Smartphone } from 'lucide-react';
 
 interface ShareModalProps {
   title: string;
@@ -59,7 +59,7 @@ export default function ShareModal({ title, shareText, shareUrl, onClose }: Shar
         </h3>
 
         <p className="text-xs text-slate-500 font-bold mb-4">
-          Difunde el manga en tus redes y aplicaciones favoritas al instante.
+          Comparte la obra en tus aplicaciones favoritas al instante con un mensaje personalizado.
         </p>
 
         {/* Preview of Share Link text box */}
@@ -89,13 +89,13 @@ export default function ShareModal({ title, shareText, shareUrl, onClose }: Shar
         </button>
 
         {/* Quick Social Shares */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-2">
           {/* WhatsApp */}
           <a
             href={shareWhatsApp}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center p-3 bg-[#25D366] text-white font-black text-[10px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+            className="flex flex-col items-center justify-center p-2 bg-[#25D366] text-white font-black text-[9px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
             <MessageSquare className="h-5 w-5 mb-1 stroke-[2.5px]" />
             WhatsApp
@@ -106,12 +106,10 @@ export default function ShareModal({ title, shareText, shareUrl, onClose }: Shar
             href={shareTelegram}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center p-3 bg-[#0088cc] text-white font-black text-[10px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+            className="flex flex-col items-center justify-center p-2 bg-[#0088cc] text-white font-black text-[9px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 mb-1 fill-white stroke-none" strokeWidth={0}>
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.1.02-1.62 1.03-4.57 3.03-.43.3-.82.45-1.17.44-.39-.01-1.14-.22-1.7-.4s-1.01-.28-1-.59c.01-.16.23-.33.68-.51 2.78-1.21 4.63-2.01 5.56-2.4 2.64-1.1 3.19-1.29 3.55-1.29.08 0 .25.02.36.11.09.08.12.19.13.27 0 .05.01.12 0 .19z" fill="#ffffff" />
-            </svg>
-            Telegram
+            <MessageSquare className="h-5 w-5 mb-1 stroke-[2.5px]" />
+            Telegr.
           </a>
 
           {/* Twitter / X */}
@@ -119,23 +117,21 @@ export default function ShareModal({ title, shareText, shareUrl, onClose }: Shar
             href={shareTwitter}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center p-3 bg-black text-white font-black text-[10px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+            className="flex flex-col items-center justify-center p-2 bg-black text-white font-black text-[9px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
-            <svg viewBox="0 0 24 24" className="w-5 h-5 mb-1 fill-white stroke-none">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" fill="#ffffff" />
-            </svg>
-            Twitter / X
+            <MessageSquare className="h-5 w-5 mb-1 stroke-[2.5px]" />
+            Twitter
           </a>
-        </div>
-
-        {navigator.share && (
+          
+          {/* TikTok - Generic */}
           <button
             onClick={handleNativeShare}
-            className="mt-4 text-[10px] font-black text-slate-400 hover:text-primary uppercase tracking-widest cursor-pointer select-none"
+            className="flex flex-col items-center justify-center p-2 bg-[#000000] text-white font-black text-[9px] tracking-wide uppercase rounded-xl border-4 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
           >
-            Utilizar opción nativa
+            <Smartphone className="h-5 w-5 mb-1 stroke-[2.5px]" />
+            TikTok
           </button>
-        )}
+        </div>
       </div>
     </div>
   );
