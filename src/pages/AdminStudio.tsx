@@ -38,6 +38,7 @@ export default function AdminStudio() {
                     <Link to="/admin" className="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Obras</Link>
                     <Link to="/admin/users" className="bg-amber-400 hover:bg-amber-500 text-black px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Usuarios</Link>
                     <Link to="/admin/news" className="bg-emerald-400 hover:bg-emerald-500 text-black px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">Noticias</Link>
+                    <Link to="/admin/ai-updates" className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">IA Updates</Link>
                     <Link to="/admin/new" className="bg-primary hover:bg-primary-dark text-white px-4 md:px-6 py-2 rounded-2xl font-black border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-2 transition-all">
                         <Plus className="h-5 w-5"/> Nueva Obra
                     </Link>
@@ -51,7 +52,60 @@ export default function AdminStudio() {
                     <Route path="/edit/:storyId" element={<EditStory />} />
                     <Route path="/users" element={<AdminUsers />} />
                     <Route path="/news" element={<AdminNews />} />
+                    <Route path="/ai-updates" element={<AdminAIUpdates />} />
                 </Routes>
+            </div>
+        </div>
+    );
+}
+
+// -------------------------------------------------------------
+// ADMIN AI UPDATES
+// -------------------------------------------------------------
+function AdminAIUpdates() {
+    const [stories, setStories] = useState<any[]>([]);
+    const [results, setResults] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        api.stories.getAll().then(setStories);
+    }, []);
+
+    const checkAll = async () => {
+        setLoading(true);
+        const newResults: Record<string, string> = {};
+        for(const s of stories) {
+            try {
+                const res = await fetch('/api/admin/check-updates', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ title: s.title })
+                });
+                const data = await res.json();
+                newResults[s.id] = data.message;
+            } catch(e) {
+                newResults[s.id] = "Error al consultar";
+            }
+        }
+        setResults(newResults);
+        setLoading(false);
+    };
+
+    return (
+        <div className="bg-white border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-2xl font-black text-purple-600 uppercase italic tracking-tight font-display mb-6">Analizador de Novedades (IA)</h2>
+            <button onClick={checkAll} disabled={loading} className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-black uppercase text-sm border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50">
+                {loading ? 'Analizando...' : 'Analizar todas las obras'}
+            </button>
+            <div className="mt-8 flex flex-col gap-4">
+                {stories.map(s => (
+                    <div key={s.id} className="border-2 border-black rounded-xl p-4 bg-slate-50">
+                        <h4 className="font-black text-lg">{s.title}</h4>
+                        <p className={`font-medium text-sm mt-1 ${results[s.id]?.includes('No hay') ? 'text-slate-500' : 'text-purple-600 font-bold'}`}>
+                            {results[s.id] || "Pendiente de análisis"}
+                        </p>
+                    </div>
+                ))}
             </div>
         </div>
     );
