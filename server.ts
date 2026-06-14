@@ -24,18 +24,28 @@ const ai = new GoogleGenAI({
 
 // Admin API
 app.post("/api/admin/check-updates", async (req, res) => {
-  const { title } = req.body;
+  const { title, latestLocalChapter = 0 } = req.body;
   
   if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: "Gemini API key not configured" });
   }
 
   try {
-    const prompt = `Search the web for any new chapters of the manga/manhwa titled "${title}". 
-    Answer ONLY in Spanish, strictly in one of these two formats: 
-    - "Hay X capítulos nuevos de la obra [TITLE]" 
-    - "No hay capítulos nuevos de la obra [TITLE]"
-    Do not add any other text. If X is 0 or not found, use the "No hay..." format.`;
+    const prompt = `Investiga en Internet de manera real y detallada sobre el manga/manhwa/webtoon en español o inglés titulado "${title}".
+    
+    En nuestra base de datos, el último capítulo publicado es el Capítulo ${latestLocalChapter}.
+    
+    Analiza las noticias de anime/manga, foros, wikis o páginas de scans de manga externas para saber si ya se publicaron capítulos de manera oficial o por fansub con un número de capítulo superior al Capítulo ${latestLocalChapter}.
+    
+    Responde estrictamente en español siguiendo este formato basado en tu investigación de Google Search:
+    
+    - Si encuentras capítulos más nuevos en internet (por ejemplo, si en internet está publicado hasta el Capítulo 15 y el local es el Capítulo 10):
+      "Hay X capítulo(s) nuevo(s) de la obra ${title}. En internet se encuentra hasta el Capítulo Y según los últimos resultados. Fuentes reales: [Lista los nombres o dominios de los sitios o fuentes encontrados en tu búsqueda]."
+      
+    - Si no hay capítulos más nuevos o estamos completamente actualizados:
+      "No hay capítulos nuevos de la obra ${title}. Actualmente está al día (último capítulo local: ${latestLocalChapter})."
+    
+    Sé ultra detallado y real, sin inventar ni simular nada.`;
 
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",

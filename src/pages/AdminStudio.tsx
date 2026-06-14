@@ -5,7 +5,7 @@ import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { supabase } from '../services/supabase';
-import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash, Award } from 'lucide-react';
+import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash, Award, Sparkles, RefreshCw, BookOpen, HelpCircle } from 'lucide-react';
 
 const formatError = (err: any, defaultMsg: string) => {
     const msg = String(err?.message || err?.error || '').toLowerCase();
@@ -65,48 +65,199 @@ export default function AdminStudio() {
 function AdminAIUpdates() {
     const [stories, setStories] = useState<any[]>([]);
     const [results, setResults] = useState<Record<string, string>>({});
-    const [loading, setLoading] = useState(false);
+    const [loaders, setLoaders] = useState<Record<string, boolean>>({});
+    const [loadingAll, setLoadingAll] = useState(false);
+    const [loadingStories, setLoadingStories] = useState(true);
+
+    const loadStoriesWithChapters = async () => {
+        setLoadingStories(true);
+        try {
+            const allStories = await api.stories.getAll();
+            const updatedList = await Promise.all(allStories.map(async (story: any) => {
+                try {
+                    const chapters = await api.chapters.getByStory(story.id);
+                    const highest = chapters.length > 0 ? Math.max(...chapters.map((ch: any) => ch.chapter_number || 0)) : 0;
+                    return {
+                        ...story,
+                        latestLocalChapter: highest
+                    };
+                } catch (err) {
+                    return {
+                        ...story,
+                        latestLocalChapter: 0
+                    };
+                }
+            }));
+            setStories(updatedList);
+        } catch (err) {
+            console.error("Error loading stories with chapters", err);
+        } finally {
+            setLoadingStories(false);
+        }
+    };
 
     useEffect(() => {
-        api.stories.getAll().then(setStories);
+        loadStoriesWithChapters();
     }, []);
 
-    const checkAll = async () => {
-        setLoading(true);
-        const newResults: Record<string, string> = {};
-        for(const s of stories) {
-            try {
-                const res = await fetch('/api/admin/check-updates', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ title: s.title })
-                });
-                const data = await res.json();
-                newResults[s.id] = data.message;
-            } catch(e) {
-                newResults[s.id] = "Error al consultar";
-            }
+    const checkSingle = async (storyId: string, title: string, latestLocalChapter: number) => {
+        setLoaders(prev => ({ ...prev, [storyId]: true }));
+        try {
+            const res = await fetch('/api/admin/check-updates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title, latestLocalChapter })
+            });
+            const data = await res.json();
+            setResults(prev => ({ ...prev, [storyId]: data.message || "No se recibió respuesta" }));
+        } catch (e) {
+            setResults(prev => ({ ...prev, [storyId]: "Error al consultar con la IA buscador." }));
+        } finally {
+            setLoaders(prev => ({ ...prev, [storyId]: false }));
         }
-        setResults(newResults);
-        setLoading(false);
+    };
+
+    const checkAll = async () => {
+        setLoadingAll(true);
+        for (const s of stories) {
+            await checkSingle(s.id, s.title, s.latestLocalChapter || 0);
+        }
+        setLoadingAll(false);
     };
 
     return (
         <div className="bg-white border-4 border-black rounded-[2rem] p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-            <h2 className="text-2xl font-black text-purple-600 uppercase italic tracking-tight font-display mb-6">Analizador de Novedades (IA)</h2>
-            <button onClick={checkAll} disabled={loading} className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-black uppercase text-sm border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50">
-                {loading ? 'Analizando...' : 'Analizar todas las obras'}
-            </button>
-            <div className="mt-8 flex flex-col gap-4">
-                {stories.map(s => (
-                    <div key={s.id} className="border-2 border-black rounded-xl p-4 bg-slate-50">
-                        <h4 className="font-black text-lg">{s.title}</h4>
-                        <p className={`font-medium text-sm mt-1 ${results[s.id]?.includes('No hay') ? 'text-slate-500' : 'text-purple-600 font-bold'}`}>
-                            {results[s.id] || "Pendiente de análisis"}
-                        </p>
-                    </div>
-                ))}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-6 border-b-2 border-slate-100">
+                <div>
+                    <h2 className="text-2xl font-black text-purple-600 uppercase italic tracking-tight font-display flex items-center gap-2">
+                        <Sparkles className="h-6 w-6 text-purple-500 fill-purple-100 animate-pulse" />
+                        Analizador de Novedades (IA)
+                    </h2>
+                    <p className="text-xs text-slate-500 font-bold mt-1 max-w-xl">
+                        Esta herramienta utiliza inteligencia artificial con Google Search habilitado para buscar capítulos más recientes que nuestro último capítulo cargado. ¡Totalmente en vivo y real!
+                    </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                    <button
+                        onClick={loadStoriesWithChapters}
+                        disabled={loadingStories || loadingAll}
+                        className="bg-slate-100 hover:bg-slate-200 text-black px-4 py-3 rounded-xl font-bold uppercase text-xs border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 flex items-center gap-1"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${loadingStories ? 'animate-spin' : ''}`} />
+                        Refrescar
+                    </button>
+                    <button
+                        onClick={checkAll}
+                        disabled={loadingAll || stories.length === 0 || loadingStories}
+                        className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-3 rounded-xl font-black uppercase text-xs border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50 flex items-center gap-1"
+                    >
+                        {loadingAll ? (
+                            <>
+                                <RefreshCw className="h-4 w-4 animate-spin" />
+                                Analizando Todos...
+                            </>
+                        ) : (
+                            <>
+                                <Sparkles className="h-4 w-4" />
+                                Analizar Todas las Obras
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
+
+            {loadingStories ? (
+                <div className="py-12 text-center text-slate-500 font-bold flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-sm">Consolidando capítulos locales...</span>
+                </div>
+            ) : stories.length === 0 ? (
+                <div className="p-8 text-center bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 font-bold text-sm">
+                    No hay obras cargadas todavía para analizar.
+                </div>
+            ) : (
+                <div className="flex flex-col gap-4">
+                    {stories.map(s => {
+                        const localChapter = s.latestLocalChapter || 0;
+                        const hasResult = !!results[s.id];
+                        const isNewAvailable = hasResult && results[s.id].toLowerCase().includes('hay') && results[s.id].toLowerCase().includes('nuevo');
+                        const isNotNew = hasResult && results[s.id].toLowerCase().includes('no hay');
+                        const isAnalyzing = loaders[s.id];
+
+                        return (
+                            <div key={s.id} className="border-4 border-black rounded-2xl p-4 md:p-5 bg-slate-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div className="flex items-start gap-3">
+                                    {s.cover_url ? (
+                                        <img
+                                            src={getImageUrl(s.cover_url)}
+                                            alt={s.title}
+                                            className="w-16 h-22 object-cover rounded-lg border-2 border-black shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                                            referrerPolicy="no-referrer"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-22 bg-slate-200 border-2 border-black rounded-lg flex items-center justify-center text-slate-400 shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                                            <BookOpen className="h-6 w-6" />
+                                        </div>
+                                    )}
+                                    <div>
+                                        <h3 className="font-black text-slate-900 text-lg leading-tight">{s.title}</h3>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-xs">
+                                            <span className="font-bold text-slate-500 uppercase tracking-wider">Autor: {s.author || 'Sin nombre'}</span>
+                                            <span className="text-slate-300">|</span>
+                                            <span className="font-extrabold text-indigo-600 uppercase bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                                                En App: Cap. {localChapter}
+                                            </span>
+                                        </div>
+
+                                        {/* Result reporting */}
+                                        <div className="mt-3">
+                                            {isAnalyzing ? (
+                                                <div className="flex items-center gap-2 text-xs font-bold text-purple-600 animate-pulse">
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                                                    </span>
+                                                    Investigando en páginas externas y noticias...
+                                                </div>
+                                            ) : hasResult ? (
+                                                <div className={`p-3 rounded-xl border-2 text-xs font-bold leading-relaxed ${
+                                                    isNewAvailable
+                                                        ? 'bg-rose-50 border-rose-300 text-rose-700 shadow-[2px_2px_0px_0px_rgba(244,63,94,0.1)]'
+                                                        : isNotNew
+                                                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                                        : 'bg-slate-100 border-slate-300 text-slate-700'
+                                                }`}>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        {isNewAvailable ? (
+                                                            <span className="bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">¡NUEVO APARTE!</span>
+                                                        ) : (
+                                                            <span className="bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">SINCRO</span>
+                                                        )}
+                                                    </div>
+                                                    <p>{results[s.id]}</p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-400 font-bold text-xs italic">Pendiente de analizar con el buscador IA.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="shrink-0 flex items-center md:self-center self-end">
+                                    <button
+                                        onClick={() => checkSingle(s.id, s.title, localChapter)}
+                                        disabled={isAnalyzing || loadingAll}
+                                        className="bg-white hover:bg-slate-50 text-slate-900 px-4 py-2 border-2 border-black font-black uppercase text-xs rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                        <Search className="h-3.5 w-3.5 text-purple-600" />
+                                        {isAnalyzing ? 'Buscando...' : 'Analizar Obra'}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
 }
