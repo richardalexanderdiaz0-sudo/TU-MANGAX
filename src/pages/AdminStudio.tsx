@@ -77,14 +77,17 @@ function AdminAIUpdates() {
                 try {
                     const chapters = await api.chapters.getByStory(story.id);
                     const highest = chapters.length > 0 ? Math.max(...chapters.map((ch: any) => ch.chapter_number || 0)) : 0;
+                    const chapterDetails = chapters.map((ch: any) => ch.title || `Capítulo ${ch.chapter_number}`);
                     return {
                         ...story,
-                        latestLocalChapter: highest
+                        latestLocalChapter: highest,
+                        chapterDetails: chapterDetails
                     };
                 } catch (err) {
                     return {
                         ...story,
-                        latestLocalChapter: 0
+                        latestLocalChapter: 0,
+                        chapterDetails: []
                     };
                 }
             }));
@@ -100,16 +103,16 @@ function AdminAIUpdates() {
         loadStoriesWithChapters();
     }, []);
 
-    const checkSingle = async (storyId: string, title: string, latestLocalChapter: number) => {
+    const checkSingle = async (storyId: string, title: string, latestLocalChapter: number, chapterDetails: string[] = []) => {
         setLoaders(prev => ({ ...prev, [storyId]: true }));
         try {
             const res = await fetch('/api/admin/check-updates', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, latestLocalChapter })
+                body: JSON.stringify({ title, latestLocalChapter, existingChapters: chapterDetails })
             });
             const data = await res.json();
-            setResults(prev => ({ ...prev, [storyId]: data.message || "No se recibió respuesta" }));
+            setResults(prev => ({ ...prev, [storyId]: data.message || data.error || "No se recibió respuesta" }));
         } catch (e) {
             setResults(prev => ({ ...prev, [storyId]: "Error al consultar con la IA buscador." }));
         } finally {
@@ -120,7 +123,7 @@ function AdminAIUpdates() {
     const checkAll = async () => {
         setLoadingAll(true);
         for (const s of stories) {
-            await checkSingle(s.id, s.title, s.latestLocalChapter || 0);
+            await checkSingle(s.id, s.title, s.latestLocalChapter || 0, s.chapterDetails || []);
         }
         setLoadingAll(false);
     };
@@ -245,7 +248,7 @@ function AdminAIUpdates() {
 
                                 <div className="shrink-0 flex items-center md:self-center self-end">
                                     <button
-                                        onClick={() => checkSingle(s.id, s.title, localChapter)}
+                                        onClick={() => checkSingle(s.id, s.title, localChapter, s.chapterDetails || [])}
                                         disabled={isAnalyzing || loadingAll}
                                         className="bg-white hover:bg-slate-50 text-slate-900 px-4 py-2 border-2 border-black font-black uppercase text-xs rounded-xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-0 active:translate-y-0 active:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 flex items-center gap-1.5"
                                     >
