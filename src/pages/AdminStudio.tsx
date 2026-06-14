@@ -5,7 +5,7 @@ import { useStore } from '../store';
 import { useNavigate, Routes, Route, Link, useParams } from 'react-router-dom';
 import { api, getImageUrl } from '../services/api';
 import { supabase } from '../services/supabase';
-import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash, Award, Sparkles, RefreshCw, BookOpen, HelpCircle } from 'lucide-react';
+import { Plus, Image as ImageIcon, Upload, FileText, Settings, ArrowRight, X, Edit, Trash, Award, Sparkles, RefreshCw, BookOpen, HelpCircle, Search } from 'lucide-react';
 
 const formatError = (err: any, defaultMsg: string) => {
     const msg = String(err?.message || err?.error || '').toLowerCase();
